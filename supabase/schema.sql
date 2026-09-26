@@ -29,6 +29,10 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
+-- Existing databases may have an older profiles table without role.
+alter table public.profiles
+  add column if not exists role public.user_role not null default 'customer';
+
 create table if not exists public.shops (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid references public.profiles(id) on delete set null,
@@ -519,13 +523,28 @@ using (
 
 -- A signed-in user may edit their own contact details, but cannot change
 -- their role through the browser client.
+-- Keep the role immutable from the browser client.
+-- A security-definer helper avoids recursive RLS evaluation on profiles.
+create or replace function public.current_user_role()
+returns public.user_role
+language sql
+stable
+security definer
+set search_path = public
+as $function$
+  select role from public.profiles where id = auth.uid()
+$function$;
+
+revoke all on function public.current_user_role() from public;
+grant execute on function public.current_user_role() to authenticated;
+
 drop policy if exists "users can update own profile" on public.profiles;
 create policy "users can update own profile"
 on public.profiles for update
 using (auth.uid() = id)
 with check (
   auth.uid() = id
-  and role = (select p.role from public.profiles p where p.id = auth.uid())
+  and role = public.current_user_role()
 );
 
 -- Product photos are stored in a public bucket so marketplace images can be
