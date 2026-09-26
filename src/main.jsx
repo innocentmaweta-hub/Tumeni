@@ -60,7 +60,10 @@ useEffect(()=>{
 
   (async()=>{
     const {data,error}=await getProducts();
-    if(!error&&data?.length&&mounted)setProducts(data.map(p=>({...p,img:p.image_url,desc:p.description,category:p.categories?.name||'Other',shop:p.shops?.name})));
+    if(mounted){
+      if(!error&&data) setProducts(data.map(p=>({...p,img:p.image_url,desc:p.description,category:p.categories?.name||'Other',shop:p.shops?.name})));
+      else if(supabaseConfigured) setProducts([]);
+    }
 
     const {data:{session}}=await supabase.auth.getSession();
     await applySession(session);
