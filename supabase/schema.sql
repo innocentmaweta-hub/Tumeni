@@ -254,7 +254,8 @@ begin
   )
   on conflict (id) do update
     set full_name = coalesce(excluded.full_name, public.profiles.full_name),
-        phone = coalesce(excluded.phone, public.profiles.phone);
+        phone = coalesce(excluded.phone, public.profiles.phone),
+        role = excluded.role;
   return new;
 end;
 $function$;
@@ -263,6 +264,13 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
+
+-- Ensure the designated administrator is corrected even if the account already existed.
+update public.profiles p
+set role = 'admin'
+from auth.users u
+where p.id = u.id
+  and lower(coalesce(u.email,'')) = 'innocentmaweta@gmail.com';
 
 -- Enable Row Level Security.
 alter table public.profiles enable row level security;
