@@ -231,3 +231,31 @@ export async function getCategories() {
   if (!supabase) return { data: [], error: null };
   return supabase.from('categories').select('id,name').order('name');
 }
+
+
+export async function createCategory({ name, imageUrl = '' }) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data, error } = await supabase.from('categories').insert({
+    name: name.trim(),
+    image_url: imageUrl?.trim() || null
+  }).select('id,name,image_url').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateCategory({ id, name, imageUrl = '' }) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data, error } = await supabase.from('categories').update({
+    name: name.trim(),
+    image_url: imageUrl?.trim() || null
+  }).eq('id', id).select('id,name,image_url').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteCategory(id) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { error } = await supabase.from('categories').delete().eq('id', id);
+  if (error) throw error;
+  return true;
+}
