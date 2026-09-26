@@ -34,6 +34,8 @@ export async function getCurrentProfile() {
         id: user.id,
         full_name: metadata.full_name || user.email || 'Tumeni customer',
         phone: metadata.phone || '',
+        email: user.email || '',
+        avatar_url: metadata.avatar_url || '',
         role: metadata.account_type === 'seller' ? 'partner' : 'customer'
       },
       error: error || null,
