@@ -21,7 +21,10 @@ export async function signUp({ fullName, phone, email, password }) {
   const result = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName, phone } }
+    options: {
+      data: { full_name: fullName, phone },
+      emailRedirectTo: window.location.origin + '/'
+    }
   });
   if (!result.error && result.data.user && result.data.session) {
     const { error: profileError } = await supabase
