@@ -366,6 +366,24 @@ on public.addresses for all
 using (auth.uid() = customer_id)
 with check (auth.uid() = customer_id);
 
+-- Agents need read-only access to delivery addresses for orders assigned to them.
+-- Without this policy, the nested addresses relation in the agent work queue
+-- can be hidden by RLS even though the agent can see the order itself.
+drop policy if exists "agents can view assigned delivery addresses" on public.addresses;
+create policy "agents can view assigned delivery addresses"
+on public.addresses for select
+to authenticated
+using (
+  exists (
+    select 1
+    from public.orders o
+    join public.order_assignments oa on oa.order_id = o.id
+    where o.delivery_address_id = addresses.id
+      and oa.agent_id = auth.uid()
+      and oa.completed_at is null
+  )
+);
+
 drop policy if exists "users can manage own cart" on public.carts;
 create policy "users can manage own cart"
 on public.carts for all
