@@ -35,19 +35,41 @@ function App(){const [splash,setSplash]=useState(true),[tab,setTab]=useState('Ho
 useEffect(()=>{
   if(!supabaseConfigured)return;
   let mounted=true;
-  const loadProfile=async()=>{
+
+  const applySession=async(session)=>{
+    if(!mounted)return;
+    if(!session?.user){
+      setProfile(null);
+      return;
+    }
+
+    // Set the signed-in state immediately from the authenticated user.
+    // The profile table is loaded afterward for the customer's saved details.
+    const user=session.user;
+    const metadata=user.user_metadata||{};
+    setProfile({
+      id:user.id,
+      full_name:metadata.full_name||user.email||'Tumeni customer',
+      phone:metadata.phone||'',
+      role:'customer'
+    });
+
     const r=await getCurrentProfile();
-    if(mounted)setProfile(r.data||null);
+    if(mounted&&r.data)setProfile(r.data);
   };
+
   (async()=>{
     const {data,error}=await getProducts();
     if(!error&&data?.length&&mounted)setProducts(data.map(p=>({...p,img:p.image_url,desc:p.description,category:p.categories?.name||'Other',shop:p.shops?.name})));
-    await loadProfile();
+
+    const {data:{session}}=await supabase.auth.getSession();
+    await applySession(session);
   })();
+
   const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{
-    if(session)loadProfile();
-    else if(mounted)setProfile(null);
+    void applySession(session);
   });
+
   return()=>{mounted=false;listener?.subscription?.unsubscribe()};
 },[]);
 
