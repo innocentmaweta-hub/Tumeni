@@ -60,3 +60,26 @@ body{background:#f7b400}button,input,textarea{font:inherit}button{cursor:pointer
 .admin-page{padding-bottom:28px}.admin-intro{font-size:10px;color:#777;line-height:1.5;margin:0 0 14px}.admin-list{display:flex;flex-direction:column;gap:8px}.admin-category{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #eee;border-radius:9px;padding:11px;background:#fff}.admin-category b,.admin-category small{display:block}.admin-category b{font-size:10px}.admin-category small{font-size:7px;color:#777;margin-top:3px}.admin-category>span{min-width:0}.admin-category>div{display:flex;align-items:center;gap:6px}.admin-action{padding:7px 9px;font-size:8px}.admin-category .delete{border:1px solid #eee;background:#fff;border-radius:7px;padding:7px}.admin-entry{background:#fff7f7}
 
 .avatar-editor{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:4px}.profile-avatar{overflow:hidden}.profile-avatar img{width:100%;height:100%;object-fit:cover;display:block}.avatar-change{position:relative;border:1px solid #e5e5e5;background:#fff;border-radius:7px;padding:7px 11px;font-size:8px;font-weight:750;color:#b51a1a;cursor:pointer}.avatar-change input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0}.readonly-input{background:#f5f5f5!important;color:#888!important;cursor:not-allowed}.account-form .profile-avatar.large{border:1px solid #eee;box-shadow:0 2px 8px #0000000a}
+
+/* Polished interaction system */
+:root{--tm-red:#b51a1a;--tm-red-dark:#951313;--tm-shadow:0 6px 18px #0000000b}
+button,.card,.request-card,.pay-option,.saved-payment,.account-card,.admin-category,.seller-product,.seller-entry,.product-form,.photo-upload,.settings-list button,.qty button,.delete,.icon-btn,.profile-edit,.seller-toolbar .primary,.secondary{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background-color .18s ease,color .18s ease,opacity .18s ease}
+button:active{transform:scale(.97)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #b51a1a55;outline-offset:2px}
+.primary,.explore-search button{box-shadow:0 4px 10px #b51a1a22}
+.primary:hover,.explore-search button:hover{background:var(--tm-red-dark);box-shadow:0 7px 16px #b51a1a2b;transform:translateY(-1px)}
+.icon-btn:hover,.profile-edit:hover,.secondary:hover,.qty button:hover,.delete:hover{background:#fafafa;border-color:#d8d8d8;box-shadow:0 4px 12px #0000000c}
+.request-card:hover,.account-card:hover,.seller-entry:hover,.pay-option:hover,.saved-payment:hover,.admin-category:hover,.seller-product:hover{border-color:#dedede;box-shadow:var(--tm-shadow);transform:translateY(-1px)}
+.card{animation:tm-fade-up .38s ease both}.card:hover .photo{box-shadow:0 9px 22px #00000016;transform:translateY(-2px)}.card .photo{transition:transform .22s ease,box-shadow .22s ease}
+.photo img,.detail-img>img,.seller-product-img img,.seller-photo-preview img{transition:transform .35s ease}.card:hover .photo img{transform:scale(1.035)}
+.heart,.heart-float{transition:transform .18s ease,box-shadow .18s ease,color .18s ease}.heart:hover,.heart-float:hover{transform:scale(1.08);box-shadow:0 4px 12px #0000001a}
+.topbar{box-shadow:0 5px 14px #00000005}.top-search{transition:border-color .2s ease,box-shadow .2s ease,background-color .2s ease}.top-search:focus-within{background:#fff;border-color:#d6b1b1;box-shadow:0 4px 14px #0000000a}
+.top-notification,.top-account{transition:transform .18s ease,color .18s ease}.top-notification:hover,.top-account:hover{color:var(--tm-red);transform:translateY(-1px)}
+.brand-mark{box-shadow:0 4px 10px #b51a1a24;transition:transform .2s ease,box-shadow .2s ease}.brand:hover .brand-mark{transform:rotate(-3deg) scale(1.04);box-shadow:0 6px 14px #b51a1a30}
+.bottom{box-shadow:0 -8px 20px #00000018}.bottom button{transition:color .18s ease,transform .18s ease}.bottom button:hover{color:#fff;transform:translateY(-2px)}
+.cats button,.chips button{transition:all .18s ease}.cats button:hover,.chips button:hover{border-color:#d5aaaa;background:#fffafa;transform:translateY(-1px)}.cats .active,.chips .active{box-shadow:0 4px 10px #a9181824}
+.hot-banner,.hero{box-shadow:0 8px 22px #00000012}.hot-product{transition:transform .22s ease,box-shadow .22s ease}.hot-product:hover{transform:translateY(-4px) rotate(0deg);box-shadow:0 9px 20px #00000028}
+.status-card,.pay-total,.seller-shop,.profile-login-card{box-shadow:0 4px 14px #00000008}.profile-avatar{box-shadow:0 3px 10px #0000000b}.profile-avatar img{transition:transform .3s ease}.profile-avatar:hover img{transform:scale(1.04)}.avatar-change:hover{background:#fff7f7;border-color:#e1baba}
+.empty,.account-empty{animation:tm-fade-up .35s ease both}.detail-body{animation:tm-fade-up .3s ease both}.screen:not(.splash){animation:tm-page-in .24s ease both}
+@keyframes tm-page-in{from{opacity:.82;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes tm-fade-up{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
