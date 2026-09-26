@@ -51,6 +51,6 @@ body{background:#f7b400}button,input,textarea{font:inherit}button{cursor:pointer
 .brand-mark{width:27px;height:27px;border-radius:7px;background:#b51a1a;color:#fff;display:grid;place-items:center;font-size:8px;font-weight:950;letter-spacing:-.5px}
 .top-search{min-width:0;height:34px;border:1px solid #ddd;background:#f8f8f8;border-radius:18px;padding:0 10px;display:flex;align-items:center;gap:7px;color:#888;text-align:left}
 .top-search span{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.top-account{border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#333;min-width:34px}
+.top-actions{display:flex;align-items:center;gap:8px}.top-notification{position:relative;border:0;background:none;padding:0;width:30px;height:30px;display:grid;place-items:center;color:#333}.notification-dot{position:absolute;right:2px;top:2px;width:6px;height:6px;border-radius:50%;background:#b51a1a;border:1px solid #fff}.top-account{border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#333;min-width:34px}
 .top-account small{font-size:6px;font-weight:750;color:#666}
 @media(max-width:360px){.topbar{gap:6px}.brand>span:last-child{display:none}.top-search span{font-size:7px}.top-account{min-width:30px}}
