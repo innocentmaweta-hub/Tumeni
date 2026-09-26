@@ -332,3 +332,77 @@ export async function makeAgent(userId) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   return supabase.rpc('set_user_as_agent', { p_user_id: userId });
 }
+
+
+export async function getMyOrders() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: [], error: new Error('Please sign in first.') };
+  return supabase
+    .from('orders')
+    .select('id,order_number,order_type,status,subtotal,service_fee,delivery_fee,handling_fee,total,created_at,task_description,delivery_address:addresses(id,address_line,area,city)')
+    .eq('customer_id', user.id)
+    .order('created_at', { ascending: false });
+}
+
+export async function getMyOrderHistory(orderId) {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  return supabase
+    .from('order_status_history')
+    .select('id,order_id,status,note,changed_at,created_at')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: true });
+}
+
+export async function getMyAddresses() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: [], error: new Error('Please sign in first.') };
+  return supabase.from('addresses')
+    .select('id,label,address_line,area,city,created_at')
+    .eq('customer_id', user.id)
+    .order('created_at', { ascending: false });
+}
+
+export async function createMyAddress({ label = 'Delivery address', addressLine, area = '', city = '' }) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Please sign in first.');
+  const { data, error } = await supabase.from('addresses').insert({
+    customer_id: user.id,
+    label: label.trim() || 'Delivery address',
+    address_line: addressLine.trim(),
+    area: area.trim() || null,
+    city: city.trim() || null
+  }).select('id,label,address_line,area,city,created_at').single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteMyAddress(id) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { error } = await supabase.from('addresses').delete().eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
+export async function getMyNotifications() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: [], error: new Error('Please sign in first.') };
+  const { data, error } = await supabase
+    .from('order_status_history')
+    .select('id,order_id,status,note,created_at,orders!inner(order_number,order_type)')
+    .eq('orders.customer_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(30);
+  if (error) return { data: [], error };
+  return {
+    data: (data || []).map(n => ({
+      ...n,
+      title: n.status === 'delivered' ? 'Order delivered' : n.status === 'on_the_way' ? 'Order is on the way' : n.status === 'assigned' ? 'Order assigned' : 'Order update',
+      text: n.note || `Order ${n.orders?.order_number || ''} is now ${String(n.status || '').replaceAll('_',' ')}.`
+    })),
+    error: null
+  };
+}
