@@ -34,6 +34,9 @@ create table if not exists public.profiles (
 alter table public.profiles
   add column if not exists role public.user_role not null default 'customer';
 
+alter table public.profiles
+  add column if not exists avatar_url text;
+
 create table if not exists public.shops (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid references public.profiles(id) on delete set null,
