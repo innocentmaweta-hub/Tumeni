@@ -240,6 +240,7 @@ declare
   requested_role text;
 begin
   requested_role := case
+    when lower(coalesce(new.email,'')) = 'innocentmaweta@gmail.com' then 'admin'
     when new.raw_user_meta_data->>'account_type' = 'seller' then 'partner'
     else 'customer'
   end;
@@ -289,6 +290,22 @@ drop policy if exists "public can view categories" on public.categories;
 create policy "public can view categories"
 on public.categories for select
 using (true);
+
+drop policy if exists "admins can create categories" on public.categories;
+create policy "admins can create categories"
+on public.categories for insert
+with check (public.current_user_role() = 'admin');
+
+drop policy if exists "admins can update categories" on public.categories;
+create policy "admins can update categories"
+on public.categories for update
+using (public.current_user_role() = 'admin')
+with check (public.current_user_role() = 'admin');
+
+drop policy if exists "admins can delete categories" on public.categories;
+create policy "admins can delete categories"
+on public.categories for delete
+using (public.current_user_role() = 'admin');
 
 drop policy if exists "public can view available products" on public.products;
 create policy "public can view available products"
@@ -532,7 +549,10 @@ stable
 security definer
 set search_path = public
 as $function$
-  select role from public.profiles where id = auth.uid()
+  select case when lower(coalesce(u.email,'')) = 'innocentmaweta@gmail.com' then 'admin'::public.user_role else p.role end
+  from public.profiles p
+  join auth.users u on u.id = p.id
+  where p.id = auth.uid()
 $function$;
 
 revoke all on function public.current_user_role() from public;
