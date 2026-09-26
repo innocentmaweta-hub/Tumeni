@@ -16,6 +16,23 @@ export async function getCurrentProfile() {
   return supabase.from('profiles').select('*').eq('id', user.id).single();
 }
 
+export async function signUp({ fullName, phone, email, password }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const result = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { full_name: fullName, phone } }
+  });
+  if (!result.error && result.data.user && result.data.session) {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ full_name: fullName, phone })
+      .eq('id', result.data.user.id);
+    if (profileError) return { ...result, error: profileError };
+  }
+  return result;
+}
+
 export async function signIn(email, password) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   return supabase.auth.signInWithPassword({ email, password });
