@@ -187,16 +187,18 @@ export async function getMyProducts() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: [], error: new Error('Please sign in first.') };
-  return supabase
+  const isAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
+  const query = supabase
     .from('products')
     .select('id,name,description,price,image_url,category_id,shop_id,available,created_at,categories(name)')
     .order('created_at', { ascending: false });
+  return isAdmin ? query.is('shop_id', null) : query;
 }
 
 export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, available = true }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const { data, error } = await supabase.from('products').insert({
-    shop_id: shopId,
+    shop_id: shopId || null,
     name: name.trim(),
     description: description?.trim() || null,
     price: Number(price),
