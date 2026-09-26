@@ -325,6 +325,8 @@ export async function getAdminOrders() {
 
 export async function getAdminUsers() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const sync = await supabase.rpc('sync_auth_users_to_profiles');
+  if (sync.error) return { data: [], error: sync.error };
   return supabase.from('profiles').select('id,full_name,phone,role').neq('role','admin').order('full_name');
 }
 
