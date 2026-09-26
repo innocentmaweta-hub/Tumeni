@@ -2,7 +2,7 @@ import React,{useEffect,useMemo,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './styles.css';
 import {supabaseConfigured,supabase} from './lib/supabase';
-import {getProducts,getCurrentProfile,signUp,signIn,signOut,createPurchaseOrder,createTaskOrder,getMyShop,createMyShop,getMyProducts,createSellerProduct,updateSellerProduct,deleteSellerProduct,getCategories,createCategory,updateCategory,deleteCategory,getAgentAssignments,getAgentOrders,getEmployees,assignOrderToAgent,updateAgentOrderStatus,getAdminOrders} from './services/tumeniApi';
+import {getProducts,getCurrentProfile,signUp,signIn,signOut,createPurchaseOrder,createTaskOrder,getMyShop,createMyShop,getMyProducts,createSellerProduct,updateSellerProduct,deleteSellerProduct,getCategories,createCategory,updateCategory,deleteCategory,getAgentAssignments,getAgentOrders,getEmployees,getAdminUsers,makeAgent,assignOrderToAgent,updateAgentOrderStatus,getAdminOrders} from './services/tumeniApi';
 
 const fallbackProducts=[
  {id:1,name:'Margherita Pizza',price:12.90,rating:4.6,category:'Pizzas',img:'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=900&q=88',desc:'Classic pizza with tomato, mozzarella and fresh basil.'},
