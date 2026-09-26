@@ -70,7 +70,7 @@ useEffect(()=>{
   (async()=>{
     const [{data,error},{data:categoryData,error:categoryError}]=await Promise.all([getProducts(),getCategories()]);
     if(mounted){
-      if(!error&&data) setProducts(data.map(p=>({...p,img:p.image_url,desc:p.description,category:p.categories?.name||'Other',shop:p.shops?.name})));
+      if(!error&&data) setProducts(data.map(p=>({...p,img:p.image_url,desc:p.description,category:p.categories?.name||'Other',shop:p.shop_id? p.shops?.name : 'Admin Product'})));
       else if(supabaseConfigured) setProducts([]);
       if(!categoryError&&categoryData) setCategories(categoryData);
     }
