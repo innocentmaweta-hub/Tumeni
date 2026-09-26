@@ -43,7 +43,7 @@ export async function getCurrentProfile() {
     };
   }
 
-  return { data: isDesignatedAdmin ? { ...profile, role: 'admin' } : profile, error: null, configured: true };
+  return { data: isDesignatedAdmin ? { ...profile, email: user.email || '', role: 'admin' } : { ...profile, email: user.email || '' }, error: null, configured: true };
 }
 
 export async function signUp({ fullName, phone, email, password, accountType = 'customer' }) {
