@@ -322,3 +322,13 @@ export async function getAdminOrders() {
     error: null
   };
 }
+
+export async function getAdminUsers() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  return supabase.from('profiles').select('id,full_name,phone,role').neq('role','admin').order('full_name');
+}
+
+export async function makeAgent(userId) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.rpc('set_user_as_agent', { p_user_id: userId });
+}
