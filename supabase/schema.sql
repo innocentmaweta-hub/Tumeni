@@ -843,7 +843,7 @@ create policy "admins can view all status history"
 on public.order_status_history for select
 using (public.current_user_role() = 'admin');
 
-\n-- Customer-facing data is intentionally read-only for shops/products/categories.
+-- Customer-facing data is intentionally read-only for shops/products/categories.
 -- Payments, assignments, pricing rules and order status changes are controlled
 -- by trusted backend/admin processes rather than the public client.
 
