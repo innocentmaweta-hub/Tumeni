@@ -645,6 +645,48 @@ using (
 
 -- Internal delivery employees keep the existing role name: agent.
 -- Agents cannot self-assign work. Admins assign orders through a trusted RPC.
+-- Reconcile Auth users into profiles so admin user management never misses a
+-- customer whose profile row was not created by the signup trigger.
+create or replace function public.sync_auth_users_to_profiles()
+returns integer
+language plpgsql
+security definer
+set search_path = public, auth
+as $function$
+declare
+  inserted_count integer := 0;
+  u record;
+  user_role text;
+begin
+  if public.current_user_role() <> 'admin' then
+    raise exception 'Administrator access required';
+  end if;
+
+  for u in select id, email, raw_user_meta_data from auth.users loop
+    if not exists (select 1 from public.profiles p where p.id = u.id) then
+      user_role := case
+        when lower(coalesce(u.email,'')) = 'innocentmaweta@gmail.com' then 'admin'
+        when u.raw_user_meta_data->>'account_type' = 'seller' then 'partner'
+        else 'customer'
+      end;
+      insert into public.profiles (id, full_name, phone, role)
+      values (
+        u.id,
+        coalesce(u.raw_user_meta_data->>'full_name', u.email),
+        u.raw_user_meta_data->>'phone',
+        user_role::public.user_role
+      )
+      on conflict (id) do nothing;
+      inserted_count := inserted_count + 1;
+    end if;
+  end loop;
+  return inserted_count;
+end;
+$function$;
+
+revoke all on function public.sync_auth_users_to_profiles() from public;
+grant execute on function public.sync_auth_users_to_profiles() to authenticated;
+
 create or replace function public.set_user_as_agent(p_user_id uuid)
 returns public.profiles
 language plpgsql
