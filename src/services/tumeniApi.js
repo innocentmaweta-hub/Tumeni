@@ -42,13 +42,14 @@ export async function getCurrentProfile() {
   return { data: profile, error: null, configured: true };
 }
 
-export async function signUp({ fullName, phone, email, password }) {
+export async function signUp({ fullName, phone, email, password, accountType = 'customer' }) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const safeAccountType = accountType === 'seller' ? 'seller' : 'customer';
   const result = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { full_name: fullName, phone },
+      data: { full_name: fullName, phone, account_type: safeAccountType },
       emailRedirectTo: 'https://tumeni.vercel.app/'
     }
   });
@@ -154,4 +155,79 @@ export async function createTaskOrder({ customerId, description, addressId, fees
 
   if (taskError) throw taskError;
   return order;
+}
+
+
+export async function getMyShop() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  return supabase.from('shops').select('*').eq('owner_id', user.id).maybeSingle();
+}
+
+export async function createMyShop({ name, location, contactPhone, description = '' }) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Please sign in first.');
+  const { data: existing } = await supabase.from('shops').select('id').eq('owner_id', user.id).maybeSingle();
+  if (existing) return { data: existing, error: null };
+  return supabase.from('shops').insert({
+    owner_id: user.id,
+    name: name.trim(),
+    location: location.trim(),
+    contact_phone: contactPhone.trim(),
+    description: description.trim(),
+    partnership_status: 'active'
+  }).select().single();
+}
+
+export async function getMyProducts() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: [], error: new Error('Please sign in first.') };
+  return supabase
+    .from('products')
+    .select('id,name,description,price,image_url,category_id,shop_id,available,created_at,categories(name)')
+    .order('created_at', { ascending: false });
+}
+
+export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, available = true }) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data, error } = await supabase.from('products').insert({
+    shop_id: shopId,
+    name: name.trim(),
+    description: description?.trim() || null,
+    price: Number(price),
+    category_id: categoryId || null,
+    image_url: imageUrl?.trim() || null,
+    available
+  }).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateSellerProduct({ id, name, description, price, categoryId, imageUrl, available }) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data, error } = await supabase.from('products').update({
+    name: name.trim(),
+    description: description?.trim() || null,
+    price: Number(price),
+    category_id: categoryId || null,
+    image_url: imageUrl?.trim() || null,
+    available: Boolean(available)
+  }).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteSellerProduct(id) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { error } = await supabase.from('products').delete().eq('id', id);
+  if (error) throw error;
+  return true;
+}
+
+export async function getCategories() {
+  if (!supabase) return { data: [], error: null };
+  return supabase.from('categories').select('id,name').order('name');
 }
