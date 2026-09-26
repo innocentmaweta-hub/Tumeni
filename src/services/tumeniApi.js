@@ -306,6 +306,19 @@ export async function assignOrderToAgent({ orderId, agentId }) {
   return supabase.rpc('assign_order_to_agent', { p_order_id: orderId, p_agent_id: agentId });
 }
 
+export async function getPayChanguOperators() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data, error } = await supabase.functions.invoke('paychangu-operators', { body: {} });
+  return { data: data?.operators || [], error };
+}
+
+export async function initiatePayChanguMobileMoney({ orderId, mobile, operatorRefId }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.functions.invoke('paychangu-charge', {
+    body: { order_id: orderId, mobile, operator_ref_id: operatorRefId }
+  });
+}
+
 export async function updateAgentOrderStatus({ orderId, status, note = '' }) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   return supabase.rpc('agent_update_order_status', { p_order_id: orderId, p_status: status, p_note: note });
