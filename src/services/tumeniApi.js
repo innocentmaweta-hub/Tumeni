@@ -80,8 +80,17 @@ export async function signOut() {
   return supabase.auth.signOut();
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export async function createPurchaseOrder({ customerId, items, addressId, fees }) {
   if (!supabase) throw new Error('Supabase is not configured.');
+  if (!UUID_RE.test(customerId)) throw new Error('Invalid customer account ID. Please sign out and sign in again.');
+  if (addressId && !UUID_RE.test(addressId)) throw new Error('Invalid delivery address ID.');
+  if (!items?.length) throw new Error('Your cart is empty.');
+  for (const item of items) {
+    if (!UUID_RE.test(item.product_id)) throw new Error('This product is not linked to the Tumeni database yet. Please refresh and choose a published product.');
+    if (item.shop_id && !UUID_RE.test(item.shop_id)) throw new Error('This product has an invalid partner shop ID.');
+  }
   const subtotal = items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0);
   const serviceFee = Number(fees?.serviceFee || 0);
   const deliveryFee = Number(fees?.deliveryFee || 0);
