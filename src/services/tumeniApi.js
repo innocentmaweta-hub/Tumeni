@@ -192,7 +192,16 @@ export async function getMyProducts() {
     .from('products')
     .select('id,name,description,price,image_url,category_id,shop_id,available,created_at,categories(name)')
     .order('created_at', { ascending: false });
-  return isAdmin ? query.is('shop_id', null) : query;
+  if (isAdmin) return query.is('shop_id', null);
+
+  const { data: shop, error: shopError } = await supabase
+    .from('shops')
+    .select('id')
+    .eq('owner_id', user.id)
+    .maybeSingle();
+  if (shopError) return { data: [], error: shopError };
+  if (!shop) return { data: [], error: null };
+  return query.eq('shop_id', shop.id);
 }
 
 export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, available = true }) {
