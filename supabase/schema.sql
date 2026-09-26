@@ -272,6 +272,26 @@ from auth.users u
 where p.id = u.id
   and lower(coalesce(u.email,'')) = 'innocentmaweta@gmail.com';
 
+-- Role helper must exist before admin RLS policies are created.
+create or replace function public.current_user_role()
+returns public.user_role
+language sql
+stable
+security definer
+set search_path = public, auth
+as $function$
+  select case
+    when lower(coalesce(u.email,'')) = 'innocentmaweta@gmail.com' then 'admin'::public.user_role
+    else p.role
+  end
+  from auth.users u
+  left join public.profiles p on p.id = u.id
+  where u.id = auth.uid()
+$function$;
+
+revoke all on function public.current_user_role() from public;
+grant execute on function public.current_user_role() to authenticated;
+
 -- Enable Row Level Security.
 alter table public.profiles enable row level security;
 alter table public.shops enable row level security;
@@ -549,23 +569,6 @@ using (
 -- A signed-in user may edit their own contact details, but cannot change
 -- their role through the browser client.
 -- Keep the role immutable from the browser client.
--- A security-definer helper avoids recursive RLS evaluation on profiles.
-create or replace function public.current_user_role()
-returns public.user_role
-language sql
-stable
-security definer
-set search_path = public
-as $function$
-  select case when lower(coalesce(u.email,'')) = 'innocentmaweta@gmail.com' then 'admin'::public.user_role else p.role end
-  from public.profiles p
-  join auth.users u on u.id = p.id
-  where p.id = auth.uid()
-$function$;
-
-revoke all on function public.current_user_role() from public;
-grant execute on function public.current_user_role() to authenticated;
-
 drop policy if exists "users can update own profile" on public.profiles;
 create policy "users can update own profile"
 on public.profiles for update
