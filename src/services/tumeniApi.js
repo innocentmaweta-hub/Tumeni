@@ -351,7 +351,7 @@ export async function getMyOrderHistory(orderId) {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   return supabase
     .from('order_status_history')
-    .select('id,order_id,status,note,changed_at,created_at')
+    .select('id,order_id,status,note,created_at')
     .eq('order_id', orderId)
     .order('created_at', { ascending: true });
 }
