@@ -31,6 +31,7 @@ create table if not exists public.profiles (
 
 create table if not exists public.shops (
   id uuid primary key default gen_random_uuid(),
+  owner_id uuid references public.profiles(id) on delete set null,
   name text not null,
   description text,
   location text,
@@ -39,6 +40,8 @@ create table if not exists public.shops (
   partnership_status text not null default 'active',
   created_at timestamptz not null default now()
 );
+
+alter table public.shops add column if not exists owner_id uuid references public.profiles(id) on delete set null;
 
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),
@@ -228,20 +231,28 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as $
+declare
+  requested_role text;
 begin
-  insert into public.profiles (id, full_name, phone)
+  requested_role := case
+    when new.raw_user_meta_data->>'account_type' = 'seller' then 'partner'
+    else 'customer'
+  end;
+
+  insert into public.profiles (id, full_name, phone, role)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', new.email),
-    new.raw_user_meta_data->>'phone'
+    new.raw_user_meta_data->>'phone',
+    requested_role::public.user_role
   )
   on conflict (id) do update
     set full_name = coalesce(excluded.full_name, public.profiles.full_name),
         phone = coalesce(excluded.phone, public.profiles.phone);
   return new;
 end;
-$$;
+$;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
@@ -428,6 +439,93 @@ using (
     where o.id = order_status_history.order_id
       and o.customer_id = auth.uid()
   )
+);
+
+-- Seller/partner shop and product management.
+drop policy if exists "partners can view own shops" on public.shops;
+create policy "partners can view own shops"
+on public.shops for select
+using (owner_id = auth.uid());
+
+drop policy if exists "partners can create own shop" on public.shops;
+create policy "partners can create own shop"
+on public.shops for insert
+with check (
+  owner_id = auth.uid()
+  and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role = 'partner'
+  )
+);
+
+drop policy if exists "partners can update own shop" on public.shops;
+create policy "partners can update own shop"
+on public.shops for update
+using (owner_id = auth.uid())
+with check (owner_id = auth.uid());
+
+drop policy if exists "partners can view own products" on public.products;
+create policy "partners can view own products"
+on public.products for select
+using (
+  exists (
+    select 1 from public.shops s
+    where s.id = products.shop_id
+      and s.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists "partners can create products in own shop" on public.products;
+create policy "partners can create products in own shop"
+on public.products for insert
+with check (
+  exists (
+    select 1 from public.shops s
+    join public.profiles p on p.id = auth.uid()
+    where s.id = products.shop_id
+      and s.owner_id = auth.uid()
+      and p.role = 'partner'
+  )
+);
+
+drop policy if exists "partners can update own products" on public.products;
+create policy "partners can update own products"
+on public.products for update
+using (
+  exists (
+    select 1 from public.shops s
+    where s.id = products.shop_id
+      and s.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.shops s
+    where s.id = products.shop_id
+      and s.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists "partners can delete own products" on public.products;
+create policy "partners can delete own products"
+on public.products for delete
+using (
+  exists (
+    select 1 from public.shops s
+    where s.id = products.shop_id
+      and s.owner_id = auth.uid()
+  )
+);
+
+-- A signed-in user may edit their own contact details, but cannot change
+-- their role through the browser client.
+drop policy if exists "users can update own profile" on public.profiles;
+create policy "users can update own profile"
+on public.profiles for update
+using (auth.uid() = id)
+with check (
+  auth.uid() = id
+  and role = (select p.role from public.profiles p where p.id = auth.uid())
 );
 
 -- Customer-facing data is intentionally read-only for shops/products/categories.
