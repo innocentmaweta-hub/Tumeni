@@ -54,3 +54,7 @@ body{background:#f7b400}button,input,textarea{font:inherit}button{cursor:pointer
 .top-actions{display:flex;align-items:center;gap:8px;flex:none}.top-notification{position:relative;border:0;background:none;padding:0;width:30px;height:30px;display:grid;place-items:center;color:#333}.notification-dot{position:absolute;right:2px;top:2px;width:6px;height:6px;border-radius:50%;background:#b51a1a;border:1px solid #fff}.top-account{border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#333;min-width:34px}
 .top-account small{font-size:6px;font-weight:750;color:#666}
 @media(max-width:360px){.topbar{gap:6px}.brand>span:last-child{display:none}.top-search span{font-size:7px}.top-account{min-width:30px}.top-search input{font-size:7px}}
+
+
+/* Admin center */
+.admin-page{padding-bottom:28px}.admin-intro{font-size:10px;color:#777;line-height:1.5;margin:0 0 14px}.admin-list{display:flex;flex-direction:column;gap:8px}.admin-category{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #eee;border-radius:9px;padding:11px;background:#fff}.admin-category b,.admin-category small{display:block}.admin-category b{font-size:10px}.admin-category small{font-size:7px;color:#777;margin-top:3px}.admin-category>span{min-width:0}.admin-category>div{display:flex;align-items:center;gap:6px}.admin-action{padding:7px 9px;font-size:8px}.admin-category .delete{border:1px solid #eee;background:#fff;border-radius:7px;padding:7px}.admin-entry{background:#fff7f7}
