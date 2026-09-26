@@ -231,7 +231,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $function$
 declare
   requested_role text;
 begin
@@ -252,7 +252,7 @@ begin
         phone = coalesce(excluded.phone, public.profiles.phone);
   return new;
 end;
-$;
+$function$;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
