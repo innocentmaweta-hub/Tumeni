@@ -349,6 +349,11 @@ create policy "users can view own profile"
 on public.profiles for select
 using (auth.uid() = id);
 
+drop policy if exists "admins can view profiles" on public.profiles;
+create policy "admins can view profiles"
+on public.profiles for select
+using (public.current_user_role() = 'admin');
+
 drop policy if exists "users can update own profile" on public.profiles;
 create policy "users can update own profile"
 on public.profiles for update
