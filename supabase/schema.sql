@@ -524,14 +524,38 @@ using (
   )
 );
 
+drop policy if exists "admins can view admin products" on public.products;
+create policy "admins can view admin products"
+on public.products for select
+using (
+  public.current_user_role() = 'admin'
+  and shop_id is null
+);
+
 drop policy if exists "admins can manage admin products" on public.products;
 create policy "admins can manage admin products"
-on public.products for all
+on public.products for insert
+with check (
+  public.current_user_role() = 'admin'
+  and shop_id is null
+);
+
+drop policy if exists "admins can update admin products" on public.products;
+create policy "admins can update admin products"
+on public.products for update
 using (
   public.current_user_role() = 'admin'
   and shop_id is null
 )
 with check (
+  public.current_user_role() = 'admin'
+  and shop_id is null
+);
+
+drop policy if exists "admins can delete admin products" on public.products;
+create policy "admins can delete admin products"
+on public.products for delete
+using (
   public.current_user_role() = 'admin'
   and shop_id is null
 );
