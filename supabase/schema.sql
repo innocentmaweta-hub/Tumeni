@@ -645,6 +645,32 @@ using (
 
 -- Internal delivery employees keep the existing role name: agent.
 -- Agents cannot self-assign work. Admins assign orders through a trusted RPC.
+create or replace function public.set_user_as_agent(p_user_id uuid)
+returns public.profiles
+language plpgsql
+security definer
+set search_path = public
+as $function$
+declare result public.profiles;
+begin
+  if public.current_user_role() <> 'admin' then
+    raise exception 'Administrator access required';
+  end if;
+  update public.profiles
+    set role = 'agent'
+    where id = p_user_id
+      and role <> 'admin'
+    returning * into result;
+  if result.id is null then
+    raise exception 'User could not be made an agent';
+  end if;
+  return result;
+end;
+$function$;
+
+revoke all on function public.set_user_as_agent(uuid) from public;
+grant execute on function public.set_user_as_agent(uuid) to authenticated;
+
 create or replace function public.assign_order_to_agent(p_order_id uuid, p_agent_id uuid)
 returns public.order_assignments
 language plpgsql
