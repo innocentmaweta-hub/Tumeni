@@ -21,6 +21,8 @@ export async function getCurrentProfile() {
     .eq('id', user.id)
     .maybeSingle();
 
+  const isDesignatedAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
+
   // Authentication is authoritative for whether the customer is signed in.
   // If the profile row is temporarily unavailable, return a safe profile
   // built from the authenticated user's metadata so the UI does not show
@@ -39,7 +41,7 @@ export async function getCurrentProfile() {
     };
   }
 
-  return { data: profile, error: null, configured: true };
+  return { data: isDesignatedAdmin ? { ...profile, role: 'admin' } : profile, error: null, configured: true };
 }
 
 export async function signUp({ fullName, phone, email, password, accountType = 'customer' }) {
