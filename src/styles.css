@@ -83,3 +83,38 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .empty,.account-empty{animation:tm-fade-up .35s ease both}.detail-body{animation:tm-fade-up .3s ease both}.screen:not(.splash){animation:tm-page-in .24s ease both}
 @keyframes tm-page-in{from{opacity:.82;transform:translateY(4px)}to{opacity:1;transform:none}}@keyframes tm-fade-up{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+
+/* Final marketplace polish */
+.notification-dot{animation:tm-notify-pulse 2s ease-in-out infinite;box-shadow:0 0 0 0 #b51a1a55}
+.pay-option,.saved-payment,.status-card,.pay-total{box-shadow:0 3px 12px #00000008}
+.pay-option:hover,.saved-payment:hover{box-shadow:0 8px 20px #00000010;transform:translateY(-2px)}
+.pay-option.chosen,.saved-payment.selected{box-shadow:0 5px 16px #b51a1a12}
+.status-card{border:1px solid #f0e2d0}.pay-total{border:1px solid #f2e3c8}
+.account-form input,.account-form textarea,.account-form select,.seller-form input,.seller-form textarea,.seller-form select,.request-page textarea,.login input{transition:border-color .2s ease,box-shadow .2s ease,background-color .2s ease}
+.account-form input:focus,.account-form textarea:focus,.account-form select:focus,.seller-form input:focus,.seller-form textarea:focus,.seller-form select:focus,.request-page textarea:focus,.login input:focus{border-color:#c77b7b;box-shadow:0 0 0 3px #b51a1a0d;background:#fff}
+.topbar{backdrop-filter:blur(10px)}
+.profile-head{transition:transform .2s ease}.profile-head:hover{transform:translateY(-1px)}
+.profile-avatar{transition:transform .2s ease,box-shadow .2s ease}.profile-avatar:hover{transform:translateY(-2px);box-shadow:0 7px 16px #00000012}
+.seller-category,.seller-product,.admin-category{will-change:transform}
+.hot-banner{animation:tm-hot-in .45s ease both}.hot-product{animation:tm-hot-product .5s ease both}.hot-product:nth-child(2){animation-delay:.06s}.hot-product:nth-child(3){animation-delay:.12s}
+@keyframes tm-notify-pulse{0%,65%,100%{box-shadow:0 0 0 0 #b51a1a00}72%{box-shadow:0 0 0 4px #b51a1a22}82%{box-shadow:0 0 0 0 #b51a1a00}}
+@keyframes tm-hot-in{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes tm-hot-product{from{opacity:0;transform:translateY(8px) rotate(3deg)}to{opacity:1}}
+@media(max-width:430px){
+ .content{padding-left:16px;padding-right:16px;padding-bottom:84px}
+ .topbar{margin-bottom:11px;padding-bottom:8px;gap:7px}
+ .top-actions{gap:5px}.top-notification{width:28px;height:28px}
+ .grid,.explore-grid{gap:11px 9px}.photo{height:108px}
+ .hot-banner{min-height:136px}.hot-products{width:116px;padding-right:8px}
+ .detail-img{height:min(360px,78vw)}
+ .bottom{height:66px;padding-bottom:6px}
+}
+@media(max-width:360px){
+ .content{padding-left:13px;padding-right:13px}
+ .topbar{grid-template-columns:auto 1fr auto}
+ .brand-mark{width:25px;height:25px}
+ .top-search{height:32px}.top-actions{gap:2px}
+ .grid,.explore-grid{gap:10px 8px}.photo{height:102px}
+ .primary{padding:11px 15px}
+ .hot-copy{padding-left:11px}.hot-copy strong{font-size:16px}.hot-products{width:105px}
+}
