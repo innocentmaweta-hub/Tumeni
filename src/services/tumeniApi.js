@@ -23,7 +23,7 @@ export async function signUp({ fullName, phone, email, password }) {
     password,
     options: {
       data: { full_name: fullName, phone },
-      emailRedirectTo: window.location.origin + '/'
+      emailRedirectTo: 'https://tumeni.vercel.app/'
     }
   });
   if (!result.error && result.data.user && result.data.session) {
