@@ -32,7 +32,7 @@ export async function getCurrentProfile() {
         id: user.id,
         full_name: metadata.full_name || user.email || 'Tumeni customer',
         phone: metadata.phone || '',
-        role: 'customer'
+        role: metadata.account_type === 'seller' ? 'partner' : 'customer'
       },
       error: error || null,
       configured: true
