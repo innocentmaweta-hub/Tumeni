@@ -637,7 +637,140 @@ using (
   and owner_id = auth.uid()::text
 );
 
--- Customer-facing data is intentionally read-only for shops/products/categories.
+
+-- Internal delivery employees keep the existing role name: agent.
+-- Agents cannot self-assign work. Admins assign orders through a trusted RPC.
+create or replace function public.assign_order_to_agent(p_order_id uuid, p_agent_id uuid)
+returns public.order_assignments
+language plpgsql
+security definer
+set search_path = public
+as $function$
+declare
+  result public.order_assignments;
+begin
+  if public.current_user_role() <> 'admin' then
+    raise exception 'Administrator access required';
+  end if;
+  if not exists (select 1 from public.profiles where id = p_agent_id and role = 'agent') then
+    raise exception 'Selected user is not an agent';
+  end if;
+  update public.order_assignments
+    set completed_at = coalesce(completed_at, now())
+    where order_id = p_order_id and completed_at is null;
+  insert into public.order_assignments(order_id, agent_id)
+  values (p_order_id, p_agent_id)
+  returning * into result;
+  update public.orders
+    set status = 'assigned'
+    where id = p_order_id
+      and status in ('paid','assigned');
+  insert into public.order_status_history(order_id,status,note,changed_by)
+  values (p_order_id,'assigned','Order assigned to an internal agent.',auth.uid());
+  return result;
+end;
+$function$;
+
+revoke all on function public.assign_order_to_agent(uuid,uuid) from public;
+grant execute on function public.assign_order_to_agent(uuid,uuid) to authenticated;
+
+create or replace function public.agent_update_order_status(p_order_id uuid, p_status public.order_status, p_note text default '')
+returns public.orders
+language plpgsql
+security definer
+set search_path = public
+as $function$
+declare
+  result public.orders;
+  allowed boolean;
+begin
+  if public.current_user_role() <> 'agent' then
+    raise exception 'Agent access required';
+  end if;
+  if not exists (
+    select 1 from public.order_assignments
+    where order_id = p_order_id
+      and agent_id = auth.uid()
+      and completed_at is null
+  ) then
+    raise exception 'This order is not assigned to you';
+  end if;
+  allowed := p_status in ('preparing','shopping','picked_up','on_the_way','delivered');
+  if not allowed then
+    raise exception 'Invalid agent status';
+  end if;
+  update public.orders
+    set status = p_status
+    where id = p_order_id
+      and status in ('assigned','preparing','shopping','picked_up','on_the_way')
+    returning * into result;
+  if result.id is null then
+    raise exception 'Order cannot move to that status';
+  end if;
+  update public.order_assignments
+    set accepted_at = case when p_status = 'preparing' and accepted_at is null then now() else accepted_at end,
+        completed_at = case when p_status = 'delivered' then now() else completed_at end
+    where order_id = p_order_id and agent_id = auth.uid() and completed_at is null;
+  insert into public.order_status_history(order_id,status,note,changed_by)
+  values (p_order_id,p_status,nullif(trim(p_note),''),auth.uid());
+  return result;
+end;
+$function$;
+
+revoke all on function public.agent_update_order_status(uuid,public.order_status,text) from public;
+grant execute on function public.agent_update_order_status(uuid,public.order_status,text) to authenticated;
+
+drop policy if exists "admins can view all orders" on public.orders;
+create policy "admins can view all orders"
+on public.orders for select
+using (public.current_user_role() = 'admin');
+
+drop policy if exists "admins can view all order items" on public.order_items;
+create policy "admins can view all order items"
+on public.order_items for select
+using (public.current_user_role() = 'admin');
+
+drop policy if exists "agents can view assigned orders" on public.orders;
+create policy "agents can view assigned orders"
+on public.orders for select
+using (
+  exists (
+    select 1 from public.order_assignments oa
+    where oa.order_id = orders.id
+      and oa.agent_id = auth.uid()
+      and oa.completed_at is null
+  )
+);
+
+drop policy if exists "agents can view assigned order items" on public.order_items;
+create policy "agents can view assigned order items"
+on public.order_items for select
+using (
+  exists (
+    select 1 from public.order_assignments oa
+    where oa.order_id = order_items.order_id
+      and oa.agent_id = auth.uid()
+      and oa.completed_at is null
+  )
+);
+
+drop policy if exists "admins can manage assignments" on public.order_assignments;
+create policy "admins can manage assignments"
+on public.order_assignments for all
+using (public.current_user_role() = 'admin')
+with check (public.current_user_role() = 'admin');
+
+drop policy if exists "agents can view own assignments" on public.order_assignments;
+create policy "agents can view own assignments"
+on public.order_assignments for select
+using (agent_id = auth.uid());
+
+drop policy if exists "admins can view all status history" on public.order_status_history;
+create policy "admins can view all status history"
+on public.order_status_history for select
+using (public.current_user_role() = 'admin');
+
+\n-- Customer-facing data is intentionally read-only for shops/products/categories.
 -- Payments, assignments, pricing rules and order status changes are controlled
 -- by trusted backend/admin processes rather than the public client.
 
