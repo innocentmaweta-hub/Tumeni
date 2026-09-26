@@ -1,0 +1,8 @@
+[functions.paychangu-webhook]
+verify_jwt = false
+
+[functions.paychangu-operators]
+verify_jwt = true
+
+[functions.paychangu-charge]
+verify_jwt = true
