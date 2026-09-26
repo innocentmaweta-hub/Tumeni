@@ -528,6 +528,49 @@ with check (
   and role = (select p.role from public.profiles p where p.id = auth.uid())
 );
 
+-- Product photos are stored in a public bucket so marketplace images can be
+-- displayed directly to customers. The bucket itself should be created once
+-- in Supabase Storage before sellers upload photos.
+insert into storage.buckets (id, name, public)
+values ('product-images', 'product-images', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "public can view product images" on storage.objects;
+create policy "public can view product images"
+on storage.objects for select
+using (bucket_id = 'product-images');
+
+drop policy if exists "partners can upload product images" on storage.objects;
+create policy "partners can upload product images"
+on storage.objects for insert
+with check (
+  bucket_id = 'product-images'
+  and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.role = 'partner'
+  )
+);
+
+drop policy if exists "partners can update product images" on storage.objects;
+create policy "partners can update product images"
+on storage.objects for update
+using (
+  bucket_id = 'product-images'
+  and owner_id = auth.uid()::text
+)
+with check (
+  bucket_id = 'product-images'
+  and owner_id = auth.uid()::text
+);
+
+drop policy if exists "partners can delete product images" on storage.objects;
+create policy "partners can delete product images"
+on storage.objects for delete
+using (
+  bucket_id = 'product-images'
+  and owner_id = auth.uid()::text
+);
+
 -- Customer-facing data is intentionally read-only for shops/products/categories.
 -- Payments, assignments, pricing rules and order status changes are controlled
 -- by trusted backend/admin processes rather than the public client.
