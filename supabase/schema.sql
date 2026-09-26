@@ -56,7 +56,7 @@ create table if not exists public.categories (
 
 create table if not exists public.products (
   id uuid primary key default gen_random_uuid(),
-  shop_id uuid not null references public.shops(id) on delete cascade,
+  shop_id uuid references public.shops(id) on delete cascade,
   category_id uuid references public.categories(id) on delete set null,
   name text not null,
   description text,
@@ -522,6 +522,18 @@ using (
     where s.id = products.shop_id
       and s.owner_id = auth.uid()
   )
+);
+
+drop policy if exists "admins can manage admin products" on public.products;
+create policy "admins can manage admin products"
+on public.products for all
+using (
+  public.current_user_role() = 'admin'
+  and shop_id is null
+)
+with check (
+  public.current_user_role() = 'admin'
+  and shop_id is null
 );
 
 drop policy if exists "partners can create products in own shop" on public.products;
