@@ -274,3 +274,51 @@ export async function deleteCategory(id) {
   if (error) throw error;
   return true;
 }
+
+
+export async function getEmployees() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  return supabase.from('profiles').select('id,full_name,phone,avatar_url,role').eq('role','agent').order('full_name');
+}
+
+export async function getAgentAssignments() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: [], error: new Error('Please sign in first.') };
+  return supabase
+    .from('order_assignments')
+    .select('id,order_id,agent_id,assigned_at,accepted_at,completed_at,orders(id,order_number,order_type,status,total,task_description,delivery_address:addresses(address_line,area,city))')
+    .eq('agent_id', user.id)
+    .order('assigned_at', { ascending: false });
+}
+
+export async function getAgentOrders() {
+  const r = await getAgentAssignments();
+  return { data: (r.data || []).map(x => x.orders).filter(Boolean), error: r.error };
+}
+
+export async function assignOrderToAgent({ orderId, agentId }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.rpc('assign_order_to_agent', { p_order_id: orderId, p_agent_id: agentId });
+}
+
+export async function updateAgentOrderStatus({ orderId, status, note = '' }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.rpc('agent_update_order_status', { p_order_id: orderId, p_status: status, p_note: note });
+}
+
+export async function getAdminOrders() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data, error } = await supabase
+    .from('orders')
+    .select('id,order_number,order_type,status,total,created_at,order_assignments(id,agent_id,profiles(full_name))')
+    .order('created_at', { ascending: false });
+  if (error) return { data: [], error };
+  return {
+    data: (data || []).map(o => ({
+      ...o,
+      assignment_agent_id: o.order_assignments?.[0]?.agent_id || ''
+    })),
+    error: null
+  };
+}
