@@ -755,37 +755,38 @@ set search_path = public
 as $function$
 declare
   result public.orders;
-  allowed boolean;
+  assignment public.order_assignments;
 begin
   if public.current_user_role() <> 'agent' then
     raise exception 'Agent access required';
   end if;
-  if not exists (
-    select 1 from public.order_assignments
-    where order_id = p_order_id
-      and agent_id = auth.uid()
-      and completed_at is null
-  ) then
+  select * into assignment
+  from public.order_assignments
+  where order_id = p_order_id
+    and agent_id = auth.uid()
+    and completed_at is null
+  order by assigned_at desc
+  limit 1;
+  if assignment.id is null then
     raise exception 'This order is not assigned to you';
   end if;
-  allowed := p_status in ('preparing','shopping','picked_up','on_the_way','delivered');
-  if not allowed then
+  if p_status not in ('preparing','shopping','picked_up','on_the_way','delivered') then
     raise exception 'Invalid agent status';
   end if;
   update public.orders
-    set status = p_status
-    where id = p_order_id
-      and status in ('assigned','preparing','shopping','picked_up','on_the_way')
-    returning * into result;
+  set status = p_status
+  where id = p_order_id
+    and status in ('assigned','preparing','shopping','picked_up','on_the_way')
+  returning * into result;
   if result.id is null then
-    raise exception 'Order cannot move to that status';
+    raise exception 'Order cannot move from its current status to %', p_status;
   end if;
   update public.order_assignments
-    set accepted_at = case when p_status = 'preparing' and accepted_at is null then now() else accepted_at end,
-        completed_at = case when p_status = 'delivered' then now() else completed_at end
-    where order_id = p_order_id and agent_id = auth.uid() and completed_at is null;
+  set accepted_at = case when p_status = 'preparing' and accepted_at is null then now() else accepted_at end,
+      completed_at = case when p_status = 'delivered' then now() else completed_at end
+  where id = assignment.id;
   insert into public.order_status_history(order_id,status,note,changed_by)
-  values (p_order_id,p_status,nullif(trim(p_note),''),auth.uid());
+  values (p_order_id,p_status,nullif(trim(coalesce(p_note,'')),''),auth.uid());
   return result;
 end;
 $function$;
