@@ -35,7 +35,15 @@ export async function signUp({ fullName, phone, email, password }) {
 
 export async function signIn(email, password) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
-  return supabase.auth.signInWithPassword({ email, password });
+  const result = await supabase.auth.signInWithPassword({ email, password });
+  if (!result.error && result.data.user) {
+    const metadata = result.data.user.user_metadata || {};
+    await supabase.from('profiles').update({
+      full_name: metadata.full_name || undefined,
+      phone: metadata.phone || undefined
+    }).eq('id', result.data.user.id);
+  }
+  return result;
 }
 
 export async function signOut() {
