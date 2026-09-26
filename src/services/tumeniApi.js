@@ -11,9 +11,35 @@ export async function getProducts() {
 
 export async function getCurrentProfile() {
   if (!supabase) return { data: null, error: null, configured: false };
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { data: null, error: null, configured: true };
-  return supabase.from('profiles').select('*').eq('id', user.id).single();
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) return { data: null, error: userError || null, configured: true };
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  // Authentication is authoritative for whether the customer is signed in.
+  // If the profile row is temporarily unavailable, return a safe profile
+  // built from the authenticated user's metadata so the UI does not show
+  // "Sign in" while a valid Supabase session exists.
+  if (!profile) {
+    const metadata = user.user_metadata || {};
+    return {
+      data: {
+        id: user.id,
+        full_name: metadata.full_name || user.email || 'Tumeni customer',
+        phone: metadata.phone || '',
+        role: 'customer'
+      },
+      error: error || null,
+      configured: true
+    };
+  }
+
+  return { data: profile, error: null, configured: true };
 }
 
 export async function signUp({ fullName, phone, email, password }) {
