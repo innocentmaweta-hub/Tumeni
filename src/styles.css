@@ -817,6 +817,10 @@ body{
 .review-average-details .review-stars{order:0}
 .review-average-details small{order:1;margin:0}
 .review-form{width:100%;box-sizing:border-box}
+.review-form .star-picker{order:1}
+.review-form .review-form-label{order:2;text-align:right;align-self:stretch;margin-top:-2px;margin-bottom:7px}
+.review-form textarea{order:3}
+.review-form .review-submit{order:4}
 .review-average small{order:-1}
 .review-average .review-stars{order:0}
 .review-form{display:flex;flex-direction:column}
