@@ -786,7 +786,7 @@ body{
   left:50%;
   bottom:76px;
   transform:translateX(-50%);
-  width:min(600px,calc(100vw - 24px));
+  width:min(366px,calc(100vw - 20px));
   max-height:min(72vh,620px);
   overflow-y:auto;
   z-index:100;
