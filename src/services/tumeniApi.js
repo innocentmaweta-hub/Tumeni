@@ -312,10 +312,10 @@ export async function getPayChanguOperators() {
   return { data: data?.operators || [], error };
 }
 
-export async function initiatePayChanguMobileMoney({ orderId, mobile, operatorRefId }) {
+export async function initiatePayChanguCheckout({ orderId }) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   return supabase.functions.invoke('paychangu-charge', {
-    body: { order_id: orderId, mobile, operator_ref_id: operatorRefId }
+    body: { order_id: orderId }
   });
 }
 
