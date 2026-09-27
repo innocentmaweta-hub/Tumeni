@@ -813,7 +813,7 @@ body{
 
 /* Review text positioning */
 .review-average{display:flex;flex-direction:row;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;padding:8px 10px}
-.review-average-details{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:2px;text-align:right;line-height:.8}
+.review-average-details{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;text-align:right}
 .review-average-details .review-stars{order:0}
 .review-average-details small{order:1;margin:0}
 .review-form{width:100%;box-sizing:border-box}
