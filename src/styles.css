@@ -803,5 +803,5 @@ body{
 
 /* Product detail rating/comments toggle */
 .rating-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.view-reviews-btn{margin-left:auto;border:0;background:transparent;color:#b51f2b;font:inherit;font-weight:700;padding:4px 0;cursor:pointer}
+.view-reviews-btn{margin-left:auto!important;flex-shrink:0;text-align:right;border:0;background:transparent;color:#b51f2b;font:inherit;font-weight:700;padding:4px 0;cursor:pointer}
 .view-reviews-btn:hover{text-decoration:underline}
