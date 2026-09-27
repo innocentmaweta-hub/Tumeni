@@ -828,3 +828,5 @@ body{
 .review-form .star-picker{grid-column:2;grid-row:1;display:flex;align-items:center;justify-content:flex-end;margin:0;white-space:nowrap}
 .review-form textarea{grid-column:1/-1;grid-row:2}
 .review-form .review-submit{grid-column:1/-1;grid-row:3;margin-top:0}
+
+/* Deployment refresh: harmless stylesheet comment. */
