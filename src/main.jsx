@@ -130,7 +130,7 @@ useEffect(()=>{
   }
 },[]);
 
-const goTab=t=>{setTab(t);setProduct(null);setPage(t==='Home'?'home':t==='Explore'?'explore':t==='Orders'?'orders':t==='Profile'?'profile':'favorites')};const runSearch=q=>{setSearchQuery(q);setProduct(null);setTab('Explore');setPage('explore')};const openNotifications=()=>{setProduct(null);setPage('notifications');setTab('Home')};
+const goTab=t=>{setTab(t);setProduct(null);setPage(t==='Home'?'home':t==='Explore'?'explore':t==='Orders'?'cart':t==='Profile'?'profile':'favorites')};const runSearch=q=>{setSearchQuery(q);setProduct(null);setTab('Explore');setPage('explore')};const openNotifications=()=>{setProduct(null);setPage('notifications');setTab('Home')};
 const toggleLike=id=>setLiked(x=>{const next=x.includes(id)?x.filter(n=>n!==id):[...x,id];try{localStorage.setItem('tumeni_saved_items',JSON.stringify(next))}catch{}return next});
 const add=(p,qty=1)=>{setCart(c=>({...c,[p.id]:{product:p,qty:(c[p.id]?.qty||0)+qty}}));};
 const cartCount=Object.values(cart).reduce((s,x)=>s+x.qty,0);
