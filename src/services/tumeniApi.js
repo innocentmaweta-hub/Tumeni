@@ -221,21 +221,59 @@ export async function getMyProducts() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: [], error: new Error('Please sign in first.') };
+
   const isAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
-  const query = supabase
+  let query = supabase
     .from('products')
     .select('id,name,description,price,image_url,category_id,shop_id,available,created_at,categories(name)')
     .order('created_at', { ascending: false });
-  if (isAdmin) return query.is('shop_id', null);
 
-  const { data: shop, error: shopError } = await supabase
-    .from('shops')
-    .select('id')
-    .eq('owner_id', user.id)
-    .maybeSingle();
-  if (shopError) return { data: [], error: shopError };
-  if (!shop) return { data: [], error: null };
-  return query.eq('shop_id', shop.id);
+  if (isAdmin) {
+    query = query.is('shop_id', null);
+  } else {
+    const { data: shop, error: shopError } = await supabase
+      .from('shops')
+      .select('id')
+      .eq('owner_id', user.id)
+      .maybeSingle();
+    if (shopError) return { data: [], error: shopError };
+    if (!shop) return { data: [], error: null };
+    query = query.eq('shop_id', shop.id);
+  }
+
+  const { data: products, error } = await query;
+  if (error) return { data: [], error };
+
+  // Load product images separately instead of embedding product_images.
+  // This avoids PostgREST schema-cache/relationship errors while ensuring
+  // the Seller Center edit form receives every saved image.
+  const ids = (products || []).map(p => p.id).filter(Boolean);
+  if (!ids.length) return { data: products || [], error: null };
+
+  const { data: images, error: imagesError } = await supabase
+    .from('product_images')
+    .select('id,product_id,image_url,sort_order')
+    .in('product_id', ids)
+    .order('sort_order', { ascending: true });
+
+  // Keep the Seller Center usable if the optional table is unavailable.
+  // The primary products.image_url remains available as the fallback image.
+  if (imagesError) return { data: products || [], error: null };
+
+  const byProduct = new Map();
+  for (const image of images || []) {
+    const list = byProduct.get(image.product_id) || [];
+    list.push(image);
+    byProduct.set(image.product_id, list);
+  }
+
+  return {
+    data: (products || []).map(p => ({
+      ...p,
+      product_images: byProduct.get(p.id) || []
+    })),
+    error: null
+  };
 }
 
 export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, imageUrls = [], available = true }) {
