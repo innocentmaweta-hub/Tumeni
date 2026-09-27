@@ -15,11 +15,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Push to destination repository
         env:
           GH_TOKEN: ${{ secrets.DESTINATION_GITHUB_TOKEN }}
         run: |
+          set -e
           git config user.name "GitHub Actions"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
