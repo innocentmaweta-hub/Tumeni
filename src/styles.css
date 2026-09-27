@@ -802,6 +802,7 @@ body{
 
 
 /* Product detail rating/comments toggle */
-.rating-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.view-reviews-btn{margin-left:auto!important;flex-shrink:0;text-align:right;border:0;background:transparent;color:#b51f2b;font:inherit;font-weight:700;padding:4px 0;cursor:pointer}
+.rating-line{display:grid;grid-template-columns:max-content max-content minmax(0,1fr) max-content;align-items:center;column-gap:10px;width:100%}
+.rating-line>span:nth-child(3){min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.view-reviews-btn{margin:0!important;justify-self:end;flex-shrink:0;text-align:right;border:0;background:transparent;color:#b51f2b;font:inherit;font-weight:700;padding:4px 0;cursor:pointer}
 .view-reviews-btn:hover{text-decoration:underline}
