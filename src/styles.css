@@ -957,3 +957,6 @@ body{
 .detail-image-slide img{transition:transform .45s cubic-bezier(.22,.61,.36,1),opacity .3s ease}
 .detail-image-track:not(.dragging) .detail-image-slide img{transform:scale(1)}
 .detail-image-track.dragging .detail-image-slide img{transition:none}
+
+/* Deployment heartbeat: keep gallery visuals unchanged while refreshing the build. */
+.detail-gallery-arrow{will-change:opacity,transform}
