@@ -920,3 +920,96 @@ using (public.current_user_role() = 'admin');
 
 -- If this script has just created/changed tables, refresh PostgREST's schema cache.
 notify pgrst, 'reload schema';
+
+
+-- Multiple product images. Keep products.image_url as the primary/legacy image for compatibility.
+create table if not exists public.product_images (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products(id) on delete cascade,
+  image_url text not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists product_images_product_id_sort_idx
+  on public.product_images(product_id, sort_order, created_at);
+
+alter table public.product_images enable row level security;
+
+drop policy if exists "public can view product images records" on public.product_images;
+create policy "public can view product images records"
+on public.product_images for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "partners can create own product image records" on public.product_images;
+create policy "partners can create own product image records"
+on public.product_images for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.products pr
+    join public.shops s on s.id = pr.shop_id
+    where pr.id = product_images.product_id
+      and s.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists "partners can update own product image records" on public.product_images;
+create policy "partners can update own product image records"
+on public.product_images for update
+to authenticated
+using (
+  exists (
+    select 1 from public.products pr
+    join public.shops s on s.id = pr.shop_id
+    where pr.id = product_images.product_id
+      and s.owner_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.products pr
+    join public.shops s on s.id = pr.shop_id
+    where pr.id = product_images.product_id
+      and s.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists "partners can delete own product image records" on public.product_images;
+create policy "partners can delete own product image records"
+on public.product_images for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.products pr
+    join public.shops s on s.id = pr.shop_id
+    where pr.id = product_images.product_id
+      and s.owner_id = auth.uid()
+  )
+);
+
+drop policy if exists "admins can manage admin product image records" on public.product_images;
+create policy "admins can manage admin product image records"
+on public.product_images for all
+to authenticated
+using (public.current_user_role() = 'admin')
+with check (public.current_user_role() = 'admin');
+
+grant select on table public.product_images to anon, authenticated;
+grant insert, update, delete on table public.product_images to authenticated;
+
+-- Allow the designated admin to upload product photos as well as partners.
+drop policy if exists "partners can upload product images" on storage.objects;
+create policy "partners can upload product images"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'product-images'
+  and (
+    exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'partner')
+    or public.current_user_role() = 'admin'
+  )
+);
+
+notify pgrst, 'reload schema';
