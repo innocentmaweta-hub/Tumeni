@@ -1,4 +1,4 @@
-# Tumeni 
+# Tumeni
 
 Tumeni is a shopping, delivery and task/request platform. The existing React/Vite mobile UI is preserved as the customer-facing visual foundation.
 
