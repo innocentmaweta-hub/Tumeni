@@ -875,3 +875,64 @@ body{
 @media(max-width:430px){
   .detail-gallery-arrow{width:34px;height:34px;font-size:24px}
 }
+
+/* Tumeni red product gallery — refined desktop controls */
+.detail-img{position:relative;overflow:hidden;background:linear-gradient(145deg,#fff5f5,#f7e4e4);box-shadow:inset 0 -1px 0 rgba(181,26,26,.08)}
+.detail-image-track{cursor:grab;user-select:none}
+.detail-image-track.dragging{cursor:grabbing}
+.detail-gallery-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:42px;height:42px;z-index:5;
+  display:grid;place-items:center;
+  border:1px solid rgba(181,26,26,.18);
+  border-radius:50%;
+  background:rgba(255,255,255,.94);
+  color:var(--tm-red);
+  font-size:27px;font-weight:700;line-height:1;
+  padding:0;
+  box-shadow:0 7px 20px rgba(110,10,10,.18),0 0 0 4px rgba(181,26,26,.05);
+  backdrop-filter:blur(8px);
+  cursor:pointer;
+  transition:transform .18s ease,background .18s ease,color .18s ease,box-shadow .18s ease,opacity .18s ease;
+}
+.detail-gallery-arrow:hover:not(:disabled){
+  transform:translateY(-50%) scale(1.08);
+  background:var(--tm-red);
+  color:#fff;
+  box-shadow:0 9px 24px rgba(181,26,26,.3),0 0 0 5px rgba(181,26,26,.08);
+}
+.detail-gallery-arrow:active:not(:disabled){transform:translateY(-50%) scale(.96)}
+.detail-gallery-arrow:disabled{opacity:.28;cursor:default;box-shadow:none}
+.detail-gallery-prev{left:15px}.detail-gallery-next{right:15px}
+.detail-image-dots{
+  position:absolute;left:50%;right:auto;bottom:17px;
+  transform:translateX(-50%);
+  display:flex;align-items:center;gap:6px;
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(100,10,10,.42);
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:0 6px 16px rgba(70,0,0,.18);
+  backdrop-filter:blur(8px);
+  pointer-events:auto;
+}
+.detail-image-dots button{
+  width:7px;height:7px;flex:0 0 7px;
+  padding:0;border:0;border-radius:50%;
+  background:rgba(255,255,255,.55);
+  box-shadow:0 1px 4px rgba(0,0,0,.2);
+  cursor:pointer;
+  transition:width .2s ease,background .2s ease,transform .2s ease;
+}
+.detail-image-dots button:hover{transform:scale(1.25);background:#fff}
+.detail-image-dots button.active{
+  width:18px;flex-basis:18px;
+  border-radius:999px;
+  background:#fff;
+  box-shadow:0 2px 7px rgba(255,255,255,.35);
+}
+@media(max-width:430px){
+  .detail-gallery-arrow{width:36px;height:36px;font-size:23px}
+  .detail-gallery-prev{left:10px}.detail-gallery-next{right:10px}
+  .detail-image-dots{bottom:13px;padding:6px 9px}
+}
