@@ -273,3 +273,14 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .review-empty{padding:16px 4px;text-align:center;color:#888;font-size:12px}
 @media(max-width:430px){.product-reviews{padding-left:16px;padding-right:16px}.review-summary{grid-template-columns:1fr}.review-average{min-height:auto;padding-bottom:4px}.review-signin{min-height:auto;padding:8px 0}}
 @media(max-width:360px){.product-reviews{padding-left:13px;padding-right:13px}}
+
+
+/* Unified product grid card information */
+.product-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 2px 0;font-size:10px;line-height:1.2}
+.product-name,.product-partner,.product-price,.product-rating{font-size:10px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-name{font-weight:750;color:#222;flex:1}
+.product-partner{font-weight:500;color:#777;flex:1;text-align:right}
+.product-bottom{margin-top:4px}
+.product-price{font-weight:650;color:#222;flex:1}
+.product-rating{font-weight:500;color:#555;flex:1;text-align:right}
+.product-stars{color:#e39a18;font-size:10px}
