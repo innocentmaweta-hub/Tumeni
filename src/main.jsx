@@ -138,7 +138,7 @@ if(splash)return <Splash done={()=>setSplash(false)}/>;
 let body;
 if(page==='home')body=<Home products={products} categories={categories} onProduct={p=>{setProduct(p);setPage('detail')}} liked={liked} toggleLike={toggleLike} setTab={goTab} onRequest={()=>setPage('request')} onSearch={runSearch} onNotifications={openNotifications}/>;
 else if(page==='explore')body=<Explore products={products} categories={categories} onProduct={p=>{setProduct(p);setPage('detail')}} liked={liked} toggleLike={toggleLike} searchQuery={searchQuery} onSearch={runSearch}/>;
-else if(page==='detail')body=<ProductDetail p={product} products={products} onBack={()=>goTab('Home')} onAdd={add} onViewCart={()=>{setProduct(null);setPage('cart')}} onProduct={p=>setProduct(p)} liked={liked.includes(product?.id)} toggleLike={toggleLike}/>;
+else if(page==='detail')body=<ProductDetail p={product} products={products} onBack={()=>goTab('Home')} onAdd={add} onViewCart={()=>{setProduct(null);setPage('cart')}} onProduct={p=>setProduct(p)} liked={liked} toggleLike={toggleLike}/>;
 else if(page==='cart')body=<Cart cart={cart} setCart={setCart} onCheckout={x=>{setCheckout({...x});setPage('checkout')}} setTab={goTab}/>;
 else if(page==='request')body=<RequestTask onBack={()=>goTab('Home')} onQuote={x=>{setTaskRequest(x);setPage('quote')}}/>;
 else if(page==='quote')body=<Quote request={taskRequest} onBack={()=>setPage('request')} onPay={total=>{setCheckout({total,task:taskRequest,fees:{serviceFee:3000,deliveryFee:1000,handlingFee:1000}});setPage('checkout')}}/>;
