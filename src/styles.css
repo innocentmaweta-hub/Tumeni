@@ -106,7 +106,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
  .top-actions{gap:5px}.top-notification{width:28px;height:28px}
  .grid,.explore-grid{gap:11px 9px}.photo{height:108px}
  .hot-banner{min-height:136px}.hot-products{width:116px;padding-right:8px}
- .detail-img{height:min(360px,78vw)}.heart-float{width:40px;height:40px;right:14px;top:14px}.heart-float svg{display:block}
+ .detail-img{height:min(360px,78vw)}.heart-float{width:40px;height:40px;right:14px;top:14px}.heart-float{padding:0;line-height:0;align-items:center;justify-content:center}.heart-float svg{display:block;transform:translateY(1px)}
  .bottom{height:66px;padding-bottom:6px}
 }
 @media(max-width:360px){
