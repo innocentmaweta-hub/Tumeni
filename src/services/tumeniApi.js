@@ -2,11 +2,43 @@ import { supabase } from '../lib/supabase';
 
 export async function getProducts() {
   if (!supabase) return { data: null, error: null, configured: false };
-  return supabase
+
+  // Do not embed product_images here. PostgREST requires a foreign-key
+  // relationship for embedded resources, and some existing Tumeni databases
+  // do not expose that relationship in the schema cache. Products themselves
+  // must still load even when the optional image table relationship is absent.
+  const { data: products, error } = await supabase
     .from('products')
-    .select('id,name,description,price,image_url,category_id,shop_id,shops(name),categories(name),product_images(id,image_url,sort_order)')
+    .select('id,name,description,price,image_url,category_id,shop_id,shops(name),categories(name)')
     .eq('available', true)
     .order('created_at', { ascending: false });
+
+  if (error) return { data: null, error };
+
+  const ids = (products || []).map(p => p.id).filter(Boolean);
+  if (!ids.length) return { data: products || [], error: null };
+
+  const { data: images, error: imagesError } = await supabase
+    .from('product_images')
+    .select('id,product_id,image_url,sort_order')
+    .in('product_id', ids)
+    .order('sort_order', { ascending: true });
+
+  // Product images are optional. If the image table/relationship is not
+  // available, keep the product list usable and fall back to image_url.
+  if (imagesError) return { data: products || [], error: null };
+
+  const byProduct = new Map();
+  for (const image of images || []) {
+    const list = byProduct.get(image.product_id) || [];
+    list.push(image);
+    byProduct.set(image.product_id, list);
+  }
+
+  return {
+    data: (products || []).map(p => ({ ...p, product_images: byProduct.get(p.id) || [] })),
+    error: null
+  };
 }
 
 export async function getCurrentProfile() {
@@ -192,7 +224,7 @@ export async function getMyProducts() {
   const isAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
   const query = supabase
     .from('products')
-    .select('id,name,description,price,image_url,category_id,shop_id,available,created_at,categories(name),product_images(id,image_url,sort_order)')
+    .select('id,name,description,price,image_url,category_id,shop_id,available,created_at,categories(name)')
     .order('created_at', { ascending: false });
   if (isAdmin) return query.is('shop_id', null);
 
