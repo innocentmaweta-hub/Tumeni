@@ -946,3 +946,14 @@ body{
 .detail-product-avatar{background:radial-gradient(circle at 30% 20%,#e04a4a 0%,#b51a1a 48%,#760909 100%)}
 .detail-product-avatar span{font-size:58px}
 .detail-product-avatar i{right:18px;bottom:16px;font-size:11px}
+
+
+/* Softer gallery controls and smoother image movement */
+.detail-gallery-arrow{opacity:.62}
+.detail-gallery-arrow:hover:not(:disabled){opacity:.92}
+.detail-gallery-arrow:disabled{opacity:.18}
+.detail-image-track{scroll-behavior:smooth;scroll-snap-type:x mandatory}
+.detail-image-slide{scroll-snap-stop:always;transition:opacity .35s ease,transform .35s ease}
+.detail-image-slide img{transition:transform .45s cubic-bezier(.22,.61,.36,1),opacity .3s ease}
+.detail-image-track:not(.dragging) .detail-image-slide img{transform:scale(1)}
+.detail-image-track.dragging .detail-image-slide img{transition:none}
