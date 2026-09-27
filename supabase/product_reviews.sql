@@ -1,4 +1,4 @@
--- Tumeni product ratings and comments
+-- Tumeni product ratings and comments 
 -- Run this once in the Supabase SQL Editor if the main schema has already been applied.
 
 create table if not exists public.product_reviews (
