@@ -833,3 +833,45 @@ body{
 
 .detail-image-track{width:100%;height:100%;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;overscroll-behavior-x:contain}.detail-image-track::-webkit-scrollbar{display:none}.detail-image-slide{width:100%;height:100%;flex:0 0 100%;scroll-snap-align:start}.detail-image-slide img,.detail-image-placeholder{width:100%;height:100%;display:block;object-fit:cover}.detail-image-placeholder{display:grid;place-items:center;background:#f4eeee;color:#b51a1a;font-size:58px;font-weight:950}.detail-image-dots{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:5px;pointer-events:none}.detail-image-dots span{width:6px;height:6px;border-radius:50%;background:#fff9;box-shadow:0 1px 4px #0004}.detail-image-dots span.active{background:#fff}.seller-photo-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;height:auto;background:transparent;overflow:visible}.seller-image-thumb{height:92px;border-radius:8px;overflow:hidden;background:#f5f5f5;position:relative}.seller-image-thumb img{width:100%;height:100%;object-fit:cover}.seller-image-thumb button{position:absolute;right:4px;top:4px;width:22px;height:22px;border:0;border-radius:50%;background:#fff;color:#333;box-shadow:0 1px 5px #0003;font-size:16px;line-height:20px;padding:0}.photo-upload small{line-height:1.25}
 /* Tumeni product gallery upload polish */
+
+/* Desktop product gallery controls for testing multi-image swipe */
+.detail-image-track{cursor:grab;user-select:none}
+.detail-image-track.dragging{cursor:grabbing;scroll-snap-type:none;scroll-behavior:auto}
+.detail-image-track.dragging img{pointer-events:none}
+.detail-gallery-arrow{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:4;
+  width:38px;
+  height:38px;
+  border:1px solid rgba(255,255,255,.55);
+  border-radius:50%;
+  background:rgba(255,255,255,.9);
+  color:#333;
+  display:grid;
+  place-items:center;
+  font-size:28px;
+  line-height:1;
+  padding:0;
+  box-shadow:0 5px 14px rgba(0,0,0,.16);
+  cursor:pointer;
+}
+.detail-gallery-arrow:hover:not(:disabled){background:#fff;color:var(--tm-red);transform:translateY(-50%) scale(1.05)}
+.detail-gallery-arrow:disabled{opacity:.35;cursor:default}
+.detail-gallery-prev{left:12px}
+.detail-gallery-next{right:12px}
+.detail-image-dots button{
+  width:6px;
+  height:6px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:#fff9;
+  box-shadow:0 1px 4px #0004;
+  cursor:pointer;
+}
+.detail-image-dots button.active{background:#fff}
+@media(max-width:430px){
+  .detail-gallery-arrow{width:34px;height:34px;font-size:24px}
+}
