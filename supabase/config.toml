@@ -6,3 +6,6 @@ verify_jwt = true
 
 [functions.paychangu-charge]
 verify_jwt = true
+
+[functions.paychangu-callback]
+verify_jwt = false

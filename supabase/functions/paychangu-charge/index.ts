@@ -54,6 +54,7 @@ Deno.serve(async (req) => {
     const firstName = name[0] || "Tumeni";
     const lastName = name.slice(1).join(" ") || "Customer";
 
+    const callbackUrl = "https://nzfjtaxxbzaskdhapiiv.supabase.co/functions/v1/paychangu-callback";
     const returnUrl = "https://tumeni.vercel.app/";
 
     const payload = {
@@ -62,7 +63,7 @@ Deno.serve(async (req) => {
       email,
       first_name: firstName,
       last_name: lastName,
-      callback_url: returnUrl,
+      callback_url: callbackUrl,
       return_url: returnUrl,
       tx_ref: txRef,
       customization: {
