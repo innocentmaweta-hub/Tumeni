@@ -1,23 +1,25 @@
-name: Sync to Second Repo
+name: Universal Web Sync
 
 on:
   push:
     branches:
-      - main  # Change this to 'master' if your repository uses master instead of main
+      - main
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Push to Second Repo
+      - name: Sync Code
         run: |
           git config --global user.name 'GitHub Action Sync'
           git config --global user.email 'action@github.com'
-          # This securely uses the secret token you created in the settings
-          git remote add destination https://x-access-token:${{ secrets.SYNC_TOKEN }}@://github.com
-          git push destination main --force
+
+          git remote add destination https://x-access-token:${{ secrets.SYNC_TOKEN }}@github.com/innomaweta1-cmd/innocent-maweta.git
+
+          git push destination HEAD --force
