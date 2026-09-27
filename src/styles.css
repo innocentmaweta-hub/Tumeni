@@ -439,7 +439,7 @@ body{
 .hot-copy strong{font-size:20px;letter-spacing:-.4px}
 .hot-copy small{font-size:8.5px;line-height:1.45;max-width:190px}
 .hot-actions button{
-  border:0;border-radius:9px;padding:8px 10px;
+  border:0;border-radius:9px;padding:4px 10px;
   font-size:8px;font-weight:850;transition:.18s ease;
 }
 .hot-actions button:first-child{background:#fff;color:var(--tm-red)}
