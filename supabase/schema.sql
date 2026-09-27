@@ -71,6 +71,22 @@ create table if not exists public.products (
   updated_at timestamptz not null default now()
 );
 
+
+create table if not exists public.product_reviews (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products(id) on delete cascade,
+  customer_id uuid not null references public.profiles(id) on delete cascade,
+  reviewer_name text not null,
+  rating integer not null check (rating between 1 and 5),
+  comment text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(product_id, customer_id)
+);
+
+create index if not exists product_reviews_product_id_idx on public.product_reviews(product_id);
+create index if not exists product_reviews_customer_id_idx on public.product_reviews(customer_id);
+
 create table if not exists public.addresses (
   id uuid primary key default gen_random_uuid(),
   customer_id uuid not null references public.profiles(id) on delete cascade,
@@ -212,6 +228,11 @@ $$;
 drop trigger if exists profiles_updated_at on public.profiles;
 -- profiles intentionally has no updated_at column, so no trigger is attached.
 
+drop trigger if exists product_reviews_updated_at on public.product_reviews;
+create trigger product_reviews_updated_at
+before update on public.product_reviews
+for each row execute procedure public.set_updated_at();
+
 drop trigger if exists products_updated_at on public.products;
 create trigger products_updated_at
 before update on public.products
@@ -311,6 +332,7 @@ alter table public.payments enable row level security;
 alter table public.order_assignments enable row level security;
 alter table public.pricing_rules enable row level security;
 alter table public.order_status_history enable row level security;
+alter table public.product_reviews enable row level security;
 
 -- Recreate policies so this file is safe to re-run.
 drop policy if exists "public can view active shops" on public.shops;
@@ -516,6 +538,36 @@ using (
       and o.customer_id = auth.uid()
   )
 );
+
+-- Product ratings/comments: anyone may read them; only signed-in users may create,
+-- update, or delete their own review for a product.
+drop policy if exists "public can view product reviews" on public.product_reviews;
+create policy "public can view product reviews"
+on public.product_reviews for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "users can create product reviews" on public.product_reviews;
+create policy "users can create product reviews"
+on public.product_reviews for insert
+to authenticated
+with check (auth.uid() = customer_id);
+
+drop policy if exists "users can update own product reviews" on public.product_reviews;
+create policy "users can update own product reviews"
+on public.product_reviews for update
+to authenticated
+using (auth.uid() = customer_id)
+with check (auth.uid() = customer_id);
+
+drop policy if exists "users can delete own product reviews" on public.product_reviews;
+create policy "users can delete own product reviews"
+on public.product_reviews for delete
+to authenticated
+using (auth.uid() = customer_id);
+
+grant select on table public.product_reviews to anon, authenticated;
+grant insert, update, delete on table public.product_reviews to authenticated;
 
 -- Seller/partner shop and product management.
 drop policy if exists "partners can view own shops" on public.shops;
