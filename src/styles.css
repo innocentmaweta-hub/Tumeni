@@ -812,7 +812,10 @@ body{
 .review-form-label-bottom{text-align:right;margin-top:-2px;margin-bottom:7px}
 
 /* Review text positioning */
-.review-average{display:flex;flex-direction:column;align-items:stretch;width:100%;box-sizing:border-box}
+.review-average{display:flex;flex-direction:row;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box}
+.review-average-details{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;text-align:right}
+.review-average-details .review-stars{order:0}
+.review-average-details small{order:1;margin:0}
 .review-form{width:100%;box-sizing:border-box}
 .review-average small{order:-1}
 .review-average .review-stars{order:0}
