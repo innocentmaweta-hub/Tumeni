@@ -4,7 +4,7 @@ export async function getProducts() {
   if (!supabase) return { data: null, error: null, configured: false };
   return supabase
     .from('products')
-    .select('id,name,description,price,image_url,category_id,shop_id,shops(name),categories(name)')
+    .select('id,name,description,price,image_url,category_id,shop_id,shops(name),categories(name),product_images(id,image_url,sort_order)')
     .eq('available', true)
     .order('created_at', { ascending: false });
 }
@@ -192,7 +192,7 @@ export async function getMyProducts() {
   const isAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
   const query = supabase
     .from('products')
-    .select('id,name,description,price,image_url,category_id,shop_id,available,created_at,categories(name)')
+    .select('id,name,description,price,image_url,category_id,shop_id,available,created_at,categories(name),product_images(id,image_url,sort_order)')
     .order('created_at', { ascending: false });
   if (isAdmin) return query.is('shop_id', null);
 
@@ -206,32 +206,44 @@ export async function getMyProducts() {
   return query.eq('shop_id', shop.id);
 }
 
-export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, available = true }) {
+export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, imageUrls = [], available = true }) {
   if (!supabase) throw new Error('Supabase is not configured.');
+  const urls = (imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : [])).map(x => x.trim()).filter(Boolean);
   const { data, error } = await supabase.from('products').insert({
     shop_id: shopId || null,
     name: name.trim(),
     description: description?.trim() || null,
     price: Number(price),
     category_id: categoryId || null,
-    image_url: imageUrl?.trim() || null,
+    image_url: urls[0] || null,
     available
   }).select().single();
   if (error) throw error;
+  if (urls.length) {
+    const { error: imagesError } = await supabase.from('product_images').insert(urls.map((url, index) => ({ product_id: data.id, image_url: url, sort_order: index })));
+    if (imagesError) throw imagesError;
+  }
   return data;
 }
 
-export async function updateSellerProduct({ id, name, description, price, categoryId, imageUrl, available }) {
+export async function updateSellerProduct({ id, name, description, price, categoryId, imageUrl, imageUrls = [], available }) {
   if (!supabase) throw new Error('Supabase is not configured.');
+  const urls = (imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : [])).map(x => x.trim()).filter(Boolean);
   const { data, error } = await supabase.from('products').update({
     name: name.trim(),
     description: description?.trim() || null,
     price: Number(price),
     category_id: categoryId || null,
-    image_url: imageUrl?.trim() || null,
+    image_url: urls[0] || null,
     available: Boolean(available)
   }).eq('id', id).select().single();
   if (error) throw error;
+  const { error: deleteError } = await supabase.from('product_images').delete().eq('product_id', id);
+  if (deleteError) throw deleteError;
+  if (urls.length) {
+    const { error: imagesError } = await supabase.from('product_images').insert(urls.map((url, index) => ({ product_id: id, image_url: url, sort_order: index })));
+    if (imagesError) throw imagesError;
+  }
   return data;
 }
 
