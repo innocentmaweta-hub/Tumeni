@@ -425,3 +425,21 @@ export async function getMyNotifications() {
     error: null
   };
 }
+
+
+export async function getProductReviews(productId) {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  if (!productId) return { data: [], error: new Error('Product ID is required.') };
+  return supabase.from('product_reviews').select('id,product_id,customer_id,reviewer_name,rating,comment,created_at,updated_at').eq('product_id', productId).order('created_at', { ascending: false });
+}
+
+export async function saveProductReview({ productId, rating, comment = '' }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) return { data: null, error: userError || new Error('Please sign in to review this product.') };
+  const safeRating = Number(rating);
+  if (!Number.isInteger(safeRating) || safeRating < 1 || safeRating > 5) return { data: null, error: new Error('Please choose a rating from 1 to 5 stars.') };
+  const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+  const reviewerName = (profile?.full_name || user.email || 'Tumeni customer').trim();
+  return supabase.from('product_reviews').upsert({ product_id: productId, customer_id: user.id, reviewer_name: reviewerName, rating: safeRating, comment: comment.trim() || null, updated_at: new Date().toISOString() }, { onConflict: 'product_id,customer_id' }).select('id,product_id,customer_id,reviewer_name,rating,comment,created_at,updated_at').single();
+}
