@@ -936,3 +936,13 @@ body{
   .detail-gallery-prev{left:10px}.detail-gallery-next{right:10px}
   .detail-image-dots{bottom:13px;padding:6px 9px}
 }
+
+
+/* Product avatar for products without an image */
+.product-avatar{width:100%;height:100%;display:grid;place-items:center;position:relative;overflow:hidden;background:radial-gradient(circle at 30% 20%,#d83b3b 0%,#b51a1a 45%,#7e0d0d 100%);color:#fff}
+.product-avatar::before{content:"";position:absolute;width:74%;height:74%;border:1px solid rgba(255,255,255,.2);border-radius:50%;box-shadow:0 0 0 12px rgba(255,255,255,.035)}
+.product-avatar span{position:relative;z-index:1;font-size:28px;font-weight:900;letter-spacing:.04em;text-shadow:0 2px 8px rgba(70,0,0,.3)}
+.product-avatar i{position:absolute;right:8px;bottom:7px;font-style:normal;font-size:8px;font-weight:900;letter-spacing:.12em;opacity:.62}
+.detail-product-avatar{background:radial-gradient(circle at 30% 20%,#e04a4a 0%,#b51a1a 48%,#760909 100%)}
+.detail-product-avatar span{font-size:58px}
+.detail-product-avatar i{right:18px;bottom:16px;font-size:11px}
