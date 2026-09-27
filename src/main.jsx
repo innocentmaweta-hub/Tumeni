@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import './styles.css';
-import {supabaseConfigured,supabase} from './lib/supabase';
+import {supabaseConfigured,supabase} from './lib/supabase';  
 import {getProducts,getCurrentProfile,signUp,signIn,signOut,createPurchaseOrder,createTaskOrder,getMyShop,createMyShop,getMyProducts,createSellerProduct,updateSellerProduct,deleteSellerProduct,getCategories,createCategory,updateCategory,deleteCategory,getAgentAssignments,getAgentOrders,getEmployees,getAdminUsers,makeAgent,assignOrderToAgent,updateAgentOrderStatus,getAdminOrders,getMyOrders,getMyOrderHistory,getMyAddresses,createMyAddress,deleteMyAddress,getMyNotifications,getProductReviews,saveProductReview,initiatePayChanguCheckout} from './services/tumeniApi';
 
 const fallbackProducts=[
