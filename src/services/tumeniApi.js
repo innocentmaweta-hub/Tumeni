@@ -276,6 +276,47 @@ export async function getMyProducts() {
   };
 }
 
+
+export async function getMySellerAnalytics() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+
+  const isAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
+  let shopId = null;
+  if (!isAdmin) {
+    const { data: shop, error: shopError } = await supabase
+      .from('shops').select('id').eq('owner_id', user.id).maybeSingle();
+    if (shopError) return { data: null, error: shopError };
+    shopId = shop?.id || null;
+    if (!shopId) return { data: { orders: [], reviews: [] }, error: null };
+  }
+
+  const ordersQuery = supabase
+    .from('order_items')
+    .select('id,product_id,product_name,unit_price,quantity,line_total,shop_id,orders(status,created_at)')
+    .order('id', { ascending: false });
+
+  const scopedOrders = isAdmin ? ordersQuery.is('shop_id', null) : ordersQuery.eq('shop_id', shopId);
+  const { data: orderItems, error: orderError } = await scopedOrders;
+  if (orderError) return { data: { orders: [], reviews: [] }, error: orderError };
+
+  const products = await getMyProducts();
+  if (products.error) return { data: { orders: orderItems || [], reviews: [] }, error: null };
+
+  const productIds = (products.data || []).map(p => p.id).filter(Boolean);
+  let reviews = [];
+  if (productIds.length) {
+    const reviewResult = await supabase
+      .from('product_reviews')
+      .select('product_id,rating')
+      .in('product_id', productIds);
+    if (!reviewResult.error) reviews = reviewResult.data || [];
+  }
+
+  return { data: { orders: orderItems || [], reviews, products: products.data || [] }, error: null };
+}
+
 export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, imageUrls = [], available = true }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const urls = (imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : [])).map(x => x.trim()).filter(Boolean);
