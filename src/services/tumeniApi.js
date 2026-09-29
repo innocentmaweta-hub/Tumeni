@@ -496,6 +496,35 @@ export async function getAdminOrders() {
   };
 }
 
+export async function getAdminAuditLog() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const [historyResult, assignmentResult, shopsResult] = await Promise.all([
+    supabase.from('order_status_history').select('id,order_id,status,note,created_at').order('created_at',{ascending:false}).limit(100),
+    supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(100),
+    supabase.from('shops').select('id,name,partnership_status,created_at').order('created_at',{ascending:false}).limit(50)
+  ]);
+  const errors=[historyResult.error,assignmentResult.error,shopsResult.error].filter(Boolean);
+  if(errors.length===3)return{data:[],error:errors[0]};
+  const orderIds=[...new Set([...(historyResult.data||[]).map(x=>x.order_id),...(assignmentResult.data||[]).map(x=>x.order_id)].filter(Boolean))];
+  let orders=[];if(orderIds.length){const r=await supabase.from('orders').select('id,order_number,order_type').in('id',orderIds);if(!r.error)orders=r.data||[]}
+  const orderMap=new Map(orders.map(x=>[x.id,x]));
+  const entries=[
+    ...(historyResult.data||[]).map(x=>{const o=orderMap.get(x.order_id);return{id:'status-'+x.id,type:'order',title:o?.order_number?'Order '+o.order_number:'Order status updated',detail:(x.note||String(x.status||'').replaceAll('_',' ')).trim(),status:x.status,created_at:x.created_at}}),
+    ...(assignmentResult.data||[]).map(x=>{const o=orderMap.get(x.order_id);return{id:'assignment-'+x.id,type:'assignment',title:o?.order_number?'Agent assignment · '+o.order_number:'Agent assignment',detail:x.completed_at?'Assignment completed':x.accepted_at?'Assignment accepted':'Order assigned to an agent',created_at:x.completed_at||x.accepted_at||x.assigned_at}}),
+    ...(shopsResult.data||[]).map(x=>({id:'seller-'+x.id,type:'seller',title:x.name||'Seller shop',detail:'Seller status: '+(x.partnership_status||'not submitted'),status:x.partnership_status||'',created_at:x.created_at}))
+  ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,150);
+  return{data:entries,error:errors.length&&entries.length===0?errors[0]:null};
+}
+export async function createTrustReport({targetType,targetId,productId=null,shopId=null,reason,details=''}) {
+  if(!supabase)return{data:null,error:new Error('Supabase is not configured.')};
+  const {data:{user}}=await supabase.auth.getUser();if(!user)return{data:null,error:new Error('Please sign in to submit a report.')};
+  if(!targetType||!targetId||!reason)return{data:null,error:new Error('Report type, target and reason are required.')};
+  return supabase.from('trust_reports').insert({reporter_id:user.id,target_type:targetType,target_id:targetId,product_id:productId,shop_id:shopId,reason:reason.trim(),details:details.trim()||null,status:'open'}).select().single();
+}
+export async function getAdminTrustReports() {
+  if(!supabase)return{data:[],error:new Error('Supabase is not configured.')};
+  return supabase.from('trust_reports').select('id,target_type,target_id,product_id,shop_id,reason,details,status,created_at,reporter_id').order('created_at',{ascending:false}).limit(100);
+}
 export async function getAdminOrderDetails(orderId) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   if (!orderId) return { data: null, error: new Error('Order ID is required.') };
