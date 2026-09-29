@@ -194,6 +194,29 @@ export async function createTaskOrder({ customerId, description, addressId, fees
 }
 
 
+export async function getSellerVerificationCandidates() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data: shops, error: shopsError } = await supabase
+    .from('shops')
+    .select('id,owner_id,name,location,contact_phone,description,partnership_status,created_at')
+    .order('created_at', { ascending: false });
+  if (shopsError) return { data: [], error: shopsError };
+  const ownerIds = [...new Set((shops || []).map(s => s.owner_id).filter(Boolean))];
+  let profiles = [];
+  if (ownerIds.length) {
+    const result = await supabase.from('profiles').select('id,full_name,phone,avatar_url,role').in('id', ownerIds);
+    if (!result.error) profiles = result.data || [];
+  }
+  const map = new Map(profiles.map(p => [p.id, p]));
+  return { data: (shops || []).map(shop => ({ ...shop, owner: map.get(shop.owner_id) || null })), error: null };
+}
+
+export async function updateSellerVerification({ shopId, status }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  if (!shopId || !status) return { data: null, error: new Error('Seller and verification status are required.') };
+  return supabase.from('shops').update({ partnership_status: status }).eq('id', shopId).select('id,partnership_status').single();
+}
+
 export async function getMyShop() {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   const { data: { user } } = await supabase.auth.getUser();
