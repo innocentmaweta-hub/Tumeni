@@ -496,6 +496,24 @@ export async function getAdminOrders() {
   };
 }
 
+export async function getAdminDashboardAlerts() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const [ordersResult, shopsResult, assignmentsResult] = await Promise.all([
+    supabase.from('orders').select('id,order_number,status,total,created_at,order_type').order('created_at',{ascending:false}).limit(100),
+    supabase.from('shops').select('id,name,partnership_status,created_at').order('created_at',{ascending:false}).limit(100),
+    supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(100)
+  ]);
+  const errors=[ordersResult.error,shopsResult.error,assignmentsResult.error].filter(Boolean);
+  const orders=ordersResult.data||[], shops=shopsResult.data||[], assignments=assignmentsResult.data||[];
+  const alerts=[];
+  const pendingOrders=orders.filter(o=>['pending','payment_pending','processing'].includes(String(o.status||'').toLowerCase())).length;
+  const unassigned=orders.filter(o=>!assignments.some(a=>a.order_id===o.id) && !['delivered','cancelled','failed','refunded'].includes(String(o.status||'').toLowerCase())).length;
+  const pendingSellers=shops.filter(s=>['pending','pending_review'].includes(String(s.partnership_status||'').toLowerCase())).length;
+  if(pendingOrders)alerts.push({id:'pending-orders',severity:'attention',title:'Orders need attention',detail:pendingOrders+' active or pending orders are awaiting processing.'});
+  if(unassigned)alerts.push({id:'unassigned-orders',severity:'warning',title:'Orders need assignment',detail:unassigned+' active orders do not have an agent assignment.'});
+  if(pendingSellers)alerts.push({id:'pending-sellers',severity:'attention',title:'Seller reviews pending',detail:pendingSellers+' seller applications are awaiting review.'});
+  return {data:alerts,error:errors.length===3?errors[0]:null};
+}
 export async function getAdminAuditLog() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const [historyResult, assignmentResult, shopsResult] = await Promise.all([
