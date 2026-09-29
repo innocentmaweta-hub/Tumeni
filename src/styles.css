@@ -990,3 +990,4 @@ body{
 .phase3-review-box b{font-size:10px;color:var(--tm-red)}
 .phase3-review-box p{margin:0;font-size:9px;line-height:1.45;color:#444}
 .phase3-review-box span{font-size:8px;color:#888}
+.phase3-verification-actions{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:7px;margin-top:10px}.phase3-verification-actions button{min-height:34px;font-size:9px}@media(max-width:430px){.phase3-verification-actions{grid-template-columns:1fr 1fr 1.25fr}}
