@@ -960,3 +960,10 @@ body{
 
 /* Deployment heartbeat: keep gallery visuals unchanged while refreshing the build. */
 .detail-gallery-arrow{will-change:opacity,transform}
+
+/* Product image fallback avatars */
+.product-image-avatar{width:100%;height:100%;display:grid;place-items:center;background:#f3f3f3;color:#b51a1a;font-weight:900;overflow:hidden}
+.product-image-avatar span{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#fff0e5;color:#b51a1a;font-size:16px;letter-spacing:.5px}
+.detail-image-slide .product-image-avatar{border-radius:0;background:#f5f5f5}
+.detail-image-slide .product-image-avatar span{width:82px;height:82px;font-size:28px}
+.seller-product-img .product-image-avatar span{width:32px;height:32px;font-size:11px}
