@@ -1002,3 +1002,27 @@ body{
 
 /* Phase 4.4 rewards */
 .phase4-rewards .rewards-card{padding:18px;border:1px solid #eee;border-radius:14px;background:#fff;margin-bottom:12px;text-align:center}.phase4-rewards .rewards-card span{display:block;font-size:9px;color:#777}.phase4-rewards .rewards-card strong{display:block;font-size:30px;color:var(--tm-red);margin:3px 0}.phase4-rewards .rewards-card small{font-size:8px;color:#888}.reward-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 4px;border-bottom:1px solid #f1f1f1}.reward-row:last-child{border-bottom:0}.reward-row b{display:block;font-size:9px}.reward-row small{display:block;font-size:8px;color:#888;margin-top:3px}.reward-points{font-size:8px;font-weight:800;color:var(--tm-red)}
+
+
+/* Phase 4.6 — Growth Analytics */
+.growth-page .growth-range{display:flex;gap:8px;margin:0 0 16px;overflow:auto}
+.growth-range button{border:1px solid #e7e7e7;background:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-size:12px;font-weight:700;white-space:nowrap}
+.growth-range button.active{background:#111;color:#fff;border-color:#111}
+.growth-growth-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.growth-growth-card{padding:14px;border:1px solid #ececec;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(0,0,0,.04)}
+.growth-growth-card span{display:block;font-size:11px;color:#777;margin-bottom:6px}
+.growth-growth-card strong{font-size:20px}
+.growth-chart{height:190px;display:flex;align-items:flex-end;gap:5px;overflow-x:auto;padding:12px 4px 0;border:1px solid #ececec;border-radius:14px;background:#fff}
+.growth-bar-group{min-width:25px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.growth-bars{height:150px;display:flex;align-items:flex-end;gap:2px}
+.growth-bar{width:8px;min-height:3px;border-radius:4px 4px 1px 1px;background:#222}
+.growth-bar.orders{background:#aaa}
+.growth-bar-group>span{font-size:8px;color:#777;white-space:nowrap;transform:rotate(-45deg);transform-origin:center top;margin-top:8px}
+.growth-legend{display:flex;gap:16px;margin:12px 2px 0;font-size:11px;color:#666}
+.growth-legend span{display:flex;align-items:center;gap:5px}
+.growth-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#222}
+.growth-dot.orders{background:#aaa}
+@media(max-width:520px){
+  .growth-growth-row{grid-template-columns:1fr}
+  .growth-chart{height:180px}
+}
