@@ -45,8 +45,10 @@ function MetricCard({label,value,detail}){return <div className="phase3-metric">
 
 function AdminCommandCenter({onBack,onPage}){
   const [orders,setOrders]=useState([]),[users,setUsers]=useState([]),[agents,setAgents]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
-  const load=async()=>{setLoading(true);setError('');try{const [alerts,setAlerts]=useState([]),[alertsError,setAlertsError]=useState(''),o,u,a]=await Promise.all([getAdminOrders(),getAdminUsers(),getEmployees()]);if(o.error)throw o.error;if(u.error)throw u.error;if(a.error)throw a.error;setOrders(o.data||[]);setUsers(u.data||[]);setAgents(a.data||[])}catch(e){setError(e.message||'Could not load the admin dashboard.')}finally{setLoading(false)}};
-  },[]);useEffect(()=>{(async()=>{try{const r=await getAdminDashboardAlerts();if(r.error)throw r.error;setAlerts(r.data||[])}catch(e){setAlertsError(e.message||'Could not load alerts.')}})()},[]);useEffect(()=>{;
+  const [alerts,setAlerts]=useState([]),[alertsError,setAlertsError]=useState('');
+  const load=async()=>{setLoading(true);setError('');try{const [o,u,a]=await Promise.all([getAdminOrders(),getAdminUsers(),getEmployees()]);if(o.error)throw o.error;if(u.error)throw u.error;if(a.error)throw a.error;setOrders(o.data||[]);setUsers(u.data||[]);setAgents(a.data||[])}catch(e){setError(e.message||'Could not load the admin dashboard.')}finally{setLoading(false)}};
+  useEffect(()=>{void load()},[]);
+  useEffect(()=>{(async()=>{try{const r=await getAdminDashboardAlerts();if(r.error)throw r.error;setAlerts(r.data||[])}catch(e){setAlertsError(e.message||'Could not load alerts.')}})()},[]);;
   const stats=useMemo(()=>{const active=orders.filter(o=>!['delivered','cancelled','failed','refunded'].includes(o.status));const completed=orders.filter(o=>o.status==='delivered');const revenue=orders.filter(o=>o.status==='delivered').reduce((s,o)=>s+Number(o.total||0),0);return {active,completed,revenue}},[orders]);
   const statusCounts=useMemo(()=>orders.reduce((m,o)=>{m[o.status]=(m[o.status]||0)+1;return m},{}),[orders]);
   const label=s=>({pending_payment:'Awaiting payment',paid:'Payment successful',assigned:'Assigned',preparing:'Preparing',shopping:'At pickup',picked_up:'Picked up',on_the_way:'On the way',delivered:'Delivered',cancelled:'Cancelled',failed:'Failed',refunded:'Refunded'}[s]||String(s||'').replaceAll('_',' '));
