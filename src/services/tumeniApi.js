@@ -705,3 +705,72 @@ export async function uploadOrderAttachment(file, orderId) {
   const { data } = supabase.storage.from('order-attachments').getPublicUrl(path);
   return { url: path, name: file.name };
 }
+
+
+export async function getActivePromotions() {
+  if (!supabase) return { data: [], error: null };
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from('promotions')
+    .select('id,name,code,scope,product_id,shop_id,discount_type,discount_value,min_order_amount,starts_at,ends_at,active')
+    .eq('active', true)
+    .lte('starts_at', now)
+    .or('ends_at.is.null,ends_at.gte.' + now)
+    .order('created_at', { ascending: false });
+  return { data: data || [], error };
+}
+
+export async function getAdminPromotions() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  return supabase.from('promotions').select('*').order('created_at', { ascending: false });
+}
+
+export async function createPromotion(payload) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const row = {
+    name: String(payload.name || '').trim(),
+    code: String(payload.code || '').trim().toUpperCase() || null,
+    scope: payload.scope || 'global',
+    product_id: payload.productId || null,
+    shop_id: payload.shopId || null,
+    discount_type: payload.discountType || 'percentage',
+    discount_value: Number(payload.discountValue || 0),
+    min_order_amount: Number(payload.minOrderAmount || 0),
+    starts_at: payload.startsAt || new Date().toISOString(),
+    ends_at: payload.endsAt || null,
+    active: payload.active !== false
+  };
+  if (!row.name || row.discount_value <= 0) return { data: null, error: new Error('Enter a promotion name and a valid discount.') };
+  if (row.discount_type === 'percentage' && row.discount_value > 100) return { data: null, error: new Error('Percentage discounts cannot exceed 100%.') };
+  return supabase.from('promotions').insert(row).select().single();
+}
+
+export async function updatePromotion({ id, ...payload }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.from('promotions').update({
+    name: String(payload.name || '').trim(),
+    code: String(payload.code || '').trim().toUpperCase() || null,
+    scope: payload.scope || 'global',
+    product_id: payload.productId || null,
+    shop_id: payload.shopId || null,
+    discount_type: payload.discountType || 'percentage',
+    discount_value: Number(payload.discountValue || 0),
+    min_order_amount: Number(payload.minOrderAmount || 0),
+    starts_at: payload.startsAt || null,
+    ends_at: payload.endsAt || null,
+    active: payload.active !== false
+  }).eq('id', id).select().single();
+}
+
+export async function deletePromotion(id) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.from('promotions').delete().eq('id', id);
+}
+
+export function promotionAmount(promotion, subtotal) {
+  if (!promotion || Number(subtotal) < Number(promotion.min_order_amount || 0)) return 0;
+  const base = Number(subtotal || 0);
+  return promotion.discount_type === 'fixed'
+    ? Math.min(base, Number(promotion.discount_value || 0))
+    : Math.min(base, base * Number(promotion.discount_value || 0) / 100);
+}
