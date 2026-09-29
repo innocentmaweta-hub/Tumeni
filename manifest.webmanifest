@@ -1,0 +1,14 @@
+{
+  "name": "Tumeni",
+  "short_name": "Tumeni",
+  "description": "Tumeni shopping, delivery and task services.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#b51a1a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
