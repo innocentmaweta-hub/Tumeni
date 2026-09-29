@@ -451,16 +451,36 @@ export async function getAdminOrders() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const { data, error } = await supabase
     .from('orders')
-    .select('id,order_number,order_type,status,total,created_at,order_assignments(id,agent_id,profiles(full_name))')
+    .select('id,order_number,order_type,status,total,subtotal,service_fee,delivery_fee,handling_fee,created_at,customer_id,task_description,customer_notes,delivery_address:addresses(id,label,address_line,area,city),order_assignments(id,agent_id,assigned_at,accepted_at,completed_at,profiles(full_name,phone))')
     .order('created_at', { ascending: false });
   if (error) return { data: [], error };
+  const rows = data || [];
+  const customerIds = [...new Set(rows.map(o => o.customer_id).filter(Boolean))];
+  let profiles = [];
+  if (customerIds.length) {
+    const p = await supabase.from('profiles').select('id,full_name,phone,avatar_url,role').in('id', customerIds);
+    if (!p.error) profiles = p.data || [];
+  }
+  const profileMap = new Map(profiles.map(p => [p.id, p]));
   return {
-    data: (data || []).map(o => ({
+    data: rows.map(o => ({
       ...o,
-      assignment_agent_id: o.order_assignments?.[0]?.agent_id || ''
+      customer: profileMap.get(o.customer_id) || null,
+      assignment_agent_id: o.order_assignments?.[0]?.agent_id || '',
+      assignment_agent_name: o.order_assignments?.[0]?.profiles?.full_name || ''
     })),
     error: null
   };
+}
+
+export async function getAdminOrderDetails(orderId) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  if (!orderId) return { data: null, error: new Error('Order ID is required.') };
+  const [itemsResult, historyResult] = await Promise.all([
+    supabase.from('order_items').select('id,product_id,product_name,unit_price,quantity,line_total,shop_id').eq('order_id', orderId).order('id'),
+    supabase.from('order_status_history').select('id,status,note,created_at').eq('order_id', orderId).order('created_at', { ascending: true })
+  ]);
+  return { data: { items: itemsResult.error ? [] : (itemsResult.data || []), history: historyResult.error ? [] : (historyResult.data || []) }, error: null };
 }
 
 export async function getAdminUsers() {
