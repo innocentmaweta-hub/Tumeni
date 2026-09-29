@@ -1065,7 +1065,7 @@ with check (
 grant select, insert on table public.order_messages to authenticated;
 
 insert into storage.buckets (id, name, public)
-values ('order-attachments', 'order-attachments', true)
+values ('order-attachments', 'order-attachments', false)
 on conflict (id) do update set public = true;
 
 drop policy if exists "users can view order attachments" on storage.objects;
