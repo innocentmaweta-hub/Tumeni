@@ -525,3 +525,44 @@ export async function saveProductReview({ productId, rating, comment = '' }) {
   const reviewerName = (profile?.full_name || user.email || 'Tumeni customer').trim();
   return supabase.from('product_reviews').upsert({ product_id: productId, customer_id: user.id, reviewer_name: reviewerName, rating: safeRating, comment: comment.trim() || null, updated_at: new Date().toISOString() }, { onConflict: 'product_id,customer_id' }).select('id,product_id,customer_id,reviewer_name,rating,comment,created_at,updated_at').single();
 }
+
+
+export async function getOrderMessages(orderId) {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  if (!orderId) return { data: [], error: new Error('Order ID is required.') };
+  return supabase
+    .from('order_messages')
+    .select('id,order_id,sender_id,message,attachment_url,attachment_name,created_at,sender:profiles(full_name,avatar_url,role)')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: true });
+}
+
+export async function sendOrderMessage({ orderId, message = '', attachmentUrl = '', attachmentName = '' }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const text = message.trim();
+  if (!text && !attachmentUrl) return { data: null, error: new Error('Write a message or attach a file.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  return supabase.from('order_messages').insert({
+    order_id: orderId,
+    sender_id: user.id,
+    message: text || null,
+    attachment_url: attachmentUrl || null,
+    attachment_name: attachmentName || null
+  }).select('id,order_id,sender_id,message,attachment_url,attachment_name,created_at,sender:profiles(full_name,avatar_url,role)').single();
+}
+
+export async function uploadOrderAttachment(file, orderId) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Please sign in first.');
+  if (!file) throw new Error('Please choose a file.');
+  if (!orderId) throw new Error('Order ID is required.');
+  if (file.size > 8 * 1024 * 1024) throw new Error('Attachments must be 8 MB or smaller.');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = user.id + '/' + orderId + '/' + Date.now() + '-' + safeName;
+  const { error } = await supabase.storage.from('order-attachments').upload(path, file, { upsert: false });
+  if (error) throw error;
+  const { data } = supabase.storage.from('order-attachments').getPublicUrl(path);
+  return { url: data.publicUrl, name: file.name };
+}
