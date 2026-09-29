@@ -1094,3 +1094,38 @@ with check (
 );
 
 notify pgrst, 'reload schema';
+
+
+-- Phase 4.1: promotions and discounts.
+create table if not exists public.promotions (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  code text,
+  scope text not null default 'global' check (scope in ('global','product','shop')),
+  product_id uuid references public.products(id) on delete cascade,
+  shop_id uuid references public.shops(id) on delete cascade,
+  discount_type text not null default 'percentage' check (discount_type in ('percentage','fixed')),
+  discount_value numeric(12,2) not null check (discount_value > 0),
+  min_order_amount numeric(12,2) not null default 0 check (min_order_amount >= 0),
+  starts_at timestamptz not null default now(),
+  ends_at timestamptz,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  constraint promotions_scope_target check (
+    (scope='global' and product_id is null and shop_id is null)
+    or (scope='product' and product_id is not null and shop_id is null)
+    or (scope='shop' and shop_id is not null and product_id is null)
+  )
+);
+create index if not exists promotions_active_idx on public.promotions(active, starts_at, ends_at);
+create index if not exists promotions_product_idx on public.promotions(product_id);
+create index if not exists promotions_shop_idx on public.promotions(shop_id);
+create unique index if not exists promotions_code_unique_idx on public.promotions(lower(code)) where code is not null;
+alter table public.promotions enable row level security;
+drop policy if exists "public can view active promotions" on public.promotions;
+create policy "public can view active promotions" on public.promotions for select to anon, authenticated using (active = true and starts_at <= now() and (ends_at is null or ends_at >= now()));
+drop policy if exists "admins can manage promotions" on public.promotions;
+create policy "admins can manage promotions" on public.promotions for all to authenticated using (public.current_user_role()='admin') with check (public.current_user_role()='admin');
+grant select on public.promotions to anon, authenticated;
+grant insert, update, delete on public.promotions to authenticated;
+notify pgrst, 'reload schema';
