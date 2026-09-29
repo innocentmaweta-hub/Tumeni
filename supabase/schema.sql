@@ -1013,3 +1013,84 @@ with check (
 );
 
 notify pgrst, 'reload schema';
+
+
+-- Phase 2: order conversations and customer attachments.
+create table if not exists public.order_messages (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders(id) on delete cascade,
+  sender_id uuid not null references public.profiles(id) on delete cascade,
+  message text,
+  attachment_url text,
+  attachment_name text,
+  created_at timestamptz not null default now(),
+  constraint order_messages_has_content check (nullif(trim(coalesce(message,'')), '') is not null or attachment_url is not null)
+);
+
+create index if not exists order_messages_order_created_idx on public.order_messages(order_id, created_at);
+alter table public.order_messages enable row level security;
+
+drop policy if exists "customers can view own order messages" on public.order_messages;
+create policy "customers can view own order messages"
+on public.order_messages for select to authenticated
+using (exists (select 1 from public.orders o where o.id = order_messages.order_id and o.customer_id = auth.uid()));
+
+drop policy if exists "customers can send own order messages" on public.order_messages;
+create policy "customers can send own order messages"
+on public.order_messages for insert to authenticated
+with check (
+  sender_id = auth.uid()
+  and exists (select 1 from public.orders o where o.id = order_messages.order_id and o.customer_id = auth.uid())
+);
+
+drop policy if exists "admins can manage order messages" on public.order_messages;
+create policy "admins can manage order messages"
+on public.order_messages for all to authenticated
+using (public.current_user_role() = 'admin')
+with check (public.current_user_role() = 'admin');
+
+drop policy if exists "agents can view assigned order messages" on public.order_messages;
+create policy "agents can view assigned order messages"
+on public.order_messages for select to authenticated
+using (exists (select 1 from public.order_assignments oa where oa.order_id = order_messages.order_id and oa.agent_id = auth.uid() and oa.completed_at is null));
+
+drop policy if exists "agents can send assigned order messages" on public.order_messages;
+create policy "agents can send assigned order messages"
+on public.order_messages for insert to authenticated
+with check (
+  sender_id = auth.uid()
+  and exists (select 1 from public.order_assignments oa where oa.order_id = order_messages.order_id and oa.agent_id = auth.uid() and oa.completed_at is null)
+);
+
+grant select, insert on table public.order_messages to authenticated;
+
+insert into storage.buckets (id, name, public)
+values ('order-attachments', 'order-attachments', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "users can view order attachments" on storage.objects;
+create policy "users can view order attachments"
+on storage.objects for select to authenticated
+using (
+  bucket_id = 'order-attachments'
+  and (
+    (storage.foldername(name))[1] = auth.uid()::text
+    or public.current_user_role() = 'admin'
+    or exists (
+      select 1 from public.order_assignments oa
+      where oa.agent_id = auth.uid()
+        and oa.completed_at is null
+        and oa.order_id::text = (storage.foldername(name))[2]
+    )
+  )
+);
+
+drop policy if exists "users can upload order attachments" on storage.objects;
+create policy "users can upload order attachments"
+on storage.objects for insert to authenticated
+with check (
+  bucket_id = 'order-attachments'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+notify pgrst, 'reload schema';
