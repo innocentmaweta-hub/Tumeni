@@ -967,3 +967,14 @@ body{
 .detail-image-slide .product-image-avatar{border-radius:0;background:#f5f5f5}
 .detail-image-slide .product-image-avatar span{width:82px;height:82px;font-size:28px}
 .seller-product-img .product-image-avatar span{width:32px;height:32px;font-size:11px}
+
+/* Phase 2: order conversations and attachments */
+.messages-page{display:flex;flex-direction:column;gap:12px}
+.messages-order-head{padding:14px 15px;border:1px solid #eee;border-radius:16px;background:#fafafa;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.messages-order-head div{display:flex;flex-direction:column;gap:3px}.messages-order-head span{font-size:10px;font-weight:800;letter-spacing:.08em;color:#777}.messages-order-head b{font-size:14px}.messages-order-head small{color:#777;font-size:11px}
+.message-list{display:flex;flex-direction:column;gap:9px;min-height:280px;max-height:430px;overflow:auto;padding:4px 2px}
+.message-row{display:flex}.message-row.mine{justify-content:flex-end}.message-row.theirs{justify-content:flex-start}
+.message-bubble{max-width:82%;padding:10px 12px;border-radius:16px;background:#f2f2f2}.message-row.mine .message-bubble{background:#fff0e5}.message-bubble p{margin:0 0 7px;font-size:13px;line-height:1.45;white-space:pre-wrap}.message-bubble time{display:block;font-size:9px;color:#888;text-align:right}.message-attachment{display:flex;align-items:center;gap:7px;color:#b51a1a;text-decoration:none;font-size:12px;font-weight:700;padding:8px 0}.message-empty{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#777;text-align:center;font-size:12px}.message-empty b{color:#222;font-size:14px}
+.message-composer{border-top:1px solid #eee;padding-top:10px;position:sticky;bottom:0;background:#fff}.message-composer textarea{width:100%;min-height:62px;border:1px solid #ddd;border-radius:14px;padding:10px 12px;resize:none;outline:none}.message-composer textarea:focus{border-color:#b51a1a}.message-composer-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}.attach-button{display:inline-flex;align-items:center;gap:6px;padding:10px 12px}.attach-button input{display:none}.attachment-chip{display:flex;align-items:center;gap:7px;padding:7px 9px;background:#f7f7f7;border-radius:10px;margin-bottom:7px;font-size:11px}.attachment-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.attachment-chip button{border:0;background:transparent;font-size:18px}
+.tracking-message-button{margin:0 0 10px}
+@media(max-width:430px){.message-list{max-height:46vh}}
