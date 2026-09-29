@@ -543,6 +543,92 @@ export async function getAdminTrustReports() {
   if(!supabase)return{data:[],error:new Error('Supabase is not configured.')};
   return supabase.from('trust_reports').select('id,target_type,target_id,product_id,shop_id,reason,details,status,created_at,reporter_id').order('created_at',{ascending:false}).limit(100);
 }
+export async function getAdminGrowthAnalytics(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const safeDays = [7, 30, 90].includes(Number(days)) ? Number(days) : 30;
+  const since = new Date(Date.now() - safeDays * 86400000).toISOString();
+
+  const [ordersResult, itemsResult, productsResult, shopsResult] = await Promise.all([
+    supabase.from('orders').select('id,status,total,order_type,customer_id,created_at').gte('created_at', since).order('created_at', { ascending: true }).limit(5000),
+    supabase.from('order_items').select('id,order_id,product_id,product_name,quantity,line_total,shop_id,orders!inner(status,created_at)').gte('orders.created_at', since).limit(10000),
+    supabase.from('products').select('id,name,price,available,created_at').order('created_at', { ascending: false }).limit(5000),
+    supabase.from('shops').select('id,name,partnership_status,created_at').limit(1000)
+  ]);
+
+  const errors = [ordersResult.error, itemsResult.error, productsResult.error, shopsResult.error].filter(Boolean);
+  if (ordersResult.error) return { data: null, error: ordersResult.error };
+
+  const orders = ordersResult.data || [];
+  const items = itemsResult.error ? [] : (itemsResult.data || []);
+  const products = productsResult.error ? [] : (productsResult.data || []);
+  const shops = shopsResult.error ? [] : (shopsResult.data || []);
+
+  const valid = o => !['cancelled', 'failed', 'refunded'].includes(String(o.status || '').toLowerCase());
+  const delivered = o => String(o.status || '').toLowerCase() === 'delivered';
+  const active = o => valid(o) && !delivered(o);
+
+  const revenue = orders.filter(delivered).reduce((sum, o) => sum + Number(o.total || 0), 0);
+  const deliveredOrders = orders.filter(delivered);
+  const activeOrders = orders.filter(active);
+  const customers = new Set(orders.map(o => o.customer_id).filter(Boolean));
+
+  const productMap = new Map();
+  for (const item of items) {
+    if (String(item.orders?.status || '').toLowerCase() !== 'delivered') continue;
+    const key = item.product_id || item.product_name || item.id;
+    const prev = productMap.get(key) || { name: item.product_name || 'Product', units: 0, revenue: 0 };
+    prev.units += Number(item.quantity || 0);
+    prev.revenue += Number(item.line_total || (Number(item.unit_price || 0) * Number(item.quantity || 0)));
+    productMap.set(key, prev);
+  }
+
+  const topProducts = [...productMap.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 8);
+  const trend = [];
+  for (let i = safeDays - 1; i >= 0; i--) {
+    const day = new Date(Date.now() - i * 86400000);
+    const key = day.toISOString().slice(0, 10);
+    const dayOrders = orders.filter(o => String(o.created_at || '').slice(0, 10) === key && valid(o));
+    const dayDelivered = dayOrders.filter(delivered);
+    trend.push({
+      date: key,
+      label: day.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      orders: dayOrders.length,
+      delivered: dayDelivered.length,
+      revenue: dayDelivered.reduce((sum, o) => sum + Number(o.total || 0), 0)
+    });
+  }
+
+  const previousSince = new Date(Date.now() - safeDays * 2 * 86400000).toISOString();
+  const previousResult = await supabase.from('orders')
+    .select('id,status,total,customer_id,created_at')
+    .gte('created_at', previousSince)
+    .lt('created_at', since)
+    .limit(5000);
+  const previousOrders = previousResult.error ? [] : (previousResult.data || []);
+  const previousRevenue = previousOrders.filter(delivered).reduce((sum, o) => sum + Number(o.total || 0), 0);
+
+  return {
+    data: {
+      days: safeDays,
+      orders: orders.length,
+      deliveredOrders: deliveredOrders.length,
+      activeOrders: activeOrders.length,
+      customers: customers.size,
+      revenue,
+      averageOrderValue: deliveredOrders.length ? revenue / deliveredOrders.length : 0,
+      topProducts,
+      trend,
+      shops: shops.length,
+      availableProducts: products.filter(p => p.available).length,
+      growth: {
+        revenue: previousRevenue ? ((revenue - previousRevenue) / previousRevenue) * 100 : null,
+        orders: previousOrders.length ? ((orders.length - previousOrders.length) / previousOrders.length) * 100 : null
+      }
+    },
+    error: errors.length > 1 ? errors[1] : null
+  };
+}
+
 export async function getAdminOrderDetails(orderId) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   if (!orderId) return { data: null, error: new Error('Order ID is required.') };
