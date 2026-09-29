@@ -530,11 +530,19 @@ export async function saveProductReview({ productId, rating, comment = '' }) {
 export async function getOrderMessages(orderId) {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   if (!orderId) return { data: [], error: new Error('Order ID is required.') };
-  return supabase
+  const { data, error } = await supabase
     .from('order_messages')
     .select('id,order_id,sender_id,message,attachment_url,attachment_name,created_at,sender:profiles(full_name,avatar_url,role)')
     .eq('order_id', orderId)
     .order('created_at', { ascending: true });
+  if (error) return { data: [], error };
+  const rows = data || [];
+  const withLinks = await Promise.all(rows.map(async row => {
+    if (!row.attachment_url) return row;
+    const signed = await supabase.storage.from('order-attachments').createSignedUrl(row.attachment_url, 3600);
+    return { ...row, attachment_url: signed.data?.signedUrl || '' };
+  }));
+  return { data: withLinks, error: null };
 }
 
 export async function sendOrderMessage({ orderId, message = '', attachmentUrl = '', attachmentName = '' }) {
@@ -564,5 +572,5 @@ export async function uploadOrderAttachment(file, orderId) {
   const { error } = await supabase.storage.from('order-attachments').upload(path, file, { upsert: false });
   if (error) throw error;
   const { data } = supabase.storage.from('order-attachments').getPublicUrl(path);
-  return { url: data.publicUrl, name: file.name };
+  return { url: path, name: file.name };
 }
