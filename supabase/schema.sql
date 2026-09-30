@@ -68,6 +68,8 @@ create table if not exists public.products (
   price numeric(12,2) not null check (price >= 0),
   image_url text,
   available boolean not null default true,
+  stock_quantity integer not null default 0 check (stock_quantity >= 0),
+  low_stock_threshold integer not null default 5 check (low_stock_threshold >= 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -84,6 +86,14 @@ create table if not exists public.product_reviews (
   updated_at timestamptz not null default now(),
   unique(product_id, customer_id)
 );
+
+-- Phase 5.4: seller inventory preparation. These fields will support stock quantity and low-stock warnings.
+alter table public.products add column if not exists stock_quantity integer not null default 0;
+alter table public.products add column if not exists low_stock_threshold integer not null default 5;
+alter table public.products drop constraint if exists products_stock_quantity_check;
+alter table public.products add constraint products_stock_quantity_check check (stock_quantity >= 0);
+alter table public.products drop constraint if exists products_low_stock_threshold_check;
+alter table public.products add constraint products_low_stock_threshold_check check (low_stock_threshold >= 0);
 
 create index if not exists product_reviews_product_id_idx on public.product_reviews(product_id);
 create index if not exists product_reviews_customer_id_idx on public.product_reviews(customer_id);
