@@ -1412,6 +1412,12 @@ export function promotionAmount(promotion, subtotal) {
 }
 
 
+export async function triggerMyRetentionEngagement() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data, error } = await supabase.rpc('trigger_my_retention_engagement');
+  return { data: data || null, error };
+}
+
 export async function getMyRetentionSummary() {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   const { data, error } = await supabase.rpc('get_my_retention_summary');
