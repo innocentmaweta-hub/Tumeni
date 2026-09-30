@@ -681,6 +681,16 @@ export async function getAdminGrowthAnalytics(days = 30) {
   };
 }
 
+export async function updateAdminOrderStatus({ orderId, status, note = '' }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.rpc('admin_update_order_status', { p_order_id: orderId, p_status: status, p_note: note || null });
+}
+
+export async function cancelMyOrder({ orderId, note = '' }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.rpc('customer_cancel_order', { p_order_id: orderId, p_note: note || null });
+}
+
 export async function getAdminOrderDetails(orderId) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   if (!orderId) return { data: null, error: new Error('Order ID is required.') };
