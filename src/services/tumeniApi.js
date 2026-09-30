@@ -1412,6 +1412,13 @@ export function promotionAmount(promotion, subtotal) {
 }
 
 
+export async function getPopularSearches(limit = 8) {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 8, 20));
+  const { data, error } = await supabase.rpc('get_popular_searches', { p_limit: safeLimit });
+  return { data: data || [], error };
+}
+
 export async function advancedSearchProducts({ query = '', limit = 40, offset = 0 } = {}) {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const cleanQuery = String(query || '').trim();
