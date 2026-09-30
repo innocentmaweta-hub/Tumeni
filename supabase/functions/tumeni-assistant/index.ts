@@ -9,9 +9,122 @@ const corsHeaders = {
 
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 4000;
+const MAX_PRODUCTS = 20;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: corsHeaders });
+}
+
+
+function cleanSearchText(input: unknown) {
+  return String(input || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 240);
+}
+
+function extractBudget(text: string) {
+  const match = text.match(
+    /(?:under|below|less than|up to|max(?:imum)?(?: of)?|within)\s*(?:mwk|mk|k)?\s*([0-9][0-9,]*(?:\.\d+)?)/i
+  );
+  if (!match) return null;
+  const amount = Number(match[1].replace(/,/g, ""));
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+function extractSearchTerms(text: string) {
+  const stopWords = new Set([
+    "i", "need", "want", "looking", "for", "a", "an", "the", "some",
+    "please", "find", "get", "buy", "me", "under", "below", "less",
+    "than", "up", "to", "maximum", "max", "of", "within", "mwk", "mk",
+    "deliver", "delivered", "delivery", "in", "at", "area", "price",
+    "cost", "something", "around", "with", "and", "or", "can", "you"
+  ]);
+
+  return [...new Set(
+    text.split(/\s+/)
+      .map(term => term.replace(/^-+|-+$/g, ""))
+      .filter(term => term.length >= 2 && !stopWords.has(term))
+  )].slice(0, 6);
+}
+
+function looksLikeProductRequest(text: string) {
+  const lower = text.toLowerCase();
+  const taskSignals = [
+    "someone to", "person to", "do this for me", "help me do",
+    "pick up", "collect something", "clean my", "repair my",
+    "wash my", "deliver something", "run an errand", "task"
+  ];
+
+  if (taskSignals.some(signal => lower.includes(signal))) return false;
+
+  return [
+    "buy", "need", "looking for", "find me", "product", "charger",
+    "phone", "laptop", "food", "groceries", "shoes", "dress",
+    "electronics", "under mwk", "below mwk"
+  ].some(signal => lower.includes(signal));
+}
+
+async function searchCatalog(supabase: any, query: string) {
+  const cleanQuery = cleanSearchText(query);
+  if (!cleanQuery) return [];
+
+  const terms = extractSearchTerms(cleanQuery);
+  const budget = extractBudget(cleanQuery);
+  const searchParts = terms.length
+    ? terms.map(term => \`name.ilike.%\${term}%,description.ilike.%\${term}%\`)
+    : [\`name.ilike.%\${cleanQuery}%,description.ilike.%\${cleanQuery}%\`];
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id,name,description,price,image_url,category_id,shop_id,shops(name),categories(name)")
+    .eq("available", true)
+    .or(searchParts.join(","))
+    .order("created_at", { ascending: false })
+    .limit(60);
+
+  if (error) throw error;
+
+  const phrase = cleanQuery;
+  return (data || [])
+    .map((product: any) => {
+      const haystack = [
+        product.name,
+        product.description,
+        product.categories?.name,
+        product.shops?.name
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      let score = 0;
+      if (haystack.includes(phrase)) score += 100;
+
+      for (const term of terms) {
+        if (String(product.name || "").toLowerCase().includes(term)) score += 20;
+        else if (haystack.includes(term)) score += 8;
+      }
+
+      const price = Number(product.price || 0);
+      const withinBudget = budget === null ? null : price <= budget;
+      if (withinBudget === true) score += 35;
+      if (withinBudget === false) score -= Math.min(40, ((price - budget) / Math.max(budget, 1)) * 40);
+
+      return {
+        id: product.id,
+        name: product.name,
+        description: product.description || "",
+        price,
+        image_url: product.image_url || null,
+        shop: product.shops?.name || "admin product",
+        category: product.categories?.name || null,
+        within_budget: withinBudget,
+        score
+      };
+    })
+    .filter((product: any) => budget === null || product.within_budget)
+    .sort((a: any, b: any) => b.score - a.score)
+    .slice(0, MAX_PRODUCTS);
 }
 
 function cleanMessages(input: unknown) {
@@ -72,18 +185,48 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
+
+    if (body?.action === "search_products") {
+      const query = String(body?.query || "").trim();
+      if (!query) return json({ error: "Enter a product search." }, 400);
+
+      const products = await searchCatalog(supabase, query);
+      return json({
+        assistant_name: "Yaza AI",
+        action: "search_products",
+        query,
+        products
+      });
+    }
+
     const messages = cleanMessages(body?.messages);
+    const latestUserMessage =
+      [...messages].reverse().find(message => message.role === "user")?.content || "";
+
+    let catalogProducts: any[] = [];
+    if (body?.include_catalog !== false && looksLikeProductRequest(latestUserMessage)) {
+      catalogProducts = await searchCatalog(supabase, latestUserMessage);
+    }
+
+    const catalogContext = catalogProducts.length
+      ? [
+          "",
+          "LIVE TUMENI CATALOG RESULTS:",
+          JSON.stringify(catalogProducts),
+          "Only use these catalog results for product facts. If there are no suitable results, say so rather than inventing products."
+        ].join("\n")
+      : "";
 
     const systemPrompt = [
-      "You are Tumeni Assistant, a helpful customer-facing assistant for the Tumeni shopping, delivery and task/service platform.",
-      "Help users understand products, formulate product searches, interpret task/service requests, explain Tumeni processes, and make useful recommendations.",
+      "You are Yaza AI, the customer-facing AI assistant for Tumeni.",
+      "Help users search Tumeni products, understand products, interpret task/service requests, explain Tumeni processes, answer customer questions, and make useful recommendations.",
       "Do not claim that you searched the live catalog unless catalog data was explicitly supplied to you.",
       "Do not invent product availability, prices, delivery fees, delivery times, order status, seller information, or policies.",
       "If the user asks for a purchase, payment, refund, transfer, wallet action, or any other financial action, explain that you can help them understand or prepare the request, but the actual financial action must go through Tumeni's normal confirmation and payment flow.",
       "Never ask for or expose passwords, payment PINs, card security codes, secret keys, or authentication tokens.",
       "For product requests, extract useful constraints such as product type, budget, location, preferred category, quantity, and other requirements.",
-      "For task/service requests, distinguish the task from a product purchase and identify the information Tumeni would need to quote or fulfill it.",
-      "Be concise, practical, and clear. Ask only the most useful follow-up question when important information is missing.",
+      "A delivery location is a fulfillment constraint, not proof that a product is available in that area.\n      For task/service requests such as asking someone to buy groceries, distinguish the task from a normal product search and identify the information Tumeni would need to quote or fulfill it.",
+      "If a product request has no suitable live catalog result, explain that no matching product was found and ask whether the user wants broader criteria.\n      Be concise, practical, and clear. Ask only the most useful follow-up question when important information is missing.\n      catalogContext,",
     ].join("\n");
 
     const baseUrl =
@@ -128,10 +271,12 @@ Deno.serve(async (req) => {
     if (!outputText) return json({ error: "The AI service returned an empty response." }, 502);
 
     return json({
+      assistant_name: "Yaza AI",
       reply: outputText,
       provider,
       model,
       user_id: userData.user.id,
+      catalog_products: catalogProducts,
     });
   } catch (error) {
     return json({
