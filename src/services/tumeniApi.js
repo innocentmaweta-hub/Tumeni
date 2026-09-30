@@ -940,7 +940,7 @@ export async function getAdminUsers() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const sync = await supabase.rpc('sync_auth_users_to_profiles');
   if (sync.error) return { data: [], error: sync.error };
-  return supabase.from('profiles').select('id,full_name,phone,role').neq('role','admin').order('full_name');
+  return supabase.from('profiles').select('id,full_name,phone,role,created_at').neq('role','admin').order('full_name');
 }
 
 export async function makeAgent(userId) {
@@ -1192,6 +1192,64 @@ export async function updatePromotionalBanner({id,...payload}) {
 export async function deletePromotionalBanner(id) {
   if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
   return supabase.from('promotional_banners').delete().eq('id',id);
+}
+
+
+// Phase 6.4C — customer segmentation.
+export function classifyCustomerSegment({ accountCreatedAt, deliveredOrders = [], now = new Date() }) {
+  const createdAt = accountCreatedAt ? new Date(accountCreatedAt) : null;
+  const purchases = (deliveredOrders || []).map(o => new Date(o.created_at)).filter(d => !Number.isNaN(d.getTime())).sort((a,b) => b-a);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const recentOrders = purchases.filter(d => d >= thirtyDaysAgo).length;
+  const lastPurchase = purchases[0] || null;
+  const accountAgeDays = createdAt ? Math.max(0, (now - createdAt) / (24 * 60 * 60 * 1000)) : null;
+  if (recentOrders >= 4) return 'high_frequency';
+  if (lastPurchase && lastPurchase < thirtyDaysAgo) return 'inactive';
+  if ((accountAgeDays !== null && accountAgeDays <= 30 && purchases.length < 2) || purchases.length === 0) return 'new';
+  return 'returning';
+}
+
+export async function getMyCustomerSegment() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  const { data: orders, error } = await supabase.from('orders').select('id,status,created_at').eq('customer_id', user.id).order('created_at', { ascending: false });
+  if (error) return { data: null, error };
+  const delivered = (orders || []).filter(o => o.status === 'delivered');
+  return { data: { segment: classifyCustomerSegment({ accountCreatedAt: user.created_at, deliveredOrders: delivered }), deliveredOrders: delivered.length, lastPurchaseAt: delivered[0]?.created_at || null }, error: null };
+}
+
+export async function getAdminCustomerSegments() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const [usersResult, ordersResult] = await Promise.all([getAdminUsers(), getAdminOrders()]);
+  if (usersResult.error) return { data: null, error: usersResult.error };
+  if (ordersResult.error) return { data: null, error: ordersResult.error };
+  const now = new Date();
+  const orderMap = new Map();
+  for (const order of ordersResult.data || []) {
+    if (!order.customer_id || order.status !== 'delivered') continue;
+    const list = orderMap.get(order.customer_id) || [];
+    list.push(order);
+    orderMap.set(order.customer_id, list);
+  }
+  const rows = (usersResult.data || []).map(user => {
+    const delivered = orderMap.get(user.id) || [];
+    return { id:user.id, name:user.full_name||'Unnamed customer', phone:user.phone||'', segment:classifyCustomerSegment({accountCreatedAt:user.created_at,deliveredOrders:delivered,now}), deliveredOrders:delivered.length, lastPurchaseAt:delivered[0]?.created_at||null };
+  });
+  const counts = { new:0, returning:0, high_frequency:0, inactive:0 };
+  rows.forEach(row => { counts[row.segment] = (counts[row.segment] || 0) + 1; });
+  return { data:{counts,customers:rows}, error:null };
+}
+
+export async function getActiveMarketingCampaigns() {
+  if (!supabase) return { data: [], error: null };
+  const now = new Date().toISOString();
+  const { data: campaigns, error } = await supabase.from('marketing_campaigns').select('*').eq('active', true).lte('starts_at', now).or('ends_at.is.null,ends_at.gte.' + now).order('created_at', { ascending:false });
+  if (error) return { data:[], error };
+  const segmentResult = await getMyCustomerSegment();
+  if (segmentResult.error) return { data:campaigns||[], error:null };
+  const segment = segmentResult.data?.segment || 'new';
+  return { data:(campaigns||[]).filter(c=>c.customer_segment==='all'||c.customer_segment===segment), error:null };
 }
 
 export async function getActivePromotions() {
