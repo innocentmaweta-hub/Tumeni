@@ -119,6 +119,23 @@ export async function signOut() {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+// Delivery-zone rules are intentionally kept in application code for now.
+// The admin-managed/database-backed version will be added later.
+export const DELIVERY_ZONES = [
+  { id: 'lilongwe-city', name: 'Lilongwe City', areas: ['city centre', 'area 1', 'area 2', 'area 3', 'area 4', 'area 5', 'area 6', 'area 9', 'area 10', 'area 12', 'area 18', 'area 23', 'area 25', 'area 27', 'area 43', 'area 47', 'area 49'], fee: 2500, eta: '30–60 min' },
+  { id: 'lilongwe-outskirts', name: 'Lilongwe Outskirts', areas: ['area 24', 'area 26', 'area 28', 'area 29', 'area 30', 'area 33', 'area 36', 'area 38', 'area 49'], fee: 3500, eta: '60–120 min' }
+];
+
+export function getDeliveryZoneForAddress(address = {}) {
+  const area = String(address.area || '').trim().toLowerCase();
+  const city = String(address.city || '').trim().toLowerCase();
+  if (!area && !city) return { id: 'default', name: 'Standard delivery', fee: 2500, eta: '30–120 min' };
+  const match = DELIVERY_ZONES.find(z => z.areas.some(a => area === a || area.includes(a)));
+  if (match && (!city || city.includes('lilongwe'))) return match;
+  if (city.includes('lilongwe')) return DELIVERY_ZONES[0];
+  return { id: 'default', name: 'Standard delivery', fee: 2500, eta: '30–120 min' };
+}
+
 export async function createPurchaseOrder({ customerId, items, addressId, fees }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   if (!UUID_RE.test(customerId)) throw new Error('Invalid customer account ID. Please sign out and sign in again.');
