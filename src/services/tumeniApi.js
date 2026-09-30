@@ -1412,6 +1412,12 @@ export function promotionAmount(promotion, subtotal) {
 }
 
 
+export async function getMyRetentionSummary() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data, error } = await supabase.rpc('get_my_retention_summary');
+  return { data: Array.isArray(data) ? (data[0] || null) : (data || null), error };
+}
+
 export async function getPopularSearches(limit = 8) {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const safeLimit = Math.max(1, Math.min(Number(limit) || 8, 20));
