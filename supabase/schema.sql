@@ -168,8 +168,19 @@ create table if not exists public.tasks (
   ai_interpretation jsonb,
   quoted_amount numeric(12,2),
   customer_approved_at timestamptz,
+  assigned_employee_id uuid references public.profiles(id),
+  deadline_at timestamptz,
+  completion_note text,
+  completed_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+alter table public.tasks add column if not exists assigned_employee_id uuid references public.profiles(id);
+alter table public.tasks add column if not exists deadline_at timestamptz;
+alter table public.tasks add column if not exists completion_note text;
+alter table public.tasks add column if not exists completed_at timestamptz;
+create index if not exists tasks_assigned_employee_idx on public.tasks(assigned_employee_id);
+create index if not exists tasks_deadline_idx on public.tasks(deadline_at);
 
 create table if not exists public.payments (
   id uuid primary key default gen_random_uuid(),
@@ -1105,6 +1116,9 @@ with check (
 notify pgrst, 'reload schema';
 
 
+-- Phase 5.3: task/service marketplace preparation.
+-- Task progress continues to use the order lifecycle until these task-specific
+-- fields are activated in the live database.
 -- Phase 5.2: advanced order lifecycle helpers.
 create or replace function public.admin_update_order_status(
   p_order_id uuid,
