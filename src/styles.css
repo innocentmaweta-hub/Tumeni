@@ -1026,3 +1026,5 @@ body{
   .growth-growth-row{grid-template-columns:1fr}
   .growth-chart{height:180px}
 }
+
+.order-filters{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}.order-filters::-webkit-scrollbar{display:none}.order-filters button{white-space:nowrap;border:1px solid #e7e7e7;background:#fff;border-radius:999px;padding:8px 12px;font:inherit}.order-filters button.active{background:#111;color:#fff;border-color:#111}.order-card-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
