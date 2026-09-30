@@ -1051,3 +1051,6 @@ body{
 .yaza-composer{position:sticky;bottom:0;background:#fff;padding-top:8px;display:flex;gap:7px;border-top:1px solid #eee}
 .yaza-composer textarea{flex:1;min-width:0;height:44px;resize:none;border:1px solid #e2e2e2;border-radius:10px;padding:9px 10px;outline:none;font-size:9px}.yaza-composer textarea:focus{border-color:#b51a1a;box-shadow:0 0 0 3px #b51a1a0d}.yaza-composer .primary{padding:0 13px;margin:0;height:44px}
 @media(max-width:430px){.yaza-messages{min-height:240px}.yaza-entry{margin-bottom:12px}}
+
+.yaza-quick{display:flex;gap:6px;overflow-x:auto;padding:1px 0 8px;scrollbar-width:none}.yaza-quick::-webkit-scrollbar{display:none}.yaza-quick button{white-space:nowrap;border:1px solid #eee;background:#fff;border-radius:999px;padding:7px 9px;font-size:7px;color:#555}.yaza-quick button:hover{border-color:#dfbebe;color:#9f1717}
+.yaza-task-button{margin-top:9px!important;height:34px!important;font-size:8px!important}
