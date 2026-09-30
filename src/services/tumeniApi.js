@@ -458,6 +458,31 @@ export async function getMySellerForecast(days = 90) {
   return { data:{products:rows.sort((a,b)=>(a.daysOfStock??99999)-(b.daysOfStock??99999))},error:null };
 }
 
+export async function getAdminSellerIntelligence(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  const isAdmin=(user.email||'').trim().toLowerCase()==='innocentmaweta@gmail.com';
+  if(!isAdmin) return { data:null,error:new Error('Admin access required.') };
+  const since=new Date(Date.now()-Math.max(7,Number(days)||30)*86400000).toISOString();
+  const [sh,pr,ev,oi]=await Promise.all([
+    supabase.from('shops').select('id,name'),
+    supabase.from('products').select('id,name,available,stock_quantity,low_stock_threshold,shop_id'),
+    supabase.from('customer_behavior_events').select('product_id,event_type').gte('created_at',since).limit(100000),
+    supabase.from('order_items').select('product_id,quantity,line_total,orders!inner(status,created_at)').eq('orders.status','delivered').gte('orders.created_at',since).limit(100000)
+  ]);
+  for(const x of [sh,pr,ev,oi]) if(x.error) return {data:null,error:x.error};
+  const rows=new Map((sh.data||[]).map(s=>[s.id,{id:s.id,name:s.name||'Unnamed seller',products:0,lowStock:0,outOfStock:0,views:0,carts:0,units:0,revenue:0}]));
+  const admin={id:null,name:'Admin products',products:0,lowStock:0,outOfStock:0,views:0,carts:0,units:0,revenue:0};
+  const map=new Map();
+  for(const p of pr.data||[]){const r=p.shop_id?(rows.get(p.shop_id)):admin;if(!r)continue;r.products++;if(Number(p.stock_quantity||0)<=0)r.outOfStock++;else if(Number(p.stock_quantity||0)<=Number(p.low_stock_threshold??5))r.lowStock++;map.set(p.id,r);}
+  for(const e of ev.data||[]){const r=map.get(e.product_id);if(r){if(e.event_type==='product_view')r.views++;if(e.event_type==='cart_add')r.carts++;}}
+  for(const x of oi.data||[]){const r=map.get(x.product_id);if(r){r.units+=Number(x.quantity||0);r.revenue+=Number(x.line_total||0);}}
+  const sellers=[...rows.values(),...(admin.products?[admin]:[])].sort((a,b)=>b.revenue-a.revenue);
+  const totals=sellers.reduce((z,r)=>({products:z.products+r.products,lowStock:z.lowStock+r.lowStock,outOfStock:z.outOfStock+r.outOfStock,views:z.views+r.views,carts:z.carts+r.carts,units:z.units+r.units,revenue:z.revenue+r.revenue}),{products:0,lowStock:0,outOfStock:0,views:0,carts:0,units:0,revenue:0});
+  return {data:{days:Math.max(7,Number(days)||30),sellers,totals},error:null};
+}
+
 export async function getMySellerRecommendations(days = 30) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   const { data: { user } } = await supabase.auth.getUser();
