@@ -1227,3 +1227,49 @@ create policy "admins can manage promotions" on public.promotions for all to aut
 grant select on public.promotions to anon, authenticated;
 grant insert, update, delete on public.promotions to authenticated;
 notify pgrst, 'reload schema';
+
+
+-- Phase 6.2: customer behavioral tracking for personalized recommendations.
+create table if not exists public.customer_behavior_events (
+  id uuid primary key default gen_random_uuid(),
+  customer_id uuid not null references public.profiles(id) on delete cascade,
+  event_type text not null check (event_type in (
+    'product_view','product_click','search','favorite_add','favorite_remove','category_view','cart_add'
+  )),
+  product_id uuid references public.products(id) on delete set null,
+  category_id uuid references public.categories(id) on delete set null,
+  search_query text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists customer_behavior_events_customer_created_idx
+  on public.customer_behavior_events(customer_id, created_at desc);
+create index if not exists customer_behavior_events_product_created_idx
+  on public.customer_behavior_events(product_id, created_at desc);
+create index if not exists customer_behavior_events_type_created_idx
+  on public.customer_behavior_events(event_type, created_at desc);
+
+alter table public.customer_behavior_events enable row level security;
+
+drop policy if exists "customers can create own behavior events" on public.customer_behavior_events;
+create policy "customers can create own behavior events"
+on public.customer_behavior_events for insert
+to authenticated
+with check (customer_id = auth.uid());
+
+drop policy if exists "customers can view own behavior events" on public.customer_behavior_events;
+create policy "customers can view own behavior events"
+on public.customer_behavior_events for select
+to authenticated
+using (customer_id = auth.uid());
+
+drop policy if exists "admins can view behavior events" on public.customer_behavior_events;
+create policy "admins can view behavior events"
+on public.customer_behavior_events for select
+to authenticated
+using (public.current_user_role() = 'admin');
+
+grant select, insert on public.customer_behavior_events to authenticated;
+
+notify pgrst, 'reload schema';

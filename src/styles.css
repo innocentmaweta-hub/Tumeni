@@ -1028,3 +1028,29 @@ body{
 }
 
 .order-filters{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}.order-filters::-webkit-scrollbar{display:none}.order-filters button{white-space:nowrap;border:1px solid #e7e7e7;background:#fff;border-radius:999px;padding:8px 12px;font:inherit}.order-filters button.active{background:#111;color:#fff;border-color:#111}.order-card-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+
+/* Yaza AI customer interface */
+.yaza-entry{width:100%;border:1px solid #f0d9d9;background:#fffafa;border-radius:12px;padding:11px;display:flex;align-items:center;gap:10px;text-align:left;margin-bottom:14px;color:#222;box-shadow:0 2px 8px #0000000a}
+.yaza-entry-icon{width:34px;height:34px;border-radius:9px;background:#b51a1a;color:#fff;display:grid;place-items:center;font-size:18px;flex:none}
+.yaza-entry>div:nth-child(2){flex:1;min-width:0}.yaza-entry strong,.yaza-entry span{display:block}.yaza-entry strong{font-size:11px}.yaza-entry span{font-size:8px;color:#777;margin-top:2px;line-height:1.35}.yaza-entry-arrow{font-size:21px!important;color:#999!important;margin:0!important}
+.yaza-entry:hover{border-color:#dfbebe;box-shadow:0 6px 16px #0000000d;transform:translateY(-1px)}
+.yaza-page{padding-bottom:28px;background:linear-gradient(180deg,#fff 0%,#fffafa 100%)}
+.yaza-hero{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #eee;border-radius:12px;background:#fff;box-shadow:0 3px 12px #00000008;margin-bottom:11px}
+.yaza-avatar{width:38px;height:38px;border-radius:11px;background:#b51a1a;color:#fff;display:grid;place-items:center;font-size:20px;flex:none}
+.yaza-hero strong,.yaza-hero span{display:block}.yaza-hero strong{font-size:12px}.yaza-hero span{font-size:8px;color:#777;margin-top:2px}
+.yaza-login-note{font-size:9px;color:#8a5a08;background:#fff8e7;border:1px solid #f1dfb5;border-radius:9px;padding:9px;margin-bottom:10px}
+.yaza-messages{display:flex;flex-direction:column;gap:8px;min-height:260px;margin-bottom:10px}
+.yaza-message{display:flex}.yaza-message>div{max-width:86%;padding:9px 11px;border-radius:12px;font-size:10px;line-height:1.45}
+.yaza-message.assistant>div{background:#f7f7f7;border:1px solid #eee;color:#333;border-top-left-radius:5px}
+.yaza-message.user{justify-content:flex-end}.yaza-message.user>div{background:#b51a1a;color:#fff;border-top-right-radius:5px}
+.yaza-results,.yaza-task{border:1px solid #eee;border-radius:12px;background:#fff;padding:11px;margin-bottom:10px;box-shadow:0 3px 12px #00000007}
+.yaza-results .section-head,.yaza-task .section-head{margin-bottom:8px}.yaza-results .section-head h2,.yaza-task .section-head h2{font-size:11px}.yaza-results .section-head>span,.yaza-task .section-head>span{font-size:8px;color:#777}
+.yaza-product-list{display:flex;flex-direction:column;gap:7px}.yaza-product{display:flex;align-items:center;gap:9px;width:100%;border:1px solid #eee;background:#fff;border-radius:9px;padding:7px;text-align:left}
+.yaza-product-image{width:45px;height:45px;border-radius:7px;background:#f4f4f4;overflow:hidden;flex:none}.yaza-product-image img{width:100%;height:100%;object-fit:cover}.yaza-product>div:last-child{min-width:0;display:flex;flex-direction:column;gap:2px}.yaza-product b{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.yaza-product small{font-size:7px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.yaza-product strong{font-size:9px}
+.yaza-task p{font-size:9px;color:#555;line-height:1.45;margin:0 0 6px}.yaza-task small{display:block;font-size:8px;color:#777;margin-top:4px}
+.yaza-composer{position:sticky;bottom:0;background:#fff;padding-top:8px;display:flex;gap:7px;border-top:1px solid #eee}
+.yaza-composer textarea{flex:1;min-width:0;height:44px;resize:none;border:1px solid #e2e2e2;border-radius:10px;padding:9px 10px;outline:none;font-size:9px}.yaza-composer textarea:focus{border-color:#b51a1a;box-shadow:0 0 0 3px #b51a1a0d}.yaza-composer .primary{padding:0 13px;margin:0;height:44px}
+@media(max-width:430px){.yaza-messages{min-height:240px}.yaza-entry{margin-bottom:12px}}
+
+.yaza-quick{display:flex;gap:6px;overflow-x:auto;padding:1px 0 8px;scrollbar-width:none}.yaza-quick::-webkit-scrollbar{display:none}.yaza-quick button{white-space:nowrap;border:1px solid #eee;background:#fff;border-radius:999px;padding:7px 9px;font-size:7px;color:#555}.yaza-quick button:hover{border-color:#dfbebe;color:#9f1717}
+.yaza-task-button{margin-top:9px!important;height:34px!important;font-size:8px!important}

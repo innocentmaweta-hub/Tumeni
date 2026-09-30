@@ -701,6 +701,221 @@ export async function getAdminGrowthAnalytics(days = 30) {
   };
 }
 
+export async function getAdminCustomerAnalytics(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const safeDays = [7, 30, 90].includes(Number(days)) ? Number(days) : 30;
+  const since = new Date(Date.now() - safeDays * 86400000).toISOString();
+
+  const [periodResult, historyResult, eventsResult, profilesResult] = await Promise.all([
+    supabase.from('orders')
+      .select('id,customer_id,status,total,order_type,created_at')
+      .gte('created_at', since)
+      .order('created_at', { ascending: true })
+      .limit(10000),
+    supabase.from('orders')
+      .select('id,customer_id,status,total,created_at')
+      .eq('status', 'delivered')
+      .order('created_at', { ascending: true })
+      .limit(20000),
+    supabase.from('customer_behavior_events')
+      .select('customer_id,event_type,created_at')
+      .gte('created_at', since)
+      .limit(30000),
+    supabase.from('profiles')
+      .select('id,full_name,phone,created_at')
+      .neq('role', 'admin')
+      .limit(10000)
+  ]);
+
+  if (periodResult.error) return { data: null, error: periodResult.error };
+
+  const periodOrders = periodResult.data || [];
+  const deliveredPeriod = periodOrders.filter(o => o.status === 'delivered');
+  const deliveredHistory = historyResult.error ? [] : (historyResult.data || []);
+  const events = eventsResult.error ? [] : (eventsResult.data || []);
+  const profiles = profilesResult.error ? [] : (profilesResult.data || []);
+
+  const firstPurchase = new Map();
+  for (const order of deliveredHistory) {
+    if (!order.customer_id) continue;
+    const current = firstPurchase.get(order.customer_id);
+    if (!current || new Date(order.created_at) < new Date(current)) {
+      firstPurchase.set(order.customer_id, order.created_at);
+    }
+  }
+
+  const periodCustomers = new Set(deliveredPeriod.map(o => o.customer_id).filter(Boolean));
+  const newCustomers = [...periodCustomers].filter(id => {
+    const first = firstPurchase.get(id);
+    return first && new Date(first) >= new Date(since);
+  });
+  const returningCustomers = [...periodCustomers].filter(id => !newCustomers.includes(id));
+
+  const revenue = deliveredPeriod.reduce((sum, o) => sum + Number(o.total || 0), 0);
+  const repeatCustomers = new Set(
+    deliveredHistory.filter(o => o.customer_id && o.created_at >= since)
+      .map(o => o.customer_id)
+  );
+  const customerOrderCounts = new Map();
+  for (const order of deliveredPeriod) {
+    if (!order.customer_id) continue;
+    customerOrderCounts.set(order.customer_id, (customerOrderCounts.get(order.customer_id) || 0) + 1);
+  }
+
+  const eventCounts = events.reduce((map, event) => {
+    const id = event.customer_id;
+    if (!id) return map;
+    const item = map.get(id) || { events: 0, productViews: 0, searches: 0, favorites: 0, cartAdds: 0 };
+    item.events += 1;
+    if (event.event_type === 'product_view') item.productViews += 1;
+    if (event.event_type === 'search') item.searches += 1;
+    if (event.event_type === 'favorite_add') item.favorites += 1;
+    if (event.event_type === 'cart_add') item.cartAdds += 1;
+    map.set(id, item);
+    return map;
+  }, new Map());
+
+  const profileMap = new Map(profiles.map(p => [p.id, p]));
+  const customerRows = [...customerOrderCounts.entries()].map(([id, orders]) => {
+    const customer = profileMap.get(id) || {};
+    const customerOrders = deliveredPeriod.filter(o => o.customer_id === id);
+    const spending = customerOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const activity = eventCounts.get(id) || { events: 0, productViews: 0, searches: 0, favorites: 0, cartAdds: 0 };
+    return {
+      id,
+      name: customer.full_name || 'Tumeni customer',
+      phone: customer.phone || '',
+      orders,
+      spending,
+      averageOrderValue: orders ? spending / orders : 0,
+      activity: activity.events,
+      firstPurchase: firstPurchase.get(id) || null
+    };
+  }).sort((a, b) => b.spending - a.spending).slice(0, 10);
+
+  const activeCustomers = periodCustomers.size;
+  const repeatRate = activeCustomers ? (repeatCustomers.size / activeCustomers) * 100 : 0;
+  const activityCustomers = new Set(events.map(e => e.customer_id).filter(Boolean));
+  const avgOrdersPerCustomer = activeCustomers ? deliveredPeriod.length / activeCustomers : 0;
+  const avgActivityPerCustomer = activityCustomers.size ? events.length / activityCustomers.size : 0;
+
+  const trend = [];
+  for (let i = safeDays - 1; i >= 0; i--) {
+    const day = new Date(Date.now() - i * 86400000);
+    const key = day.toISOString().slice(0, 10);
+    const dayOrders = deliveredPeriod.filter(o => String(o.created_at || '').slice(0, 10) === key);
+    const dayCustomers = new Set(dayOrders.map(o => o.customer_id).filter(Boolean));
+    trend.push({
+      date: key,
+      label: day.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      customers: dayCustomers.size,
+      orders: dayOrders.length,
+      revenue: dayOrders.reduce((sum, o) => sum + Number(o.total || 0), 0)
+    });
+  }
+
+  return {
+    data: {
+      days: safeDays,
+      activeCustomers,
+      newCustomers: newCustomers.length,
+      returningCustomers: returningCustomers.length,
+      repeatCustomers: repeatCustomers.size,
+      repeatRate,
+      deliveredOrders: deliveredPeriod.length,
+      revenue,
+      averageOrderValue: deliveredPeriod.length ? revenue / deliveredPeriod.length : 0,
+      averageOrdersPerCustomer: avgOrdersPerCustomer,
+      activeCustomersWithBehavior: activityCustomers.size,
+      totalBehaviorEvents: events.length,
+      averageActivityPerCustomer: avgActivityPerCustomer,
+      customerRows,
+      trend
+    },
+    error: historyResult.error || eventsResult.error || profilesResult.error || null
+  };
+}
+
+export async function getAdminProductAnalytics(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const safeDays = [7, 30, 90].includes(Number(days)) ? Number(days) : 30;
+  const since = new Date(Date.now() - safeDays * 86400000).toISOString();
+
+  const [productsResult, eventsResult, itemsResult, reviewsResult] = await Promise.all([
+    supabase.from('products').select('id,name,price,image_url,available,stock_quantity,category_id,shop_id,created_at').limit(10000),
+    supabase.from('customer_behavior_events').select('product_id,event_type,created_at').gte('created_at', since).not('product_id','is',null).limit(50000),
+    supabase.from('order_items').select('product_id,product_name,quantity,line_total,order_id,orders!inner(status,created_at)').gte('orders.created_at', since).limit(50000),
+    supabase.from('product_reviews').select('product_id,rating,created_at').gte('created_at', since).limit(50000)
+  ]);
+
+  if (productsResult.error) return { data: null, error: productsResult.error };
+  const products = productsResult.data || [];
+  const events = eventsResult.error ? [] : (eventsResult.data || []);
+  const items = itemsResult.error ? [] : (itemsResult.data || []);
+  const reviews = reviewsResult.error ? [] : (reviewsResult.data || []);
+
+  const metrics = new Map();
+  for (const p of products) metrics.set(p.id, {
+    id:p.id,name:p.name,price:Number(p.price||0),available:p.available,stockQuantity:Number(p.stock_quantity||0),
+    views:0,clicks:0,favorites:0,cartAdds:0,purchasedUnits:0,purchaseOrders:new Set(),revenue:0,ratingSum:0,ratingCount:0
+  });
+  for (const e of events) {
+    const m=metrics.get(e.product_id); if(!m) continue;
+    if(e.event_type==='product_view')m.views++;
+    if(e.event_type==='product_click')m.clicks++;
+    if(e.event_type==='favorite_add')m.favorites++;
+    if(e.event_type==='cart_add')m.cartAdds++;
+  }
+  for (const item of items) {
+    const m=metrics.get(item.product_id); if(!m || String(item.orders?.status||'').toLowerCase()!=='delivered') continue;
+    m.purchasedUnits+=Number(item.quantity||0);
+    m.purchaseOrders.add(item.order_id);
+    m.revenue+=Number(item.line_total||0);
+  }
+  for (const r of reviews) {
+    const m=metrics.get(r.product_id); if(!m) continue;
+    m.ratingSum+=Number(r.rating||0); m.ratingCount++;
+  }
+
+  const rows=[...metrics.values()].map(m=>({
+    id:m.id,name:m.name,price:m.price,available:m.available,stockQuantity:m.stockQuantity,
+    views:m.views,clicks:m.clicks,favorites:m.favorites,cartAdds:m.cartAdds,
+    purchasedUnits:m.purchasedUnits,purchaseOrders:m.purchaseOrders.size,revenue:m.revenue,
+    rating:m.ratingCount?m.ratingSum/m.ratingCount:0,ratingCount:m.ratingCount,
+    conversionRate:m.views?(m.purchaseOrders.size/m.views)*100:0
+  })).sort((a,b)=>b.revenue-a.revenue);
+
+  const totalViews=rows.reduce((n,r)=>n+r.views,0);
+  const totalClicks=rows.reduce((n,r)=>n+r.clicks,0);
+  const totalFavorites=rows.reduce((n,r)=>n+r.favorites,0);
+  const totalCartAdds=rows.reduce((n,r)=>n+r.cartAdds,0);
+  const totalUnits=rows.reduce((n,r)=>n+r.purchasedUnits,0);
+  const totalRevenue=rows.reduce((n,r)=>n+r.revenue,0);
+  const rated=rows.filter(r=>r.ratingCount);
+  const trend=[];
+  for(let i=safeDays-1;i>=0;i--){
+    const day=new Date(Date.now()-i*86400000), key=day.toISOString().slice(0,10);
+    const ev=events.filter(e=>String(e.created_at||'').slice(0,10)===key);
+    const dayItems=items.filter(x=>String(x.orders?.created_at||'').slice(0,10)===key && String(x.orders?.status||'').toLowerCase()==='delivered');
+    trend.push({
+      date:key,label:day.toLocaleDateString(undefined,{month:'short',day:'numeric'}),
+      views:ev.filter(e=>e.event_type==='product_view').length,
+      clicks:ev.filter(e=>e.event_type==='product_click').length,
+      cartAdds:ev.filter(e=>e.event_type==='cart_add').length,
+      units:dayItems.reduce((n,x)=>n+Number(x.quantity||0),0),
+      revenue:dayItems.reduce((n,x)=>n+Number(x.line_total||0),0)
+    });
+  }
+
+  return {data:{
+    days:safeDays,totalProducts:products.length,availableProducts:products.filter(p=>p.available).length,
+    totalViews,totalClicks,totalFavorites,totalCartAdds,totalUnits,totalRevenue,
+    averageRating:rated.length?rated.reduce((n,r)=>n+r.rating,0)/rated.length:0,
+    overallConversionRate:totalViews?((new Set(items.filter(x=>String(x.orders?.status||'').toLowerCase()==='delivered').map(x=>x.order_id)).size/totalViews)*100):0,
+    topProducts:rows.slice(0,12),trend
+  },error:eventsResult.error||itemsResult.error||reviewsResult.error||null};
+}
+
 export async function updateAdminOrderStatus({ orderId, status, note = '' }) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   return supabase.rpc('admin_update_order_status', { p_order_id: orderId, p_status: status, p_note: note || null });
@@ -888,6 +1103,97 @@ export async function uploadOrderAttachment(file, orderId) {
 }
 
 
+export async function getAdminCampaigns() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  return supabase.from('marketing_campaigns').select('*').order('created_at', { ascending: false });
+}
+
+export async function createMarketingCampaign(payload) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const name = String(payload.name || '').trim();
+  const description = String(payload.description || '').trim() || null;
+  const discountType = payload.discountType === 'fixed' ? 'fixed' : 'percentage';
+  const discountValue = Number(payload.discountValue || 0);
+  const productIds = Array.isArray(payload.productIds) ? payload.productIds.filter(Boolean) : [];
+  const categoryIds = Array.isArray(payload.categoryIds) ? payload.categoryIds.filter(Boolean) : [];
+  const customerSegment = ['all','new','returning','high_frequency','inactive'].includes(payload.customerSegment)
+    ? payload.customerSegment : 'all';
+  if (!name) return { data: null, error: new Error('Campaign name is required.') };
+  if (discountValue < 0) return { data: null, error: new Error('Discount cannot be negative.') };
+  if (discountType === 'percentage' && discountValue > 100) return { data: null, error: new Error('Percentage discounts cannot exceed 100%.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  return supabase.from('marketing_campaigns').insert({
+    name, description,
+    starts_at: payload.startsAt || new Date().toISOString(),
+    ends_at: payload.endsAt || null,
+    discount_type: discountType,
+    discount_value: discountValue,
+    product_ids: productIds,
+    category_ids: categoryIds,
+    customer_segment: customerSegment,
+    active: payload.active !== false,
+    created_by: user.id
+  }).select().single();
+}
+
+export async function updateMarketingCampaign({ id, ...payload }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  if (!id) return { data: null, error: new Error('Campaign ID is required.') };
+  return supabase.from('marketing_campaigns').update({
+    name: String(payload.name || '').trim(),
+    description: String(payload.description || '').trim() || null,
+    starts_at: payload.startsAt || null,
+    ends_at: payload.endsAt || null,
+    discount_type: payload.discountType === 'fixed' ? 'fixed' : 'percentage',
+    discount_value: Number(payload.discountValue || 0),
+    product_ids: Array.isArray(payload.productIds) ? payload.productIds.filter(Boolean) : [],
+    category_ids: Array.isArray(payload.categoryIds) ? payload.categoryIds.filter(Boolean) : [],
+    customer_segment: ['all','new','returning','high_frequency','inactive'].includes(payload.customerSegment) ? payload.customerSegment : 'all',
+    active: payload.active !== false
+  }).eq('id', id).select().single();
+}
+
+export async function deleteMarketingCampaign(id) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.from('marketing_campaigns').delete().eq('id', id);
+}
+
+export async function getActivePromotionalBanners() {
+  if (!supabase) return { data: [], error: null };
+  const now = new Date().toISOString();
+  return supabase.from('promotional_banners').select('*').eq('active', true).lte('starts_at', now).or('ends_at.is.null,ends_at.gte.' + now).order('sort_order', { ascending: true }).order('created_at', { ascending: false });
+}
+export async function getAdminPromotionalBanners() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  return supabase.from('promotional_banners').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: false });
+}
+export async function createPromotionalBanner(payload) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data:{user} } = await supabase.auth.getUser();
+  if (!user) return { data:null, error:new Error('Please sign in first.') };
+  if (!String(payload.title||'').trim()) return { data:null, error:new Error('Banner title is required.') };
+  return supabase.from('promotional_banners').insert({
+    title:String(payload.title).trim(), subtitle:String(payload.subtitle||'').trim()||null,
+    image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
+    destination:String(payload.destination||'Explore').trim()||'Explore', starts_at:payload.startsAt||new Date().toISOString(),
+    ends_at:payload.endsAt||null, active:payload.active!==false, sort_order:Number(payload.sortOrder||0), created_by:user.id
+  }).select().single();
+}
+export async function updatePromotionalBanner({id,...payload}) {
+  if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
+  return supabase.from('promotional_banners').update({
+    title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null,
+    image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
+    destination:String(payload.destination||'Explore').trim()||'Explore', starts_at:payload.startsAt||null, ends_at:payload.endsAt||null,
+    active:payload.active!==false, sort_order:Number(payload.sortOrder||0)
+  }).eq('id',id).select().single();
+}
+export async function deletePromotionalBanner(id) {
+  if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
+  return supabase.from('promotional_banners').delete().eq('id',id);
+}
+
 export async function getActivePromotions() {
   if (!supabase) return { data: [], error: null };
   const now = new Date().toISOString();
@@ -919,7 +1225,8 @@ export async function createPromotion(payload) {
     min_order_amount: Number(payload.minOrderAmount || 0),
     starts_at: payload.startsAt || new Date().toISOString(),
     ends_at: payload.endsAt || null,
-    active: payload.active !== false
+    active: payload.active !== false,
+    campaign_id: payload.campaignId || null
   };
   if (!row.name || row.discount_value <= 0) return { data: null, error: new Error('Enter a promotion name and a valid discount.') };
   if (row.discount_type === 'percentage' && row.discount_value > 100) return { data: null, error: new Error('Percentage discounts cannot exceed 100%.') };
@@ -954,4 +1261,150 @@ export function promotionAmount(promotion, subtotal) {
   return promotion.discount_type === 'fixed'
     ? Math.min(base, Number(promotion.discount_value || 0))
     : Math.min(base, base * Number(promotion.discount_value || 0) / 100);
+}
+
+
+export async function searchTumeniProducts(query) {
+  if (!supabase) {
+    return { data: null, error: new Error('Supabase is not configured.') };
+  }
+
+  const cleanQuery = String(query || '').trim();
+  if (!cleanQuery) {
+    return { data: null, error: new Error('Enter a product search.') };
+  }
+
+  const { data, error } = await supabase.functions.invoke('tumeni-assistant', {
+    body: {
+      action: 'search_products',
+      query: cleanQuery
+    }
+  });
+
+  return {
+    data: data || null,
+    error: error || (data?.error ? new Error(data.error) : null)
+  };
+}
+
+export async function interpretYazaTask(request) {
+  if (!supabase) {
+    return { data: null, error: new Error('Supabase is not configured.') };
+  }
+
+  const cleanRequest = String(request || '').trim();
+  if (!cleanRequest) {
+    return { data: null, error: new Error('Enter the task request.') };
+  }
+
+  const { data, error } = await supabase.functions.invoke('tumeni-assistant', {
+    body: {
+      action: 'interpret_task',
+      request: cleanRequest
+    }
+  });
+
+  return {
+    data: data || null,
+    error: error || (data?.error ? new Error(data.error) : null)
+  };
+}
+
+export async function askYazaAI(messages, options = {}) {
+  if (!supabase) {
+    return { data: null, error: new Error('Supabase is not configured.') };
+  }
+
+  if (!Array.isArray(messages) || !messages.length) {
+    return { data: null, error: new Error('Enter a message first.') };
+  }
+
+  const safeMessages = messages
+    .slice(-20)
+    .map(message => ({
+      role: message?.role === 'assistant' ? 'assistant' : 'user',
+      content: String(message?.content || '').trim().slice(0, 4000)
+    }))
+    .filter(message => message.content);
+
+  if (!safeMessages.length) {
+    return { data: null, error: new Error('Enter a message first.') };
+  }
+
+  const { data, error } = await supabase.functions.invoke('tumeni-assistant', {
+    body: {
+      messages: safeMessages,
+      include_catalog: options.includeCatalog !== false
+    }
+  });
+
+  return {
+    data: data || null,
+    error: error || (data?.error ? new Error(data.error) : null)
+  };
+}
+
+// Backward-compatible alias for any existing callers.
+export const askTumeniAssistant = askYazaAI;
+
+
+export async function getPersonalizedRecommendations(limit = 8) {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 8, 24));
+  const { data, error } = await supabase.rpc('get_personalized_recommendations', { p_limit: safeLimit });
+  return { data: data || [], error };
+}
+
+export async function getAdminOperationsAnalytics(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const since = new Date(Date.now() - Number(days) * 86400000).toISOString();
+
+  const [ordersResult, assignmentsResult, tasksResult] = await Promise.all([
+    supabase.from('orders').select('id,order_type,status,total,created_at,updated_at').gte('created_at', since),
+    supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').gte('assigned_at', since),
+    supabase.from('tasks').select('id,order_id,assigned_employee_id,quoted_amount,completed_at,created_at').gte('created_at', since)
+  ]);
+  if (ordersResult.error) return { data: null, error: ordersResult.error };
+  if (assignmentsResult.error) return { data: null, error: assignmentsResult.error };
+  if (tasksResult.error) return { data: null, error: tasksResult.error };
+
+  const orders = ordersResult.data || [];
+  const assignments = assignmentsResult.data || [];
+  const tasks = tasksResult.data || [];
+  const delivered = orders.filter(o => o.status === 'delivered');
+  const failed = orders.filter(o => ['failed','cancelled'].includes(o.status));
+  const completedAssignments = assignments.filter(a => a.completed_at);
+  const deliveryTimes = completedAssignments.map(a => new Date(a.completed_at)-new Date(a.assigned_at)).filter(n => Number.isFinite(n) && n >= 0);
+  const taskTimes = tasks.filter(t => t.completed_at).map(t => new Date(t.completed_at)-new Date(t.created_at)).filter(n => Number.isFinite(n) && n >= 0);
+  const avgMinutes = values => values.length ? Math.round(values.reduce((a,b)=>a+b,0)/values.length/60000) : 0;
+  const statusCounts = {};
+  for (const o of orders) statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+  const agentMap = {};
+  for (const a of assignments) {
+    const id = a.agent_id || 'unassigned';
+    agentMap[id] ||= { agentId:id, assigned:0, completed:0, active:0 };
+    agentMap[id].assigned++;
+    if (a.completed_at) agentMap[id].completed++;
+    else agentMap[id].active++;
+  }
+  const daily = {};
+  for (const o of orders) {
+    const day = String(o.created_at).slice(0,10);
+    daily[day] ||= {date:day,orders:0,delivered:0,failed:0,revenue:0};
+    daily[day].orders++;
+    if(o.status==='delivered') daily[day].delivered++;
+    if(['failed','cancelled'].includes(o.status)) daily[day].failed++;
+    if(o.status==='delivered') daily[day].revenue += Number(o.total||0);
+  }
+  return { data:{
+    periodDays:Number(days), totalOrders:orders.length, deliveredOrders:delivered.length,
+    failedOrders:failed.length, deliverySuccessRate:orders.length?Math.round(delivered.length/orders.length*100):0,
+    averageDeliveryMinutes:avgMinutes(deliveryTimes), averageTaskCompletionMinutes:avgMinutes(taskTimes),
+    activeAssignments:assignments.filter(a=>!a.completed_at).length,
+    completedAssignments:completedAssignments.length, totalAssignments:assignments.length,
+    agentsTracked:Object.keys(agentMap).filter(k=>k!=='unassigned').length,
+    unassignedOrders:orders.filter(o=>!assignments.some(a=>a.order_id===o.id)).length,
+    statusCounts, agentWorkload:Object.values(agentMap).sort((a,b)=>b.assigned-a.assigned),
+    daily:Object.values(daily).sort((a,b)=>a.date.localeCompare(b.date))
+  }, error:null };
 }
