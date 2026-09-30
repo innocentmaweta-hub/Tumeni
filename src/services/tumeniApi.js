@@ -940,7 +940,7 @@ export async function getAdminUsers() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const sync = await supabase.rpc('sync_auth_users_to_profiles');
   if (sync.error) return { data: [], error: sync.error };
-  return supabase.from('profiles').select('id,full_name,phone,role').neq('role','admin').order('full_name');
+  return supabase.from('profiles').select('id,full_name,phone,role,created_at').neq('role','admin').order('full_name');
 }
 
 export async function makeAgent(userId) {
@@ -1192,6 +1192,126 @@ export async function updatePromotionalBanner({id,...payload}) {
 export async function deletePromotionalBanner(id) {
   if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
   return supabase.from('promotional_banners').delete().eq('id',id);
+}
+
+
+// Phase 6.4C — customer segmentation.
+export function classifyCustomerSegment({ accountCreatedAt, deliveredOrders = [], now = new Date() }) {
+  const createdAt = accountCreatedAt ? new Date(accountCreatedAt) : null;
+  const purchases = (deliveredOrders || []).map(o => new Date(o.created_at)).filter(d => !Number.isNaN(d.getTime())).sort((a,b) => b-a);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const recentOrders = purchases.filter(d => d >= thirtyDaysAgo).length;
+  const lastPurchase = purchases[0] || null;
+  const accountAgeDays = createdAt ? Math.max(0, (now - createdAt) / (24 * 60 * 60 * 1000)) : null;
+  if (recentOrders >= 4) return 'high_frequency';
+  if (lastPurchase && lastPurchase < thirtyDaysAgo) return 'inactive';
+  if ((accountAgeDays !== null && accountAgeDays <= 30 && purchases.length < 2) || purchases.length === 0) return 'new';
+  return 'returning';
+}
+
+export async function getMyCustomerSegment() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  const { data: orders, error } = await supabase.from('orders').select('id,status,created_at').eq('customer_id', user.id).order('created_at', { ascending: false });
+  if (error) return { data: null, error };
+  const delivered = (orders || []).filter(o => o.status === 'delivered');
+  return { data: { segment: classifyCustomerSegment({ accountCreatedAt: user.created_at, deliveredOrders: delivered }), deliveredOrders: delivered.length, lastPurchaseAt: delivered[0]?.created_at || null }, error: null };
+}
+
+export async function getAdminCustomerSegments() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const [usersResult, ordersResult] = await Promise.all([getAdminUsers(), getAdminOrders()]);
+  if (usersResult.error) return { data: null, error: usersResult.error };
+  if (ordersResult.error) return { data: null, error: ordersResult.error };
+  const now = new Date();
+  const orderMap = new Map();
+  for (const order of ordersResult.data || []) {
+    if (!order.customer_id || order.status !== 'delivered') continue;
+    const list = orderMap.get(order.customer_id) || [];
+    list.push(order);
+    orderMap.set(order.customer_id, list);
+  }
+  const rows = (usersResult.data || []).map(user => {
+    const delivered = orderMap.get(user.id) || [];
+    return { id:user.id, name:user.full_name||'Unnamed customer', phone:user.phone||'', segment:classifyCustomerSegment({accountCreatedAt:user.created_at,deliveredOrders:delivered,now}), deliveredOrders:delivered.length, lastPurchaseAt:delivered[0]?.created_at||null };
+  });
+  const counts = { new:0, returning:0, high_frequency:0, inactive:0 };
+  rows.forEach(row => { counts[row.segment] = (counts[row.segment] || 0) + 1; });
+  return { data:{counts,customers:rows}, error:null };
+}
+
+export async function getActiveMarketingCampaigns() {
+  if (!supabase) return { data: [], error: null };
+  const now = new Date().toISOString();
+  const { data: campaigns, error } = await supabase.from('marketing_campaigns').select('*').eq('active', true).lte('starts_at', now).or('ends_at.is.null,ends_at.gte.' + now).order('created_at', { ascending:false });
+  if (error) return { data:[], error };
+  const segmentResult = await getMyCustomerSegment();
+  if (segmentResult.error) return { data:campaigns||[], error:null };
+  const segment = segmentResult.data?.segment || 'new';
+  return { data:(campaigns||[]).filter(c=>c.customer_segment==='all'||c.customer_segment===segment), error:null };
+}
+
+
+export async function getAdminCampaignAnalytics(days=30) {
+  if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
+  const safeDays=[7,30,90].includes(Number(days))?Number(days):30;
+  const since=new Date(Date.now()-safeDays*24*60*60*1000).toISOString();
+  const [campaignsResult, behaviorResult, ordersResult, itemsResult] = await Promise.all([
+    supabase.from('marketing_campaigns').select('*').order('created_at',{ascending:false}),
+    supabase.from('customer_behavior_events').select('id,event_type,product_id,category_id,metadata,created_at').gte('created_at',since),
+    supabase.from('orders').select('id,status,total,created_at,customer_id').gte('created_at',since),
+    supabase.from('order_items').select('order_id,product_id,product_name,quantity,unit_price')
+  ]);
+  if(campaignsResult.error)return{data:null,error:campaignsResult.error};
+  if(behaviorResult.error)return{data:null,error:behaviorResult.error};
+  if(ordersResult.error)return{data:null,error:ordersResult.error};
+  if(itemsResult.error)return{data:null,error:itemsResult.error};
+
+  const campaigns=campaignsResult.data||[], events=behaviorResult.data||[], orders=ordersResult.data||[], items=itemsResult.data||[];
+  const delivered=new Map(orders.filter(o=>o.status==='delivered').map(o=>[o.id,o]));
+  const itemsByOrder=new Map();
+  items.forEach(i=>{const a=itemsByOrder.get(i.order_id)||[];a.push(i);itemsByOrder.set(i.order_id,a)});
+
+  const matchesCampaign=(c,eventOrItem)=>{
+    const pid=eventOrItem?.product_id;
+    const cid=eventOrItem?.category_id;
+    const products=Array.isArray(c.product_ids)?c.product_ids:[];
+    const categories=Array.isArray(c.category_ids)?c.category_ids:[];
+    if(!products.length&&!categories.length)return true;
+    return (pid&&products.includes(pid))||(cid&&categories.includes(cid));
+  };
+  const campaignRows=campaigns.map(c=>{
+    const relevantEvents=events.filter(e=>matchesCampaign(c,e));
+    const impressions=relevantEvents.filter(e=>e.event_type==='banner_impression'||e.event_type==='promotion_impression').length;
+    const clicks=relevantEvents.filter(e=>e.event_type==='banner_click'||e.event_type==='promotion_click').length;
+    const views=relevantEvents.filter(e=>e.event_type==='product_view').length;
+    const cartAdds=relevantEvents.filter(e=>e.event_type==='cart_add').length;
+    const productIds=new Set((c.product_ids||[]));
+    const categoryIds=new Set((c.category_ids||[]));
+    const campaignOrders=orders.filter(o=>{
+      const oi=itemsByOrder.get(o.id)||[];
+      return oi.some(i=>productIds.has(i.product_id)) || (productIds.size===0&&categoryIds.size===0);
+    });
+    const deliveredOrders=campaignOrders.filter(o=>o.status==='delivered');
+    const revenue=deliveredOrders.reduce((s,o)=>s+Number(o.total||0),0);
+    const units=deliveredOrders.reduce((s,o)=>(s+(itemsByOrder.get(o.id)||[]).filter(i=>productIds.size===0||productIds.has(i.product_id)).reduce((x,i)=>x+Number(i.quantity||0),0)),0);
+    const discountAmount=deliveredOrders.reduce((s,o)=>s+Number(o.discount_amount||0),0);
+    return {...c,impressions,clicks,views,cartAdds,orders:campaignOrders.length,deliveredOrders:deliveredOrders.length,unitsSold:units,revenue,discountAmount,clickRate:impressions?(clicks/impressions)*100:0,orderRate:clicks?(campaignOrders.length/clicks)*100:0};
+  });
+  const daily={};
+  for(let i=0;i<safeDays;i++){const d=new Date(Date.now()-i*24*60*60*1000);const key=d.toISOString().slice(0,10);daily[key]={date:key,impressions:0,clicks:0,views:0,cartAdds:0,orders:0,revenue:0};}
+  campaignRows.forEach(c=>{});
+  events.forEach(e=>{
+    const key=e.created_at?.slice(0,10); if(!daily[key])return;
+    if(['banner_impression','promotion_impression'].includes(e.event_type))daily[key].impressions++;
+    if(['banner_click','promotion_click'].includes(e.event_type))daily[key].clicks++;
+    if(e.event_type==='product_view')daily[key].views++;
+    if(e.event_type==='cart_add')daily[key].cartAdds++;
+  });
+  orders.filter(o=>o.status==='delivered').forEach(o=>{const key=o.created_at?.slice(0,10);if(daily[key]){daily[key].orders++;daily[key].revenue+=Number(o.total||0)}});
+  const totals=campaignRows.reduce((a,c)=>{a.impressions+=c.impressions;a.clicks+=c.clicks;a.views+=c.views;a.cartAdds+=c.cartAdds;a.orders+=c.deliveredOrders;a.unitsSold+=c.unitsSold;a.revenue+=c.revenue;a.discountAmount+=c.discountAmount;return a},{impressions:0,clicks:0,views:0,cartAdds:0,orders:0,unitsSold:0,revenue:0,discountAmount:0});
+  return {data:{days:safeDays,totals,campaigns:campaignRows,daily:Object.values(daily).sort((a,z)=>a.date.localeCompare(z.date))},error:null};
 }
 
 export async function getActivePromotions() {
