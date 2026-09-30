@@ -1252,6 +1252,68 @@ export async function getActiveMarketingCampaigns() {
   return { data:(campaigns||[]).filter(c=>c.customer_segment==='all'||c.customer_segment===segment), error:null };
 }
 
+
+export async function getAdminCampaignAnalytics(days=30) {
+  if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
+  const safeDays=[7,30,90].includes(Number(days))?Number(days):30;
+  const since=new Date(Date.now()-safeDays*24*60*60*1000).toISOString();
+  const [campaignsResult, behaviorResult, ordersResult, itemsResult] = await Promise.all([
+    supabase.from('marketing_campaigns').select('*').order('created_at',{ascending:false}),
+    supabase.from('customer_behavior_events').select('id,event_type,product_id,category_id,metadata,created_at').gte('created_at',since),
+    supabase.from('orders').select('id,status,total,created_at,customer_id').gte('created_at',since),
+    supabase.from('order_items').select('order_id,product_id,product_name,quantity,unit_price')
+  ]);
+  if(campaignsResult.error)return{data:null,error:campaignsResult.error};
+  if(behaviorResult.error)return{data:null,error:behaviorResult.error};
+  if(ordersResult.error)return{data:null,error:ordersResult.error};
+  if(itemsResult.error)return{data:null,error:itemsResult.error};
+
+  const campaigns=campaignsResult.data||[], events=behaviorResult.data||[], orders=ordersResult.data||[], items=itemsResult.data||[];
+  const delivered=new Map(orders.filter(o=>o.status==='delivered').map(o=>[o.id,o]));
+  const itemsByOrder=new Map();
+  items.forEach(i=>{const a=itemsByOrder.get(i.order_id)||[];a.push(i);itemsByOrder.set(i.order_id,a)});
+
+  const matchesCampaign=(c,eventOrItem)=>{
+    const pid=eventOrItem?.product_id;
+    const cid=eventOrItem?.category_id;
+    const products=Array.isArray(c.product_ids)?c.product_ids:[];
+    const categories=Array.isArray(c.category_ids)?c.category_ids:[];
+    if(!products.length&&!categories.length)return true;
+    return (pid&&products.includes(pid))||(cid&&categories.includes(cid));
+  };
+  const campaignRows=campaigns.map(c=>{
+    const relevantEvents=events.filter(e=>matchesCampaign(c,e));
+    const impressions=relevantEvents.filter(e=>e.event_type==='banner_impression'||e.event_type==='promotion_impression').length;
+    const clicks=relevantEvents.filter(e=>e.event_type==='banner_click'||e.event_type==='promotion_click').length;
+    const views=relevantEvents.filter(e=>e.event_type==='product_view').length;
+    const cartAdds=relevantEvents.filter(e=>e.event_type==='cart_add').length;
+    const productIds=new Set((c.product_ids||[]));
+    const categoryIds=new Set((c.category_ids||[]));
+    const campaignOrders=orders.filter(o=>{
+      const oi=itemsByOrder.get(o.id)||[];
+      return oi.some(i=>productIds.has(i.product_id)) || (productIds.size===0&&categoryIds.size===0);
+    });
+    const deliveredOrders=campaignOrders.filter(o=>o.status==='delivered');
+    const revenue=deliveredOrders.reduce((s,o)=>s+Number(o.total||0),0);
+    const units=deliveredOrders.reduce((s,o)=>(s+(itemsByOrder.get(o.id)||[]).filter(i=>productIds.size===0||productIds.has(i.product_id)).reduce((x,i)=>x+Number(i.quantity||0),0)),0);
+    const discountAmount=deliveredOrders.reduce((s,o)=>s+Number(o.discount_amount||0),0);
+    return {...c,impressions,clicks,views,cartAdds,orders:campaignOrders.length,deliveredOrders:deliveredOrders.length,unitsSold:units,revenue,discountAmount,clickRate:impressions?(clicks/impressions)*100:0,orderRate:clicks?(campaignOrders.length/clicks)*100:0};
+  });
+  const daily={};
+  for(let i=0;i<safeDays;i++){const d=new Date(Date.now()-i*24*60*60*1000);const key=d.toISOString().slice(0,10);daily[key]={date:key,impressions:0,clicks:0,views:0,cartAdds:0,orders:0,revenue:0};}
+  campaignRows.forEach(c=>{});
+  events.forEach(e=>{
+    const key=e.created_at?.slice(0,10); if(!daily[key])return;
+    if(['banner_impression','promotion_impression'].includes(e.event_type))daily[key].impressions++;
+    if(['banner_click','promotion_click'].includes(e.event_type))daily[key].clicks++;
+    if(e.event_type==='product_view')daily[key].views++;
+    if(e.event_type==='cart_add')daily[key].cartAdds++;
+  });
+  orders.filter(o=>o.status==='delivered').forEach(o=>{const key=o.created_at?.slice(0,10);if(daily[key]){daily[key].orders++;daily[key].revenue+=Number(o.total||0)}});
+  const totals=campaignRows.reduce((a,c)=>{a.impressions+=c.impressions;a.clicks+=c.clicks;a.views+=c.views;a.cartAdds+=c.cartAdds;a.orders+=c.deliveredOrders;a.unitsSold+=c.unitsSold;a.revenue+=c.revenue;a.discountAmount+=c.discountAmount;return a},{impressions:0,clicks:0,views:0,cartAdds:0,orders:0,unitsSold:0,revenue:0,discountAmount:0});
+  return {data:{days:safeDays,totals,campaigns:campaignRows,daily:Object.values(daily).sort((a,z)=>a.date.localeCompare(z.date))},error:null};
+}
+
 export async function getActivePromotions() {
   if (!supabase) return { data: [], error: null };
   const now = new Date().toISOString();
