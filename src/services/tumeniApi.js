@@ -955,3 +955,35 @@ export function promotionAmount(promotion, subtotal) {
     ? Math.min(base, Number(promotion.discount_value || 0))
     : Math.min(base, base * Number(promotion.discount_value || 0) / 100);
 }
+
+
+export async function askTumeniAssistant(messages) {
+  if (!supabase) {
+    return { data: null, error: new Error('Supabase is not configured.') };
+  }
+
+  if (!Array.isArray(messages) || !messages.length) {
+    return { data: null, error: new Error('Enter a message first.') };
+  }
+
+  const safeMessages = messages
+    .slice(-20)
+    .map(message => ({
+      role: message?.role === 'assistant' ? 'assistant' : 'user',
+      content: String(message?.content || '').trim().slice(0, 4000)
+    }))
+    .filter(message => message.content);
+
+  if (!safeMessages.length) {
+    return { data: null, error: new Error('Enter a message first.') };
+  }
+
+  const { data, error } = await supabase.functions.invoke('tumeni-assistant', {
+    body: { messages: safeMessages }
+  });
+
+  return {
+    data: data || null,
+    error: error || (data?.error ? new Error(data.error) : null)
+  };
+}
