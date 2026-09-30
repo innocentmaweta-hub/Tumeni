@@ -67,6 +67,57 @@ function looksLikeProductRequest(text: string) {
   ].some(signal => lower.includes(signal));
 }
 
+function looksLikeTaskRequest(text: string) {
+  const lower = text.toLowerCase();
+  return [
+    "someone to", "person to", "do this for me", "help me do",
+    "buy groceries for me", "shop for me", "buy it for me",
+    "pick up", "collect", "clean my", "repair my", "wash my",
+    "run an errand", "task", "service", "deliver something"
+  ].some(signal => lower.includes(signal));
+}
+
+function extractLocation(text: string) {
+  const match = text.match(/\b(?:in|at|to|from|around|near)\s+([a-z][a-z0-9]*(?:\s+[a-z][a-z0-9]*){0,3})/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractTaskItems(text: string) {
+  const match = text.match(/(?:buy|get|shop for|purchase)\s+(.+?)(?:\s+(?:in|at|to|from|under|below|for me)\b|$)/i);
+  if (!match) return [];
+  return match[1].split(/,\s*|\s+and\s+/i).map(item => item.trim()).filter(item => item.length >= 2).slice(0, 10);
+}
+
+function interpretTaskRequest(text: string) {
+  const raw = String(text || "").trim().slice(0, MAX_MESSAGE_LENGTH);
+  const lower = raw.toLowerCase();
+  let taskType = "general_task";
+  if (/(buy|shop|get|purchase).*(groceries|food|items)/i.test(raw)) taskType = "shopping_task";
+  else if (/(pick up|collect|fetch)/i.test(raw)) taskType = "pickup_task";
+  else if (/(deliver|drop off|take .* to)/i.test(raw)) taskType = "delivery_task";
+  else if (/(repair|fix|service)/i.test(raw)) taskType = "repair_or_service";
+  else if (/(clean|wash|laundry)/i.test(raw)) taskType = "cleaning_task";
+
+  const location = extractLocation(raw);
+  const budget = extractBudget(raw);
+  const items = extractTaskItems(raw);
+  const missingInfo = [];
+  if (!location) missingInfo.push("delivery_or_task_location");
+  if (taskType === "shopping_task" && !items.length) missingInfo.push("items_to_buy");
+  if (taskType === "general_task") missingInfo.push("specific_task");
+
+  return {
+    task_type: taskType,
+    description: raw,
+    items,
+    location,
+    budget_mwk: budget,
+    urgency: /(urgent|asap|immediately|today|now)/i.test(lower) ? "urgent" : "normal",
+    missing_information: missingInfo,
+    ready_for_quote: missingInfo.length === 0
+  };
+}
+
 async function searchCatalog(supabase: any, query: string) {
   const cleanQuery = cleanSearchText(query);
   if (!cleanQuery) return [];
@@ -199,6 +250,33 @@ Deno.serve(async (req) => {
       });
     }
 
+
+    if (body?.action === "interpret_task") {
+      const request = String(body?.request || "").trim();
+      if (!request) return json({ error: "Enter the task request." }, 400);
+      if (!looksLikeTaskRequest(request)) {
+        return json({
+          assistant_name: "Yaza AI",
+          action: "interpret_task",
+          task: {
+            task_type: "not_clearly_a_task",
+            description: request,
+            items: [],
+            location: null,
+            budget_mwk: null,
+            urgency: "normal",
+            missing_information: ["clarify_whether_this_is_a_task_or_product_request"],
+            ready_for_quote: false
+          }
+        });
+      }
+      return json({
+        assistant_name: "Yaza AI",
+        action: "interpret_task",
+        task: interpretTaskRequest(request)
+      });
+    }
+
     const messages = cleanMessages(body?.messages);
     const latestUserMessage =
       [...messages].reverse().find(message => message.role === "user")?.content || "";
@@ -220,6 +298,7 @@ Deno.serve(async (req) => {
     const systemPrompt = [
       "You are Yaza AI, the customer-facing AI assistant for Tumeni.",
       "Help users search Tumeni products, understand products, interpret task/service requests, explain Tumeni processes, answer customer questions, and make useful recommendations.",
+      "When a user asks Tumeni to perform a task, identify the task itself, items involved, location, budget, urgency, and missing information. Do not treat a task request as a normal product purchase unless the user clearly wants to purchase an existing catalog product.",
       "Do not claim that you searched the live catalog unless catalog data was explicitly supplied to you.",
       "Do not invent product availability, prices, delivery fees, delivery times, order status, seller information, or policies.",
       "If the user asks for a purchase, payment, refund, transfer, wallet action, or any other financial action, explain that you can help them understand or prepare the request, but the actual financial action must go through Tumeni's normal confirmation and payment flow.",
