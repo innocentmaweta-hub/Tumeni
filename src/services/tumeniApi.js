@@ -180,7 +180,7 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
   return order;
 }
 
-export async function createTaskOrder({ customerId, description, addressId, fees }) {
+export async function createTaskOrder({ customerId, description, addressId, fees, customerNotes = '' }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const serviceFee = Number(fees?.serviceFee || 0);
   const deliveryFee = Number(fees?.deliveryFee || 0);
@@ -196,7 +196,8 @@ export async function createTaskOrder({ customerId, description, addressId, fees
     handling_fee: handlingFee,
     total,
     delivery_address_id: addressId || null,
-    task_description: description
+    task_description: description,
+    customer_notes: customerNotes || null
   }).select().single();
 
   if (orderError) throw orderError;
