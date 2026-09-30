@@ -118,6 +118,31 @@ function interpretTaskRequest(text: string) {
   };
 }
 
+
+async function getCustomerContext(supabase: any, userId: string) {
+  const [{ data: profile }, { data: orders }] = await Promise.all([
+    supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
+    supabase
+      .from("orders")
+      .select("order_number,order_type,status,total,created_at,task_description")
+      .eq("customer_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(8),
+  ]);
+
+  return {
+    name: profile?.full_name || null,
+    recent_orders: (orders || []).map((order: any) => ({
+      order_number: order.order_number,
+      type: order.order_type,
+      status: order.status,
+      total: Number(order.total || 0),
+      created_at: order.created_at,
+      task_description: order.task_description || null,
+    })),
+  };
+}
+
 async function searchCatalog(supabase: any, query: string) {
   const cleanQuery = cleanSearchText(query);
   if (!cleanQuery) return [];
@@ -278,6 +303,7 @@ Deno.serve(async (req) => {
     }
 
     const messages = cleanMessages(body?.messages);
+    const customerContext = await getCustomerContext(supabase, userData.user.id);
     const latestUserMessage =
       [...messages].reverse().find(message => message.role === "user")?.content || "";
 
@@ -285,6 +311,13 @@ Deno.serve(async (req) => {
     if (body?.include_catalog !== false && looksLikeProductRequest(latestUserMessage)) {
       catalogProducts = await searchCatalog(supabase, latestUserMessage);
     }
+
+    const customerContextText = [
+      "",
+      "PRIVATE CUSTOMER CONTEXT (use only to help this authenticated customer; never expose internal IDs or secrets):",
+      JSON.stringify(customerContext),
+      "Use recent order data only when it directly answers the customer's question. If no matching order is present, say that you cannot confirm it from the available context."
+    ].join("\n");
 
     const catalogContext = catalogProducts.length
       ? [
@@ -308,6 +341,11 @@ Deno.serve(async (req) => {
       "For task/service requests such as asking someone to buy groceries, distinguish the task from a normal product search and identify the information Tumeni would need to quote or fulfill it.",
       "If a product request has no suitable live catalog result, explain that no matching product was found and ask whether the user wants broader criteria.",
       "Be concise, practical, and clear. Ask only the most useful follow-up question when important information is missing.",
+      "For questions about an existing order, use the private recent-order context when available. You may explain the recorded status, but do not claim a delivery time or event that is not present.",
+      "For payment questions, explain Tumeni's normal PayChangu checkout flow without claiming payment is successful unless the order context says the status is paid.",
+      "For task requests, help the customer turn their request into clear information for Tumeni. Do not silently create, submit, quote, assign, cancel, refund, or pay for an order.",
+      "When recommending products, use live catalog results when supplied and clearly distinguish catalog facts from general advice.",
+      customerContextText,
       catalogContext,
     ].join("\n");
 
@@ -359,6 +397,7 @@ Deno.serve(async (req) => {
       model,
       user_id: userData.user.id,
       catalog_products: catalogProducts,
+      customer_context_used: Boolean(customerContext.recent_orders.length || customerContext.name),
     });
   } catch (error) {
     return json({
