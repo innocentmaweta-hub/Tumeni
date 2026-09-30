@@ -253,8 +253,9 @@ const [personalizedRecommendations,setPersonalizedRecommendations]=useState([]),
 const [promotionalBanners,setPromotionalBanners]=useState([]);const [retentionSummary,setRetentionSummary]=useState(null);const [notificationUnreadCount,setNotificationUnreadCount]=useState(0);
 const promotionalBannersEnabled=String(import.meta.env.VITE_PROMOTIONAL_BANNERS_ENABLED||'').toLowerCase()==='true';
 
-useEffect(()=>{if(profile?.id){getMyRetentionSummary().then(r=>{if(!r.error)setRetentionSummary(r.data||null);return triggerMyRetentionEngagement()}).catch(()=>{});
-useEffect(()=>{if(profile?.id){const items=Object.values(cart).filter(x=>x?.qty>0);if(items.length){try{const saved=JSON.parse(localStorage.getItem('tumeni_cart_retention')||'{}');const now=Date.now();const firstAt=Number(saved.firstAt||now);if(!saved.firstAt||now-firstAt>86400000){localStorage.setItem('tumeni_cart_retention',JSON.stringify({firstAt:now}));}else if(now-firstAt>86400000){void triggerAbandonedCartEngagement(true)}}catch{}}else{try{localStorage.removeItem('tumeni_cart_retention')}catch{}}}},[profile?.id,cart]);}else setRetentionSummary(null)},[profile?.id]);
+useEffect(()=>{if(profile?.id){getMyRetentionSummary().then(r=>{if(!r.error)setRetentionSummary(r.data||null);return triggerMyRetentionEngagement()}).catch(()=>{});}else setRetentionSummary(null)},[profile?.id]);
+
+useEffect(()=>{if(profile?.id){const items=Object.values(cart).filter(x=>x?.qty>0);if(items.length){try{const saved=JSON.parse(localStorage.getItem('tumeni_cart_retention')||'{}');const now=Date.now();const firstAt=Number(saved.firstAt||now);if(!saved.firstAt||now-firstAt>86400000){localStorage.setItem('tumeni_cart_retention',JSON.stringify({firstAt:now}));}else if(now-firstAt>86400000){void triggerAbandonedCartEngagement(true)}}catch{}}else{try{localStorage.removeItem('tumeni_cart_retention')}catch{}}}},[profile?.id,cart]);
 
 useEffect(()=>{if(profile?.id){setRecommendationsLoading(true);getPersonalizedRecommendations(8).then(r=>{setPersonalizedRecommendations(r.data||[])}).finally(()=>setRecommendationsLoading(false));}else setPersonalizedRecommendations([])},[profile?.id]);
 
