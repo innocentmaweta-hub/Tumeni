@@ -701,6 +701,141 @@ export async function getAdminGrowthAnalytics(days = 30) {
   };
 }
 
+export async function getAdminCustomerAnalytics(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const safeDays = [7, 30, 90].includes(Number(days)) ? Number(days) : 30;
+  const since = new Date(Date.now() - safeDays * 86400000).toISOString();
+
+  const [periodResult, historyResult, eventsResult, profilesResult] = await Promise.all([
+    supabase.from('orders')
+      .select('id,customer_id,status,total,order_type,created_at')
+      .gte('created_at', since)
+      .order('created_at', { ascending: true })
+      .limit(10000),
+    supabase.from('orders')
+      .select('id,customer_id,status,total,created_at')
+      .eq('status', 'delivered')
+      .order('created_at', { ascending: true })
+      .limit(20000),
+    supabase.from('customer_behavior_events')
+      .select('customer_id,event_type,created_at')
+      .gte('created_at', since)
+      .limit(30000),
+    supabase.from('profiles')
+      .select('id,full_name,phone,created_at')
+      .neq('role', 'admin')
+      .limit(10000)
+  ]);
+
+  if (periodResult.error) return { data: null, error: periodResult.error };
+
+  const periodOrders = periodResult.data || [];
+  const deliveredPeriod = periodOrders.filter(o => o.status === 'delivered');
+  const deliveredHistory = historyResult.error ? [] : (historyResult.data || []);
+  const events = eventsResult.error ? [] : (eventsResult.data || []);
+  const profiles = profilesResult.error ? [] : (profilesResult.data || []);
+
+  const firstPurchase = new Map();
+  for (const order of deliveredHistory) {
+    if (!order.customer_id) continue;
+    const current = firstPurchase.get(order.customer_id);
+    if (!current || new Date(order.created_at) < new Date(current)) {
+      firstPurchase.set(order.customer_id, order.created_at);
+    }
+  }
+
+  const periodCustomers = new Set(deliveredPeriod.map(o => o.customer_id).filter(Boolean));
+  const newCustomers = [...periodCustomers].filter(id => {
+    const first = firstPurchase.get(id);
+    return first && new Date(first) >= new Date(since);
+  });
+  const returningCustomers = [...periodCustomers].filter(id => !newCustomers.includes(id));
+
+  const revenue = deliveredPeriod.reduce((sum, o) => sum + Number(o.total || 0), 0);
+  const repeatCustomers = new Set(
+    deliveredHistory.filter(o => o.customer_id && o.created_at >= since)
+      .map(o => o.customer_id)
+  );
+  const customerOrderCounts = new Map();
+  for (const order of deliveredPeriod) {
+    if (!order.customer_id) continue;
+    customerOrderCounts.set(order.customer_id, (customerOrderCounts.get(order.customer_id) || 0) + 1);
+  }
+
+  const eventCounts = events.reduce((map, event) => {
+    const id = event.customer_id;
+    if (!id) return map;
+    const item = map.get(id) || { events: 0, productViews: 0, searches: 0, favorites: 0, cartAdds: 0 };
+    item.events += 1;
+    if (event.event_type === 'product_view') item.productViews += 1;
+    if (event.event_type === 'search') item.searches += 1;
+    if (event.event_type === 'favorite_add') item.favorites += 1;
+    if (event.event_type === 'cart_add') item.cartAdds += 1;
+    map.set(id, item);
+    return map;
+  }, new Map());
+
+  const profileMap = new Map(profiles.map(p => [p.id, p]));
+  const customerRows = [...customerOrderCounts.entries()].map(([id, orders]) => {
+    const customer = profileMap.get(id) || {};
+    const customerOrders = deliveredPeriod.filter(o => o.customer_id === id);
+    const spending = customerOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const activity = eventCounts.get(id) || { events: 0, productViews: 0, searches: 0, favorites: 0, cartAdds: 0 };
+    return {
+      id,
+      name: customer.full_name || 'Tumeni customer',
+      phone: customer.phone || '',
+      orders,
+      spending,
+      averageOrderValue: orders ? spending / orders : 0,
+      activity: activity.events,
+      firstPurchase: firstPurchase.get(id) || null
+    };
+  }).sort((a, b) => b.spending - a.spending).slice(0, 10);
+
+  const activeCustomers = periodCustomers.size;
+  const repeatRate = activeCustomers ? (repeatCustomers.size / activeCustomers) * 100 : 0;
+  const activityCustomers = new Set(events.map(e => e.customer_id).filter(Boolean));
+  const avgOrdersPerCustomer = activeCustomers ? deliveredPeriod.length / activeCustomers : 0;
+  const avgActivityPerCustomer = activityCustomers.size ? events.length / activityCustomers.size : 0;
+
+  const trend = [];
+  for (let i = safeDays - 1; i >= 0; i--) {
+    const day = new Date(Date.now() - i * 86400000);
+    const key = day.toISOString().slice(0, 10);
+    const dayOrders = deliveredPeriod.filter(o => String(o.created_at || '').slice(0, 10) === key);
+    const dayCustomers = new Set(dayOrders.map(o => o.customer_id).filter(Boolean));
+    trend.push({
+      date: key,
+      label: day.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      customers: dayCustomers.size,
+      orders: dayOrders.length,
+      revenue: dayOrders.reduce((sum, o) => sum + Number(o.total || 0), 0)
+    });
+  }
+
+  return {
+    data: {
+      days: safeDays,
+      activeCustomers,
+      newCustomers: newCustomers.length,
+      returningCustomers: returningCustomers.length,
+      repeatCustomers: repeatCustomers.size,
+      repeatRate,
+      deliveredOrders: deliveredPeriod.length,
+      revenue,
+      averageOrderValue: deliveredPeriod.length ? revenue / deliveredPeriod.length : 0,
+      averageOrdersPerCustomer: avgOrdersPerCustomer,
+      activeCustomersWithBehavior: activityCustomers.size,
+      totalBehaviorEvents: events.length,
+      averageActivityPerCustomer: avgActivityPerCustomer,
+      customerRows,
+      trend
+    },
+    error: historyResult.error || eventsResult.error || profilesResult.error || null
+  };
+}
+
 export async function updateAdminOrderStatus({ orderId, status, note = '' }) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   return supabase.rpc('admin_update_order_status', { p_order_id: orderId, p_status: status, p_note: note || null });
