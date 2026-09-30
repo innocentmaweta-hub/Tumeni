@@ -42,14 +42,24 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-    const model = Deno.env.get("OPENAI_MODEL") || "gpt-5.6-luna";
+    const provider = (Deno.env.get("AI_PROVIDER") || "openrouter").toLowerCase();
+    const openRouterKey = Deno.env.get("OPENROUTER_API_KEY");
+    const geminiKey = Deno.env.get("GEMINI_API_KEY");
+    const model =
+      Deno.env.get("AI_MODEL") ||
+      (provider === "gemini" ? "gemini-3.8-flash" : "google/gemini-3.8-flash");
 
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error("Supabase function configuration is incomplete.");
     }
-    if (!openaiApiKey) {
-      throw new Error("OPENAI_API_KEY is not configured.");
+    if (!["openrouter", "gemini"].includes(provider)) {
+      throw new Error("AI_PROVIDER must be openrouter or gemini.");
+    }
+    if (provider === "openrouter" && !openRouterKey) {
+      throw new Error("OPENROUTER_API_KEY is not configured.");
+    }
+    if (provider === "gemini" && !geminiKey) {
+      throw new Error("GEMINI_API_KEY is not configured.");
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -76,32 +86,50 @@ Deno.serve(async (req) => {
       "Be concise, practical, and clear. Ask only the most useful follow-up question when important information is missing.",
     ].join("\n");
 
-    const response = await fetch("https://api.openai.com/v1/responses", {
+    const baseUrl =
+      provider === "gemini"
+        ? "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+        : "https://openrouter.ai/api/v1/chat/completions";
+    const apiKey = provider === "gemini" ? geminiKey : openRouterKey;
+
+    const response = await fetch(baseUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${openaiApiKey}`,
+        Authorization: `Bearer ${apiKey}`,
+        ...(provider === "openrouter"
+          ? {
+              "HTTP-Referer": "https://tumeni.vercel.app",
+              "X-OpenRouter-Title": "Tumeni",
+            }
+          : {}),
       },
       body: JSON.stringify({
         model,
-        instructions: systemPrompt,
-        input: messages,
-        max_output_tokens: 700,
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...messages,
+        ],
+        max_tokens: 700,
       }),
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      const message = result?.error?.message || "The AI service could not process the request.";
-      return json({ error: message }, response.status >= 500 ? 502 : 400);
+      const message =
+        result?.error?.message ||
+        result?.error ||
+        "The AI service could not process the request.";
+      return json({ error: String(message) }, response.status >= 500 ? 502 : 400);
     }
 
-    const outputText = String(result?.output_text || "").trim();
+    const outputText = String(result?.choices?.[0]?.message?.content || "").trim();
     if (!outputText) return json({ error: "The AI service returned an empty response." }, 502);
 
     return json({
       reply: outputText,
+      provider,
       model,
       user_id: userData.user.id,
     });
