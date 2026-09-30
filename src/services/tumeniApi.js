@@ -481,6 +481,19 @@ export async function getAgentAssignments() {
     .order('assigned_at', { ascending: false });
 }
 
+export async function getAgentDeliveryHistory() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: [], error: new Error('Please sign in first.') };
+  return supabase
+    .from('order_assignments')
+    .select('id,order_id,agent_id,assigned_at,accepted_at,completed_at,orders(id,order_number,order_type,status,total,created_at,delivery_address:addresses(address_line,area,city))')
+    .eq('agent_id', user.id)
+    .not('completed_at', 'is', null)
+    .order('completed_at', { ascending: false })
+    .limit(100);
+}
+
 export async function getAgentOrders() {
   const r = await getAgentAssignments();
   return { data: (r.data || []).map(x => x.orders).filter(Boolean), error: r.error };
