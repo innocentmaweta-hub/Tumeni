@@ -74,8 +74,8 @@ async function searchCatalog(supabase: any, query: string) {
   const terms = extractSearchTerms(cleanQuery);
   const budget = extractBudget(cleanQuery);
   const searchParts = terms.length
-    ? terms.map(term => \`name.ilike.%\${term}%,description.ilike.%\${term}%\`)
-    : [\`name.ilike.%\${cleanQuery}%,description.ilike.%\${cleanQuery}%\`];
+    ? terms.map(term => `name.ilike.%${term}%,description.ilike.%${term}%`)
+    : [`name.ilike.%${cleanQuery}%,description.ilike.%${cleanQuery}%`];
 
   const { data, error } = await supabase
     .from("products")
