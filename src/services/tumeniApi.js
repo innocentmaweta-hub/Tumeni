@@ -1803,3 +1803,22 @@ export async function getAdminDeliveryTaskMonitoring(){
   const overdueTasks=activeTasks.filter(t=>t.deadline_at&&new Date(t.deadline_at).getTime()<Date.now());
   return {data:{deliveries:deliveryRows,activeTasks,overdueTasks,summary:{activeDeliveries:deliveryRows.length,assignedDeliveries:deliveryRows.filter(x=>x.assignment&&!x.assignment.completed_at).length,unassignedDeliveries:deliveryRows.filter(x=>!x.assignment||x.assignment.completed_at).length,activeTasks:activeTasks.length,overdueTasks:overdueTasks.length}},error:null};
 }
+
+export async function getAdminOperationalAlerts(){
+  if(!supabase) return {data:null,error:new Error('Supabase is not configured.')};
+  const {data:{user}}=await supabase.auth.getUser();
+  if(!user) return {data:null,error:new Error('Please sign in first.')};
+  if((user.email||'').trim().toLowerCase()!=='innocentmaweta@gmail.com') return {data:null,error:new Error('Admin access required.')};
+  const [orders,assignments,tasks]=await Promise.all([
+    supabase.from('orders').select('id,order_number,status,created_at').in('status',['paid','assigned','preparing','shopping','picked_up','on_the_way']).order('created_at',{ascending:true}).limit(500),
+    supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(1000),
+    supabase.from('tasks').select('id,raw_request,assigned_employee_id,customer_approved_at,completed_at,created_at,deadline_at').is('completed_at',null).not('customer_approved_at','is',null).order('created_at',{ascending:true}).limit(500)
+  ]);
+  for(const x of [orders,assignments,tasks]) if(x.error) return {data:null,error:x.error};
+  const as=assignments.data||[], activeOrders=orders.data||[], alerts=[];
+  const assignmentByOrder=new Map(); for(const a of as){if(!a.completed_at&&!assignmentByOrder.has(a.order_id)) assignmentByOrder.set(a.order_id,a);}
+  for(const o of activeOrders){const age=Math.floor((Date.now()-new Date(o.created_at).getTime())/60000);const a=assignmentByOrder.get(o.id);if(!a) alerts.push({severity:age>=60?'high':'medium',type:'unassigned_order',title:'Order needs assignment',message:(o.order_number||o.id)+' has been active for '+age+' minutes.'});else if(age>=180&&!a.accepted_at) alerts.push({severity:'high',type:'unaccepted_assignment',title:'Assignment not accepted',message:(o.order_number||o.id)+' has an assignment that has not been accepted.'});else if(age>=360) alerts.push({severity:'high',type:'long_running_order',title:'Order running long',message:(o.order_number||o.id)+' has been active for '+age+' minutes.'});}
+  for(const t of tasks.data||[]){const age=Math.floor((Date.now()-new Date(t.created_at).getTime())/60000);if(!t.assigned_employee_id) alerts.push({severity:age>=60?'high':'medium',type:'unassigned_task',title:'Task needs assignment',message:String(t.raw_request||'Customer task').slice(0,100)});if(t.deadline_at&&new Date(t.deadline_at).getTime()<Date.now()) alerts.push({severity:'high',type:'overdue_task',title:'Task is overdue',message:String(t.raw_request||'Customer task').slice(0,100)});}
+  const rank={high:0,medium:1,low:2}; alerts.sort((a,b)=>rank[a.severity]-rank[b.severity]);
+  return {data:{alerts:alerts.slice(0,50),summary:{high:alerts.filter(a=>a.severity==='high').length,medium:alerts.filter(a=>a.severity==='medium').length,total:alerts.length}},error:null};
+}
