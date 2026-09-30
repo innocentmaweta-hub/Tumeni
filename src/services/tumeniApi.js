@@ -726,6 +726,19 @@ export async function getMyOrders() {
     .order('created_at', { ascending: false });
 }
 
+export async function getMyOrderItems(orderId) {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  if (!orderId) return { data: [], error: new Error('Order ID is required.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: [], error: new Error('Please sign in first.') };
+  const { data, error } = await supabase
+    .from('order_items')
+    .select('id,order_id,product_id,product_name,unit_price,quantity,shop_id')
+    .eq('order_id', orderId)
+    .order('id');
+  return { data: data || [], error };
+}
+
 export async function getMyOrderHistory(orderId) {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   return supabase
