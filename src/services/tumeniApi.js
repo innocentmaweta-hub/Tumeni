@@ -980,6 +980,29 @@ export async function searchTumeniProducts(query) {
   };
 }
 
+export async function interpretYazaTask(request) {
+  if (!supabase) {
+    return { data: null, error: new Error('Supabase is not configured.') };
+  }
+
+  const cleanRequest = String(request || '').trim();
+  if (!cleanRequest) {
+    return { data: null, error: new Error('Enter the task request.') };
+  }
+
+  const { data, error } = await supabase.functions.invoke('tumeni-assistant', {
+    body: {
+      action: 'interpret_task',
+      request: cleanRequest
+    }
+  });
+
+  return {
+    data: data || null,
+    error: error || (data?.error ? new Error(data.error) : null)
+  };
+}
+
 export async function askYazaAI(messages, options = {}) {
   if (!supabase) {
     return { data: null, error: new Error('Supabase is not configured.') };
