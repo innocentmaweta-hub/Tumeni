@@ -1738,3 +1738,29 @@ export async function getAdminOperationsAnalytics(days = 30) {
     daily:Object.values(daily).sort((a,b)=>a.date.localeCompare(b.date))
   }, error:null };
 }
+
+
+export async function getAdminOperationsControlCenter(){
+  if(!supabase) return {data:null,error:new Error('Supabase is not configured.')};
+  const {data:{user}}=await supabase.auth.getUser();
+  if(!user) return {data:null,error:new Error('Please sign in first.')};
+  if((user.email||'').trim().toLowerCase()!=='innocentmaweta@gmail.com') return {data:null,error:new Error('Admin access required.')};
+  const [orders,assignments,tasks]=await Promise.all([
+    supabase.from('orders').select('id,status,created_at,customer_id').order('created_at',{ascending:false}).limit(500),
+    supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(500),
+    supabase.from('tasks').select('id,customer_id,assigned_employee_id,customer_approved_at,completed_at,created_at,deadline_at').order('created_at',{ascending:false}).limit(500)
+  ]);
+  for(const r of [orders,assignments,tasks]) if(r.error) return {data:null,error:r.error};
+  const os=orders.data||[], as=assignments.data||[], ts=tasks.data||[];
+  const activeStatuses=['paid','assigned','preparing','shopping','picked_up','on_the_way'];
+  const statusCounts={}; os.forEach(o=>{statusCounts[o.status]=(statusCounts[o.status]||0)+1});
+  const assignedOrderIds=new Set(as.filter(a=>!a.completed_at).map(a=>a.order_id));
+  const activeOrders=os.filter(o=>activeStatuses.includes(o.status));
+  const unassignedOrders=os.filter(o=>activeStatuses.includes(o.status)&&!assignedOrderIds.has(o.id));
+  const activeAssignments=as.filter(a=>!a.completed_at).length;
+  const completedAssignments=as.filter(a=>a.completed_at).length;
+  const activeTasks=ts.filter(t=>!t.completed_at&&t.customer_approved_at).length;
+  const unassignedTasks=ts.filter(t=>!t.completed_at&&t.customer_approved_at&&!t.assigned_employee_id).length;
+  const overdueTasks=ts.filter(t=>!t.completed_at&&t.deadline_at&&new Date(t.deadline_at).getTime()<Date.now()).length;
+  return {data:{orders:os.length,activeOrders:activeOrders.length,unassignedOrders:unassignedOrders.length,activeAssignments,completedAssignments,activeTasks,unassignedTasks,overdueTasks,statusCounts,recentOrders:os.slice(0,12),recentTasks:ts.slice(0,12)},error:null};
+}
