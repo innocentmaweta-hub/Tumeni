@@ -335,6 +335,20 @@ useEffect(()=>{
   }
 },[]);
 
+useEffect(()=>{
+  if(!profile?.id){setNotificationUnreadCount(0);return;}
+  let active=true;
+  void getMyUnreadNotificationCount().then(r=>{if(active&&!r.error)setNotificationUnreadCount(r.data||0)});
+  const unsubscribe=subscribeToMyNotifications(profile.id,notification=>{
+    if(!active)return;
+    setNotificationUnreadCount(c=>c+1);
+    if(page==='notifications'){
+      setPage('notifications');
+    }
+  });
+  return()=>{active=false;unsubscribe?.()};
+},[profile?.id]);
+
 const goTab=t=>{setTab(t);setProduct(null);setPage(t==='Home'?'home':t==='Explore'?'explore':t==='Orders'?'orders':t==='Profile'?'profile':'favorites')};const openYaza=()=>{setProduct(null);setPage('yaza-ai')};const runSearch=q=>{const clean=String(q||'').trim();if(clean)void trackSearch(clean);setSearchQuery(clean);setProduct(null);setTab('Explore');setPage('explore')};const openNotifications=()=>{setProduct(null);setPage('notifications');setTab('Home');void getMyUnreadNotificationCount().then(r=>{if(!r.error)setNotificationUnreadCount(r.data||0)});};
 const toggleLike=id=>setLiked(x=>{const next=x.includes(id)?x.filter(n=>n!==id):[...x,id];void trackFavoriteChange(id,!x.includes(id));try{localStorage.setItem('tumeni_saved_items',JSON.stringify(next))}catch{}return next});const openProduct=p=>{setProduct(p);setRecentlyViewed(prev=>{const next=[p.id,...prev.filter(id=>id!==p.id)].slice(0,12);try{localStorage.setItem('tumeni_recently_viewed',JSON.stringify(next))}catch{}return next})};
 const add=(p,qty=1)=>{void trackCartAdd(p?.id,{quantity:qty});setCart(c=>({...c,[p.id]:{product:p,qty:(c[p.id]?.qty||0)+qty}}));};
