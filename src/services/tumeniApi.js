@@ -1424,6 +1424,12 @@ export async function getAdminRetentionAnalytics(days = 30) {
   return { data: Array.isArray(data) ? (data[0] || null) : (data || null), error };
 }
 
+export async function triggerAbandonedCartEngagement(hasItems) {
+  if (!supabase || !hasItems) return { data: null, error: null };
+  const { data, error } = await supabase.rpc('trigger_my_cart_engagement');
+  return { data: data || null, error };
+}
+
 export async function getMyRetentionSummary() {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   const { data, error } = await supabase.rpc('get_my_retention_summary');
