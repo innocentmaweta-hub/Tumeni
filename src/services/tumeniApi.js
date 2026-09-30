@@ -1412,6 +1412,23 @@ export function promotionAmount(promotion, subtotal) {
 }
 
 
+export async function advancedSearchProducts({ query = '', limit = 40, offset = 0 } = {}) {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const cleanQuery = String(query || '').trim();
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 40, 100));
+  const safeOffset = Math.max(0, Number(offset) || 0);
+  const { data, error } = await supabase.rpc('search_products_advanced', {
+    p_query: cleanQuery,
+    p_limit: safeLimit,
+    p_offset: safeOffset
+  });
+  if (error) return { data: [], error };
+  return {
+    data: (data || []).map(p => ({ ...p, shop: p.shop || 'Admin Product', rating: Number(p.rating || 0) })),
+    error: null
+  };
+}
+
 export async function searchTumeniProducts(query) {
   if (!supabase) {
     return { data: null, error: new Error('Supabase is not configured.') };
