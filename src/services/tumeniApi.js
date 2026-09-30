@@ -1019,20 +1019,48 @@ export async function getMyNotifications() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: [], error: new Error('Please sign in first.') };
   const { data, error } = await supabase
-    .from('order_status_history')
-    .select('id,order_id,status,note,created_at,orders!inner(order_number,order_type)')
-    .eq('orders.customer_id', user.id)
+    .from('notifications')
+    .select('id,recipient_id,notification_type,title,message,order_id,task_id,product_id,metadata,read_at,created_at')
+    .eq('recipient_id', user.id)
     .order('created_at', { ascending: false })
-    .limit(30);
+    .limit(50);
   if (error) return { data: [], error };
-  return {
-    data: (data || []).map(n => ({
-      ...n,
-      title: n.status === 'delivered' ? 'Order delivered' : n.status === 'on_the_way' ? 'Order is on the way' : n.status === 'assigned' ? 'Order assigned' : 'Order update',
-      text: n.note || `Order ${n.orders?.order_number || ''} is now ${String(n.status || '').replaceAll('_',' ')}.`
-    })),
-    error: null
-  };
+  return { data: (data || []).map(n => ({ ...n, text: n.message, read: Boolean(n.read_at) })), error: null };
+}
+
+export async function getMyUnreadNotificationCount() {
+  if (!supabase) return { data: 0, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: 0, error: null };
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('recipient_id', user.id)
+    .is('read_at', null);
+  return { data: Number(count || 0), error };
+}
+
+export async function markNotificationRead(notificationId) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  if (!notificationId) return { data: null, error: new Error('Notification ID is required.') };
+  return supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', notificationId).is('read_at', null);
+}
+
+export async function markAllNotificationsRead() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  return supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('recipient_id', user.id).is('read_at', null);
+}
+
+export function subscribeToMyNotifications(userId, onNotification) {
+  if (!supabase || !userId) return () => {};
+  const channel = supabase.channel('tumeni-notifications-' + userId)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'recipient_id=eq.' + userId }, payload => {
+      onNotification?.(payload.new);
+    })
+    .subscribe();
+  return () => { void supabase.removeChannel(channel); };
 }
 
 
