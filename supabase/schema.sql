@@ -16,7 +16,8 @@ begin
   if not exists (select 1 from pg_type where typname = 'order_status' and typnamespace = 'public'::regnamespace) then
     create type public.order_status as enum (
       'pending_payment','paid','assigned','preparing','shopping',
-      'picked_up','on_the_way','delivered','cancelled','failed','refunded'
+      'picked_up','on_the_way','delivered','cancelled','failed','returned',
+      'disputed','refund_requested','refunded'
     );
   end if;
 end $$;
@@ -1103,6 +1104,71 @@ with check (
 
 notify pgrst, 'reload schema';
 
+
+-- Phase 5.2: advanced order lifecycle helpers.
+create or replace function public.admin_update_order_status(
+  p_order_id uuid,
+  p_status public.order_status,
+  p_note text default null
+)
+returns public.orders
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  current_status public.order_status;
+  result_order public.orders;
+begin
+  if public.current_user_role() <> 'admin' then
+    raise exception 'Only admins can update order status';
+  end if;
+
+  select status into current_status from public.orders where id = p_order_id for update;
+  if current_status is null then raise exception 'Order not found'; end if;
+
+  if current_status = 'delivered' and p_status not in ('returned','disputed','refund_requested','refunded') then
+    raise exception 'Delivered orders cannot move back into active processing';
+  end if;
+  if current_status in ('cancelled','refunded') and p_status not in ('disputed','refund_requested','refunded') then
+    raise exception 'Closed orders cannot be reopened';
+  end if;
+
+  update public.orders set status = p_status where id = p_order_id returning * into result_order;
+  insert into public.order_status_history(order_id,status,note,changed_by)
+  values (p_order_id,p_status,nullif(trim(p_note),''),auth.uid());
+  return result_order;
+end;
+$;
+
+create or replace function public.customer_cancel_order(p_order_id uuid, p_note text default null)
+returns public.orders
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  current_status public.order_status;
+  result_order public.orders;
+begin
+  select status into current_status from public.orders
+  where id = p_order_id and customer_id = auth.uid()
+  for update;
+  if current_status is null then raise exception 'Order not found'; end if;
+
+  if current_status not in ('pending_payment','paid','assigned') then
+    raise exception 'This order can no longer be cancelled';
+  end if;
+
+  update public.orders set status = 'cancelled' where id = p_order_id returning * into result_order;
+  insert into public.order_status_history(order_id,status,note,changed_by)
+  values (p_order_id,'cancelled',coalesce(nullif(trim(p_note),''),'Cancelled by customer'),auth.uid());
+  return result_order;
+end;
+$;
+
+grant execute on function public.admin_update_order_status(uuid,public.order_status,text) to authenticated;
+grant execute on function public.customer_cancel_order(uuid,text) to authenticated;
 
 -- Phase 4.1: promotions and discounts.
 create table if not exists public.promotions (
