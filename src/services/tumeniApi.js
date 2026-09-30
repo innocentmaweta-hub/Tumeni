@@ -836,6 +836,86 @@ export async function getAdminCustomerAnalytics(days = 30) {
   };
 }
 
+export async function getAdminProductAnalytics(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const safeDays = [7, 30, 90].includes(Number(days)) ? Number(days) : 30;
+  const since = new Date(Date.now() - safeDays * 86400000).toISOString();
+
+  const [productsResult, eventsResult, itemsResult, reviewsResult] = await Promise.all([
+    supabase.from('products').select('id,name,price,image_url,available,stock_quantity,category_id,shop_id,created_at').limit(10000),
+    supabase.from('customer_behavior_events').select('product_id,event_type,created_at').gte('created_at', since).not('product_id','is',null).limit(50000),
+    supabase.from('order_items').select('product_id,product_name,quantity,line_total,order_id,orders!inner(status,created_at)').gte('orders.created_at', since).limit(50000),
+    supabase.from('product_reviews').select('product_id,rating,created_at').gte('created_at', since).limit(50000)
+  ]);
+
+  if (productsResult.error) return { data: null, error: productsResult.error };
+  const products = productsResult.data || [];
+  const events = eventsResult.error ? [] : (eventsResult.data || []);
+  const items = itemsResult.error ? [] : (itemsResult.data || []);
+  const reviews = reviewsResult.error ? [] : (reviewsResult.data || []);
+
+  const metrics = new Map();
+  for (const p of products) metrics.set(p.id, {
+    id:p.id,name:p.name,price:Number(p.price||0),available:p.available,stockQuantity:Number(p.stock_quantity||0),
+    views:0,clicks:0,favorites:0,cartAdds:0,purchasedUnits:0,purchaseOrders:new Set(),revenue:0,ratingSum:0,ratingCount:0
+  });
+  for (const e of events) {
+    const m=metrics.get(e.product_id); if(!m) continue;
+    if(e.event_type==='product_view')m.views++;
+    if(e.event_type==='product_click')m.clicks++;
+    if(e.event_type==='favorite_add')m.favorites++;
+    if(e.event_type==='cart_add')m.cartAdds++;
+  }
+  for (const item of items) {
+    const m=metrics.get(item.product_id); if(!m || String(item.orders?.status||'').toLowerCase()!=='delivered') continue;
+    m.purchasedUnits+=Number(item.quantity||0);
+    m.purchaseOrders.add(item.order_id);
+    m.revenue+=Number(item.line_total||0);
+  }
+  for (const r of reviews) {
+    const m=metrics.get(r.product_id); if(!m) continue;
+    m.ratingSum+=Number(r.rating||0); m.ratingCount++;
+  }
+
+  const rows=[...metrics.values()].map(m=>({
+    id:m.id,name:m.name,price:m.price,available:m.available,stockQuantity:m.stockQuantity,
+    views:m.views,clicks:m.clicks,favorites:m.favorites,cartAdds:m.cartAdds,
+    purchasedUnits:m.purchasedUnits,purchaseOrders:m.purchaseOrders.size,revenue:m.revenue,
+    rating:m.ratingCount?m.ratingSum/m.ratingCount:0,ratingCount:m.ratingCount,
+    conversionRate:m.views?(m.purchaseOrders.size/m.views)*100:0
+  })).sort((a,b)=>b.revenue-a.revenue);
+
+  const totalViews=rows.reduce((n,r)=>n+r.views,0);
+  const totalClicks=rows.reduce((n,r)=>n+r.clicks,0);
+  const totalFavorites=rows.reduce((n,r)=>n+r.favorites,0);
+  const totalCartAdds=rows.reduce((n,r)=>n+r.cartAdds,0);
+  const totalUnits=rows.reduce((n,r)=>n+r.purchasedUnits,0);
+  const totalRevenue=rows.reduce((n,r)=>n+r.revenue,0);
+  const rated=rows.filter(r=>r.ratingCount);
+  const trend=[];
+  for(let i=safeDays-1;i>=0;i--){
+    const day=new Date(Date.now()-i*86400000), key=day.toISOString().slice(0,10);
+    const ev=events.filter(e=>String(e.created_at||'').slice(0,10)===key);
+    const dayItems=items.filter(x=>String(x.orders?.created_at||'').slice(0,10)===key && String(x.orders?.status||'').toLowerCase()==='delivered');
+    trend.push({
+      date:key,label:day.toLocaleDateString(undefined,{month:'short',day:'numeric'}),
+      views:ev.filter(e=>e.event_type==='product_view').length,
+      clicks:ev.filter(e=>e.event_type==='product_click').length,
+      cartAdds:ev.filter(e=>e.event_type==='cart_add').length,
+      units:dayItems.reduce((n,x)=>n+Number(x.quantity||0),0),
+      revenue:dayItems.reduce((n,x)=>n+Number(x.line_total||0),0)
+    });
+  }
+
+  return {data:{
+    days:safeDays,totalProducts:products.length,availableProducts:products.filter(p=>p.available).length,
+    totalViews,totalClicks,totalFavorites,totalCartAdds,totalUnits,totalRevenue,
+    averageRating:rated.length?rated.reduce((n,r)=>n+r.rating,0)/rated.length:0,
+    overallConversionRate:totalViews?((new Set(items.filter(x=>String(x.orders?.status||'').toLowerCase()==='delivered').map(x=>x.order_id)).size/totalViews)*100):0,
+    topProducts:rows.slice(0,12),trend
+  },error:eventsResult.error||itemsResult.error||reviewsResult.error||null};
+}
+
 export async function updateAdminOrderStatus({ orderId, status, note = '' }) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   return supabase.rpc('admin_update_order_status', { p_order_id: orderId, p_status: status, p_note: note || null });
