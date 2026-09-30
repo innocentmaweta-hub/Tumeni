@@ -417,6 +417,47 @@ export async function getMySellerIntelligence(days = 30) {
   return { data: { metrics:{products:products.length,lowStock,outOfStock,hidden,views,cartAdds,unitsSold,revenue}, insights:insights.slice(0,12) }, error:null };
 }
 
+export async function getMySellerForecast(days = 90) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  const isAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
+  let shopId = null;
+  if (!isAdmin) {
+    const { data: shop, error } = await supabase.from('shops').select('id').eq('owner_id', user.id).maybeSingle();
+    if (error) return { data: null, error };
+    shopId = shop?.id || null;
+    if (!shopId) return { data: { products: [] }, error: null };
+  }
+  const since = new Date(Date.now() - Math.max(30, Number(days) || 90) * 86400000).toISOString();
+  const { data: products, error: pe } = await supabase.from('products')
+    .select('id,name,price,available,stock_quantity,low_stock_threshold,shop_id')
+    .eq('shop_id', isAdmin ? null : shopId);
+  if (pe) return { data: null, error: pe };
+  const ids=(products||[]).map(p=>p.id).filter(Boolean);
+  if (!ids.length) return { data:{products:[]}, error:null };
+  const { data:sales, error:se } = await supabase.from('order_items')
+    .select('product_id,quantity,line_total,orders!inner(status,created_at)')
+    .in('product_id',ids).eq('orders.status','delivered').gte('orders.created_at',since).limit(50000);
+  if (se) return { data:null,error:se };
+  const now=Date.now(), rows=[];
+  for(const p of products||[]){
+    const ps=(sales||[]).filter(x=>x.product_id===p.id);
+    const last30=ps.filter(x=>now-new Date(x.orders.created_at).getTime()<=30*86400000).reduce((s,x)=>s+Number(x.quantity||0),0);
+    const prev30=ps.filter(x=>{const age=now-new Date(x.orders.created_at).getTime();return age>30*86400000&&age<=60*86400000}).reduce((s,x)=>s+Number(x.quantity||0),0);
+    const avgDaily=last30/30;
+    const prevDaily=prev30/30;
+    const trend=prevDaily>0?((avgDaily-prevDaily)/prevDaily)*100:null;
+    const stock=Number(p.stock_quantity||0);
+    const daysOfStock=avgDaily>0?stock/avgDaily:null;
+    const forecast30=Math.round(avgDaily*30);
+    const projected30=Math.max(0,Math.round(stock-forecast30));
+    const status=stock<=0?'out_of_stock':avgDaily>0&&daysOfStock<=14?'replenish_soon':avgDaily>0&&daysOfStock<=30?'watch':'stable';
+    rows.push({id:p.id,name:p.name,stock,avgDaily,forecast30,projected30,daysOfStock,trend,status,available:p.available!==false});
+  }
+  return { data:{products:rows.sort((a,b)=>(a.daysOfStock??99999)-(b.daysOfStock??99999))},error:null };
+}
+
 export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, imageUrls = [], available = true }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const urls = (imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : [])).map(x => x.trim()).filter(Boolean);
