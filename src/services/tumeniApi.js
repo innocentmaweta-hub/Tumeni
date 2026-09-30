@@ -957,7 +957,30 @@ export function promotionAmount(promotion, subtotal) {
 }
 
 
-export async function askTumeniAssistant(messages) {
+export async function searchTumeniProducts(query) {
+  if (!supabase) {
+    return { data: null, error: new Error('Supabase is not configured.') };
+  }
+
+  const cleanQuery = String(query || '').trim();
+  if (!cleanQuery) {
+    return { data: null, error: new Error('Enter a product search.') };
+  }
+
+  const { data, error } = await supabase.functions.invoke('tumeni-assistant', {
+    body: {
+      action: 'search_products',
+      query: cleanQuery
+    }
+  });
+
+  return {
+    data: data || null,
+    error: error || (data?.error ? new Error(data.error) : null)
+  };
+}
+
+export async function askYazaAI(messages, options = {}) {
   if (!supabase) {
     return { data: null, error: new Error('Supabase is not configured.') };
   }
@@ -979,7 +1002,10 @@ export async function askTumeniAssistant(messages) {
   }
 
   const { data, error } = await supabase.functions.invoke('tumeni-assistant', {
-    body: { messages: safeMessages }
+    body: {
+      messages: safeMessages,
+      include_catalog: options.includeCatalog !== false
+    }
   });
 
   return {
@@ -987,3 +1013,6 @@ export async function askTumeniAssistant(messages) {
     error: error || (data?.error ? new Error(data.error) : null)
   };
 }
+
+// Backward-compatible alias for any existing callers.
+export const askTumeniAssistant = askYazaAI;
