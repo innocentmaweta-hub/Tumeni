@@ -1103,6 +1103,62 @@ export async function uploadOrderAttachment(file, orderId) {
 }
 
 
+export async function getAdminCampaigns() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  return supabase.from('marketing_campaigns').select('*').order('created_at', { ascending: false });
+}
+
+export async function createMarketingCampaign(payload) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const name = String(payload.name || '').trim();
+  const description = String(payload.description || '').trim() || null;
+  const discountType = payload.discountType === 'fixed' ? 'fixed' : 'percentage';
+  const discountValue = Number(payload.discountValue || 0);
+  const productIds = Array.isArray(payload.productIds) ? payload.productIds.filter(Boolean) : [];
+  const categoryIds = Array.isArray(payload.categoryIds) ? payload.categoryIds.filter(Boolean) : [];
+  const customerSegment = ['all','new','returning','high_frequency','inactive'].includes(payload.customerSegment)
+    ? payload.customerSegment : 'all';
+  if (!name) return { data: null, error: new Error('Campaign name is required.') };
+  if (discountValue < 0) return { data: null, error: new Error('Discount cannot be negative.') };
+  if (discountType === 'percentage' && discountValue > 100) return { data: null, error: new Error('Percentage discounts cannot exceed 100%.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  return supabase.from('marketing_campaigns').insert({
+    name, description,
+    starts_at: payload.startsAt || new Date().toISOString(),
+    ends_at: payload.endsAt || null,
+    discount_type: discountType,
+    discount_value: discountValue,
+    product_ids: productIds,
+    category_ids: categoryIds,
+    customer_segment: customerSegment,
+    active: payload.active !== false,
+    created_by: user.id
+  }).select().single();
+}
+
+export async function updateMarketingCampaign({ id, ...payload }) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  if (!id) return { data: null, error: new Error('Campaign ID is required.') };
+  return supabase.from('marketing_campaigns').update({
+    name: String(payload.name || '').trim(),
+    description: String(payload.description || '').trim() || null,
+    starts_at: payload.startsAt || null,
+    ends_at: payload.endsAt || null,
+    discount_type: payload.discountType === 'fixed' ? 'fixed' : 'percentage',
+    discount_value: Number(payload.discountValue || 0),
+    product_ids: Array.isArray(payload.productIds) ? payload.productIds.filter(Boolean) : [],
+    category_ids: Array.isArray(payload.categoryIds) ? payload.categoryIds.filter(Boolean) : [],
+    customer_segment: ['all','new','returning','high_frequency','inactive'].includes(payload.customerSegment) ? payload.customerSegment : 'all',
+    active: payload.active !== false
+  }).eq('id', id).select().single();
+}
+
+export async function deleteMarketingCampaign(id) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  return supabase.from('marketing_campaigns').delete().eq('id', id);
+}
+
 export async function getActivePromotions() {
   if (!supabase) return { data: [], error: null };
   const now = new Date().toISOString();
@@ -1134,7 +1190,8 @@ export async function createPromotion(payload) {
     min_order_amount: Number(payload.minOrderAmount || 0),
     starts_at: payload.startsAt || new Date().toISOString(),
     ends_at: payload.endsAt || null,
-    active: payload.active !== false
+    active: payload.active !== false,
+    campaign_id: payload.campaignId || null
   };
   if (!row.name || row.discount_value <= 0) return { data: null, error: new Error('Enter a promotion name and a valid discount.') };
   if (row.discount_type === 'percentage' && row.discount_value > 100) return { data: null, error: new Error('Percentage discounts cannot exceed 100%.') };
