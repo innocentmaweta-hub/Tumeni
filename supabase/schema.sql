@@ -798,6 +798,14 @@ begin
   if not exists (select 1 from public.profiles where id = p_agent_id and role = 'agent') then
     raise exception 'Selected user is not an agent';
   end if;
+  if not exists (
+    select 1
+    from public.orders
+    where id = p_order_id
+      and status in ('paid','assigned')
+  ) then
+    raise exception 'Only paid or already-assigned orders can be assigned to an agent';
+  end if;
   update public.order_assignments
     set completed_at = coalesce(completed_at, now())
     where order_id = p_order_id and completed_at is null;
