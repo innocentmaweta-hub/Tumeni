@@ -567,6 +567,25 @@ export async function getAdminDashboardAlerts() {
   if(pendingSellers)alerts.push({id:'pending-sellers',severity:'attention',title:'Seller reviews pending',detail:pendingSellers+' seller applications are awaiting review.'});
   return {data:alerts,error:errors.length===3?errors[0]:null};
 }
+export async function getAdminOperationalData() {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const [shopsResult, assignmentsResult, activityResult] = await Promise.all([
+    supabase.from('shops').select('id,name,partnership_status,created_at').order('created_at',{ascending:false}).limit(200),
+    supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(200),
+    supabase.from('order_status_history').select('id,order_id,status,note,created_at').order('created_at',{ascending:false}).limit(50)
+  ]);
+  const firstError=shopsResult.error||assignmentsResult.error||activityResult.error;
+  if (firstError) return { data: null, error: firstError };
+  return {
+    data:{
+      shops:shopsResult.data||[],
+      assignments:assignmentsResult.data||[],
+      activity:activityResult.data||[]
+    },
+    error:null
+  };
+}
+
 export async function getAdminAuditLog() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const [historyResult, assignmentResult, shopsResult] = await Promise.all([
