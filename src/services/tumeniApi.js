@@ -458,6 +458,37 @@ export async function getMySellerForecast(days = 90) {
   return { data:{products:rows.sort((a,b)=>(a.daysOfStock??99999)-(b.daysOfStock??99999))},error:null };
 }
 
+export async function getMySellerRecommendations(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  const isAdmin=(user.email||'').trim().toLowerCase()==='innocentmaweta@gmail.com';
+  let shopId=null;
+  if(!isAdmin){const {data:shop,error}=await supabase.from('shops').select('id').eq('owner_id',user.id).maybeSingle();if(error)return{data:null,error};shopId=shop?.id||null;if(!shopId)return{data:{recommendations:[]},error:null};}
+  const since=new Date(Date.now()-Math.max(7,Number(days)||30)*86400000).toISOString();
+  const {data:products,error:pe}=await supabase.from('products').select('id,name,price,available,stock_quantity,low_stock_threshold,shop_id').eq('shop_id',isAdmin?null:shopId);
+  if(pe)return{data:null,error:pe};
+  const ids=(products||[]).map(p=>p.id);
+  if(!ids.length)return{data:{recommendations:[]},error:null};
+  const [ev,oi]=await Promise.all([
+    supabase.from('customer_behavior_events').select('product_id,event_type').in('product_id',ids).gte('created_at',since).limit(50000),
+    supabase.from('order_items').select('product_id,quantity,line_total,orders!inner(status,created_at)').in('product_id',ids).eq('orders.status','delivered').gte('orders.created_at',since).limit(50000)
+  ]);
+  if(ev.error)return{data:null,error:ev.error};if(oi.error)return{data:null,error:oi.error};
+  const rec=[];
+  for(const p of products||[]){
+    const es=(ev.data||[]).filter(x=>x.product_id===p.id), sales=(oi.data||[]).filter(x=>x.product_id===p.id);
+    const views=es.filter(x=>x.event_type==='product_view').length,carts=es.filter(x=>x.event_type==='cart_add').length,units=sales.reduce((s,x)=>s+Number(x.quantity||0),0);
+    const stock=Number(p.stock_quantity||0), threshold=Number(p.low_stock_threshold??5);
+    if(stock<=0 && views>0) rec.push({priority:'high',type:'restock',product_id:p.id,product_name:p.name,message:'Restock this product: customers are viewing it while it is out of stock.',metric:views});
+    else if(stock>0&&stock<=threshold) rec.push({priority:'high',type:'restock',product_id:p.id,product_name:p.name,message:'Restock soon: inventory is at or below the low-stock threshold.',metric:stock});
+    else if(views>=10&&carts>=3&&units===0) rec.push({priority:'medium',type:'demand',product_id:p.id,product_name:p.name,message:'Demand signal: customers are adding this product to carts but no delivered sales were recorded in this period.',metric:carts});
+    else if(views>=20&&carts===0) rec.push({priority:'medium',type:'conversion',product_id:p.id,product_name:p.name,message:'Review this listing: it gets views but no cart additions were recorded.',metric:views});
+    else if(units>=5&&stock>0&&stock<=units*1.5) rec.push({priority:'medium',type:'growth',product_id:p.id,product_name:p.name,message:'Strong sales with limited stock: consider replenishing before inventory runs low.',metric:units});
+  }
+  return{data:{recommendations:rec.sort((x,y)=>(x.priority==='high'?0:1)-(y.priority==='high'?0:1)).slice(0,15)},error:null};
+}
+
 export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, imageUrls = [], available = true }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const urls = (imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : [])).map(x => x.trim()).filter(Boolean);
