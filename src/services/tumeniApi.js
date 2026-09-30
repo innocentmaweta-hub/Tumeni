@@ -1418,6 +1418,12 @@ export async function triggerMyRetentionEngagement() {
   return { data: data || null, error };
 }
 
+export async function getAdminRetentionAnalytics(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data, error } = await supabase.rpc('get_admin_retention_analytics', { p_days: Number(days) || 30 });
+  return { data: Array.isArray(data) ? (data[0] || null) : (data || null), error };
+}
+
 export async function getMyRetentionSummary() {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   const { data, error } = await supabase.rpc('get_my_retention_summary');
