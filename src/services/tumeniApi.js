@@ -1764,3 +1764,24 @@ export async function getAdminOperationsControlCenter(){
   const overdueTasks=ts.filter(t=>!t.completed_at&&t.deadline_at&&new Date(t.deadline_at).getTime()<Date.now()).length;
   return {data:{orders:os.length,activeOrders:activeOrders.length,unassignedOrders:unassignedOrders.length,activeAssignments,completedAssignments,activeTasks,unassignedTasks,overdueTasks,statusCounts,recentOrders:os.slice(0,12),recentTasks:ts.slice(0,12)},error:null};
 }
+
+export async function getAdminAssignmentIntelligence(){
+  if(!supabase) return {data:null,error:new Error('Supabase is not configured.')};
+  const {data:{user}}=await supabase.auth.getUser();
+  if(!user) return {data:null,error:new Error('Please sign in first.')};
+  if((user.email||'').trim().toLowerCase()!=='innocentmaweta@gmail.com') return {data:null,error:new Error('Admin access required.')};
+  const [profiles,assignments,orders,tasks]=await Promise.all([
+    supabase.from('profiles').select('id,full_name,role'),
+    supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(1000),
+    supabase.from('orders').select('id,order_number,status,created_at').in('status',['paid','assigned','preparing','shopping','picked_up','on_the_way']).order('created_at',{ascending:true}).limit(500),
+    supabase.from('tasks').select('id,assigned_employee_id,customer_approved_at,completed_at,created_at,deadline_at').is('completed_at',null).not('customer_approved_at','is',null).limit(500)
+  ]);
+  for(const r of [profiles,assignments,orders,tasks]) if(r.error) return {data:null,error:r.error};
+  const people=(profiles.data||[]).filter(p=>p.role==='agent'); const amap=new Map(people.map(p=>[p.id,{id:p.id,name:p.full_name||'Unnamed employee',activeAssignments:0,completedAssignments:0,activeTasks:0}]));
+  const activeOrderIds=new Set((orders.data||[]).map(o=>o.id));
+  for(const a of assignments.data||[]){const x=amap.get(a.agent_id);if(!x)continue;if(a.completed_at)x.completedAssignments++;else if(activeOrderIds.has(a.order_id))x.activeAssignments++;}
+  for(const t of tasks.data||[]){const x=amap.get(t.assigned_employee_id);if(x)x.activeTasks++;}
+  const unassignedOrders=(orders.data||[]).filter(o=>!(assignments.data||[]).some(a=>a.order_id===o.id&&!a.completed_at));
+  const unassignedTasks=(tasks.data||[]).filter(t=>!t.assigned_employee_id);
+  return {data:{employees:[...amap.values()].sort((a,b)=>(b.activeAssignments+b.activeTasks)-(a.activeAssignments+a.activeTasks)),unassignedOrders,unassignedTasks},error:null};
+}
