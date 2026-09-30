@@ -150,37 +150,31 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
-declare
-  order_number text;
+as $
 begin
   if new.assigned_employee_id is null or
-     new.assigned_employee_id is not distinct from old.assigned_employee_id then
+     (tg_op = 'UPDATE' and new.assigned_employee_id is not distinct from old.assigned_employee_id) then
     return new;
   end if;
-
-  select o.order_number into order_number
-  from public.orders o
-  where o.id = new.order_id;
 
   perform public.create_tumeni_notification(
     new.assigned_employee_id,
     'task',
     'New task assigned',
-    'Task ' || coalesce(order_number,'') || ' has been assigned to you.',
-    new.order_id,
+    'A Tumeni task has been assigned to you.',
+    null,
     new.id,
     null,
-    '{}'::jsonb
+    jsonb_build_object('task_id', new.id)
   );
 
   return new;
 end;
-$$;
+$;
 
 drop trigger if exists task_assignment_notification_trigger on public.tasks;
 create trigger task_assignment_notification_trigger
-after update of assigned_employee_id on public.tasks
+after insert or update of assigned_employee_id on public.tasks
 for each row execute function public.notify_task_assignment();
 
 grant execute on function public.create_tumeni_notification(uuid,text,text,text,uuid,uuid,uuid,jsonb) to service_role;
