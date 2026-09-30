@@ -53,7 +53,7 @@ function extractSearchTerms(text: string) {
 function looksLikeProductRequest(text: string) {
   const lower = text.toLowerCase();
   const taskSignals = [
-    "someone to", "person to", "do this for me", "help me do",
+    "someone to", "person to", "do this for me", "help me do", "buy groceries for me", "shop for me", "buy it for me",
     "pick up", "collect something", "clean my", "repair my",
     "wash my", "deliver something", "run an errand", "task"
   ];
@@ -225,8 +225,11 @@ Deno.serve(async (req) => {
       "If the user asks for a purchase, payment, refund, transfer, wallet action, or any other financial action, explain that you can help them understand or prepare the request, but the actual financial action must go through Tumeni's normal confirmation and payment flow.",
       "Never ask for or expose passwords, payment PINs, card security codes, secret keys, or authentication tokens.",
       "For product requests, extract useful constraints such as product type, budget, location, preferred category, quantity, and other requirements.",
-      "A delivery location is a fulfillment constraint, not proof that a product is available in that area.\n      For task/service requests such as asking someone to buy groceries, distinguish the task from a normal product search and identify the information Tumeni would need to quote or fulfill it.",
-      "If a product request has no suitable live catalog result, explain that no matching product was found and ask whether the user wants broader criteria.\n      Be concise, practical, and clear. Ask only the most useful follow-up question when important information is missing.\n      catalogContext,",
+      "A delivery location is a fulfillment constraint, not proof that a product is available in that area.",
+      "For task/service requests such as asking someone to buy groceries, distinguish the task from a normal product search and identify the information Tumeni would need to quote or fulfill it.",
+      "If a product request has no suitable live catalog result, explain that no matching product was found and ask whether the user wants broader criteria.",
+      "Be concise, practical, and clear. Ask only the most useful follow-up question when important information is missing.",
+      catalogContext,
     ].join("\n");
 
     const baseUrl =
