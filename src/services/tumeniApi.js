@@ -1262,3 +1262,57 @@ export async function getPersonalizedRecommendations(limit = 8) {
   const { data, error } = await supabase.rpc('get_personalized_recommendations', { p_limit: safeLimit });
   return { data: data || [], error };
 }
+
+export async function getAdminOperationsAnalytics(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const since = new Date(Date.now() - Number(days) * 86400000).toISOString();
+
+  const [ordersResult, assignmentsResult, tasksResult] = await Promise.all([
+    supabase.from('orders').select('id,order_type,status,total,created_at,updated_at').gte('created_at', since),
+    supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').gte('assigned_at', since),
+    supabase.from('tasks').select('id,order_id,assigned_employee_id,quoted_amount,completed_at,created_at').gte('created_at', since)
+  ]);
+  if (ordersResult.error) return { data: null, error: ordersResult.error };
+  if (assignmentsResult.error) return { data: null, error: assignmentsResult.error };
+  if (tasksResult.error) return { data: null, error: tasksResult.error };
+
+  const orders = ordersResult.data || [];
+  const assignments = assignmentsResult.data || [];
+  const tasks = tasksResult.data || [];
+  const delivered = orders.filter(o => o.status === 'delivered');
+  const failed = orders.filter(o => ['failed','cancelled'].includes(o.status));
+  const completedAssignments = assignments.filter(a => a.completed_at);
+  const deliveryTimes = completedAssignments.map(a => new Date(a.completed_at)-new Date(a.assigned_at)).filter(n => Number.isFinite(n) && n >= 0);
+  const taskTimes = tasks.filter(t => t.completed_at).map(t => new Date(t.completed_at)-new Date(t.created_at)).filter(n => Number.isFinite(n) && n >= 0);
+  const avgMinutes = values => values.length ? Math.round(values.reduce((a,b)=>a+b,0)/values.length/60000) : 0;
+  const statusCounts = {};
+  for (const o of orders) statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+  const agentMap = {};
+  for (const a of assignments) {
+    const id = a.agent_id || 'unassigned';
+    agentMap[id] ||= { agentId:id, assigned:0, completed:0, active:0 };
+    agentMap[id].assigned++;
+    if (a.completed_at) agentMap[id].completed++;
+    else agentMap[id].active++;
+  }
+  const daily = {};
+  for (const o of orders) {
+    const day = String(o.created_at).slice(0,10);
+    daily[day] ||= {date:day,orders:0,delivered:0,failed:0,revenue:0};
+    daily[day].orders++;
+    if(o.status==='delivered') daily[day].delivered++;
+    if(['failed','cancelled'].includes(o.status)) daily[day].failed++;
+    if(o.status==='delivered') daily[day].revenue += Number(o.total||0);
+  }
+  return { data:{
+    periodDays:Number(days), totalOrders:orders.length, deliveredOrders:delivered.length,
+    failedOrders:failed.length, deliverySuccessRate:orders.length?Math.round(delivered.length/orders.length*100):0,
+    averageDeliveryMinutes:avgMinutes(deliveryTimes), averageTaskCompletionMinutes:avgMinutes(taskTimes),
+    activeAssignments:assignments.filter(a=>!a.completed_at).length,
+    completedAssignments:completedAssignments.length, totalAssignments:assignments.length,
+    agentsTracked:Object.keys(agentMap).filter(k=>k!=='unassigned').length,
+    unassignedOrders:orders.filter(o=>!assignments.some(a=>a.order_id===o.id)).length,
+    statusCounts, agentWorkload:Object.values(agentMap).sort((a,b)=>b.assigned-a.assigned),
+    daily:Object.values(daily).sort((a,b)=>a.date.localeCompare(b.date))
+  }, error:null };
+}
