@@ -1785,3 +1785,21 @@ export async function getAdminAssignmentIntelligence(){
   const unassignedTasks=(tasks.data||[]).filter(t=>!t.assigned_employee_id);
   return {data:{employees:[...amap.values()].sort((a,b)=>(b.activeAssignments+b.activeTasks)-(a.activeAssignments+a.activeTasks)),unassignedOrders,unassignedTasks},error:null};
 }
+
+export async function getAdminDeliveryTaskMonitoring(){
+  if(!supabase) return {data:null,error:new Error('Supabase is not configured.')};
+  const {data:{user}}=await supabase.auth.getUser();
+  if(!user) return {data:null,error:new Error('Please sign in first.')};
+  if((user.email||'').trim().toLowerCase()!=='innocentmaweta@gmail.com') return {data:null,error:new Error('Admin access required.')};
+  const [orders,assignments,tasks]=await Promise.all([
+    supabase.from('orders').select('id,order_number,status,created_at').in('status',['paid','assigned','preparing','shopping','picked_up','on_the_way']).order('created_at',{ascending:true}).limit(500),
+    supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(1000),
+    supabase.from('tasks').select('id,raw_request,assigned_employee_id,customer_approved_at,completed_at,created_at,deadline_at,quoted_amount').order('created_at',{ascending:true}).limit(500)
+  ]);
+  for(const r of [orders,assignments,tasks]) if(r.error) return {data:null,error:r.error};
+  const amap=new Map((assignments.data||[]).map(a=>[a.order_id,a]));
+  const deliveryRows=(orders.data||[]).map(o=>{const a=amap.get(o.id);const waitingSince=a?.accepted_at||a?.assigned_at||o.created_at;return {...o,assignment:a||null,waitingMinutes:Math.max(0,Math.floor((Date.now()-new Date(waitingSince).getTime())/60000))};});
+  const activeTasks=(tasks.data||[]).filter(t=>!t.completed_at&&t.customer_approved_at).map(t=>({...t,waitingMinutes:Math.max(0,Math.floor((Date.now()-new Date(t.assigned_employee_id? t.created_at : t.customer_approved_at||t.created_at).getTime())/60000))}));
+  const overdueTasks=activeTasks.filter(t=>t.deadline_at&&new Date(t.deadline_at).getTime()<Date.now());
+  return {data:{deliveries:deliveryRows,activeTasks,overdueTasks,summary:{activeDeliveries:deliveryRows.length,assignedDeliveries:deliveryRows.filter(x=>x.assignment&&!x.assignment.completed_at).length,unassignedDeliveries:deliveryRows.filter(x=>!x.assignment||x.assignment.completed_at).length,activeTasks:activeTasks.length,overdueTasks:overdueTasks.length}},error:null};
+}
