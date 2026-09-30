@@ -1039,3 +1039,11 @@ export async function askYazaAI(messages, options = {}) {
 
 // Backward-compatible alias for any existing callers.
 export const askTumeniAssistant = askYazaAI;
+
+
+export async function getPersonalizedRecommendations(limit = 8) {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 8, 24));
+  const { data, error } = await supabase.rpc('get_personalized_recommendations', { p_limit: safeLimit });
+  return { data: data || [], error };
+}
