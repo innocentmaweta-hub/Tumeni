@@ -380,6 +380,43 @@ export async function getMySellerAnalytics() {
   return { data: { orders: orderItems || [], reviews, products: products.data || [] }, error: null };
 }
 
+export async function getMySellerIntelligence(days = 30) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('Please sign in first.') };
+  const isAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
+  let shopId = null;
+  if (!isAdmin) {
+    const { data: shop, error } = await supabase.from('shops').select('id').eq('owner_id', user.id).maybeSingle();
+    if (error) return { data: null, error };
+    shopId = shop?.id || null;
+    if (!shopId) return { data: { insights: [], metrics: {} }, error: null };
+  }
+  const since = new Date(Date.now() - Math.max(1, Number(days) || 30) * 86400000).toISOString();
+  const { data: products, error: productError } = await supabase.from('products')
+    .select('id,name,price,available,stock_quantity,low_stock_threshold,shop_id,created_at')
+    .eq(isAdmin ? 'shop_id' : 'shop_id', isAdmin ? null : shopId);
+  if (productError) return { data: null, error: productError };
+  const ids = (products || []).map(p => p.id).filter(Boolean);
+  if (!ids.length) return { data: { insights: [], metrics: { products: 0, lowStock: 0, outOfStock: 0, hidden: 0, views: 0, cartAdds: 0, unitsSold: 0, revenue: 0 } }, error: null };
+  const [eventsResult,ordersResult] = await Promise.all([
+    supabase.from('customer_behavior_events').select('product_id,event_type').in('product_id',ids).gte('created_at',since).limit(50000),
+    supabase.from('order_items').select('product_id,quantity,line_total,orders!inner(status,created_at)').in('product_id',ids).eq('orders.status','delivered').gte('orders.created_at',since).limit(50000)
+  ]);
+  if (eventsResult.error) return { data: null, error: eventsResult.error };
+  if (ordersResult.error) return { data: null, error: ordersResult.error };
+  const events=eventsResult.data||[], sales=ordersResult.data||[];
+  const views=events.filter(e=>e.event_type==='product_view').length, cartAdds=events.filter(e=>e.event_type==='cart_add').length;
+  const unitsSold=sales.reduce((s,x)=>s+Number(x.quantity||0),0), revenue=sales.reduce((s,x)=>s+Number(x.line_total||0),0);
+  const lowStock=(products||[]).filter(p=>Number(p.stock_quantity||0)>0&&Number(p.stock_quantity||0)<=Number(p.low_stock_threshold??5)).length;
+  const outOfStock=(products||[]).filter(p=>Number(p.stock_quantity||0)<=0).length, hidden=(products||[]).filter(p=>!p.available).length;
+  const byProduct=new Map();
+  for(const e of events){const x=byProduct.get(e.product_id)||{views:0,carts:0};if(e.event_type==='product_view')x.views++;if(e.event_type==='cart_add')x.carts++;byProduct.set(e.product_id,x);}
+  const insights=[];
+  for(const p of products||[]){const x=byProduct.get(p.id)||{views:0,carts:0};if(Number(p.stock_quantity||0)<=0) insights.push({type:'stock',severity:'high',product_id:p.id,product_name:p.name,message:'Out of stock — consider replenishing before more customers try to buy it.'});else if(Number(p.stock_quantity||0)<=Number(p.low_stock_threshold??5)) insights.push({type:'stock',severity:'medium',product_id:p.id,product_name:p.name,message:'Low stock — monitor inventory to avoid missed sales.'});if(x.views>=10&&x.carts===0) insights.push({type:'demand',severity:'medium',product_id:p.id,product_name:p.name,message:'Customers are viewing this product but no cart additions were recorded in the selected period.'});if(!p.available&&x.views>0) insights.push({type:'availability',severity:'medium',product_id:p.id,product_name:p.name,message:'This product is hidden while it has recent customer views.'});}
+  return { data: { metrics:{products:products.length,lowStock,outOfStock,hidden,views,cartAdds,unitsSold,revenue}, insights:insights.slice(0,12) }, error:null };
+}
+
 export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, imageUrls = [], available = true }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const urls = (imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : [])).map(x => x.trim()).filter(Boolean);
