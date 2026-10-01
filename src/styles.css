@@ -1109,7 +1109,9 @@ body{
 .home-screen.content{background:#fff8ef!important;}
 
 /* Compact homepage hero */
-.home-screen .nw-reference-hero{height:270px!important;}
-.home-screen .nw-order{padding:8px 12px!important;font-size:12px!important;}
+.home-screen .nw-reference-hero{height:auto!important;min-height:0!important;}
+.home-screen .nw-hero-copy h1{font-size:23px!important;line-height:1.02!important;}
+.home-screen .nw-hero-copy small{font-size:8px!important;}
+.home-screen .nw-hero-copy p{font-size:9px!important;line-height:1.4!important;}
+.home-screen .nw-order{font-size:11px!important;}
 .home-screen .nw-order span{width:20px!important;height:20px!important;}
-@media(max-width:430px){.home-screen .nw-reference-hero{height:260px!important;}}
