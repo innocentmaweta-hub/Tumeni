@@ -39,3 +39,5 @@ AI should interpret customer task requests and return structured requirements. P
 - Payment gateway/webhook
 - Task quote flow
 - Admin, partner and agent applications
+
+<!-- Deployment trigger: harmless documentation-only update. -->
