@@ -1,0 +1,3 @@
+document.querySelectorAll('.heart').forEach(btn=>btn.addEventListener('click',()=>{btn.textContent=btn.textContent==='♡'?'♥':'♡';btn.style.color=btn.textContent==='♥'?'#d51f26':'#999'}));
+document.querySelectorAll('.cat').forEach(cat=>cat.addEventListener('click',()=>{document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));cat.classList.add('active')}));
+document.querySelectorAll('.price-row button').forEach(btn=>btn.addEventListener('click',()=>{btn.textContent='✓';setTimeout(()=>btn.textContent='+',700)}));
