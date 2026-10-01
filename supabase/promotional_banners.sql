@@ -10,10 +10,14 @@ create table if not exists public.promotional_banners (
   ends_at timestamptz,
   active boolean not null default true,
   sort_order integer not null default 0,
+  is_exclusive_offer boolean not null default false,
   created_by uuid references public.profiles(id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.promotional_banners add column if not exists is_exclusive_offer boolean not null default false;
+create unique index if not exists promotional_banners_one_exclusive_idx
+  on public.promotional_banners(is_exclusive_offer) where is_exclusive_offer = true;
 create index if not exists promotional_banners_active_idx
   on public.promotional_banners(active, starts_at, ends_at, sort_order);
 alter table public.promotional_banners enable row level security;
