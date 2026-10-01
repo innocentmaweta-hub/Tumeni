@@ -1369,6 +1369,10 @@ export async function createPromotionalBanner(payload) {
 }
 export async function updatePromotionalBanner({id,...payload}) {
   if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
+  if (payload.isExclusiveOffer===true) {
+    const { error: clearError } = await supabase.from('promotional_banners').update({is_exclusive_offer:false}).neq('id',id);
+    if (clearError) return { data:null, error:clearError };
+  }
   return supabase.from('promotional_banners').update({
     title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null,
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
