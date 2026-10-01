@@ -1144,3 +1144,57 @@ body{
 }
 .home-screen .nw-hero-copy{z-index:2!important;}
 .home-screen .nw-dots{z-index:3!important;}
+
+
+/* Final hero carousel layout fix */
+.home-screen .nw-reference-hero{
+  height:310px!important;
+  min-height:310px!important;
+  padding-top:0!important;
+  padding-bottom:0!important;
+  position:relative!important;
+  overflow:hidden!important;
+}
+.home-screen .nw-hero-track{
+  position:absolute!important;
+  inset:0!important;
+  display:flex!important;
+  width:100%!important;
+  height:100%!important;
+}
+.home-screen .nw-hero-slide{
+  position:relative!important;
+  flex:0 0 100%!important;
+  width:100%!important;
+  height:100%!important;
+  overflow:hidden!important;
+}
+.home-screen .nw-hero-slide .nw-hero-copy{
+  position:absolute!important;
+  left:18px!important;
+  top:15px!important;
+  width:46%!important;
+  padding-left:0!important;
+  z-index:2!important;
+}
+.home-screen .nw-hero-slide .nw-hero-image{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:0!important;
+  border-radius:25px!important;
+}
+.home-screen .nw-hero-slide .nw-hero-image img,
+.home-screen .nw-hero-slide .nw-hero-image .product-image-avatar{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  border-radius:25px!important;
+}
+@media(max-width:430px){
+  .home-screen .nw-reference-hero{
+    height:300px!important;
+    min-height:300px!important;
+  }
+}
