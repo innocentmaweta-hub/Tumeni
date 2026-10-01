@@ -252,7 +252,7 @@ function AdminEmployees({onBack}){const [employees,setEmployees]=useState([]),[u
 function App(){const [splash,setSplash]=useState(true),[tab,setTab]=useState('Home'),[page,setPage]=useState('home'),[product,setProduct]=useState(null),[liked,setLiked]=useState(()=>{try{return JSON.parse(localStorage.getItem('tumeni_saved_items')||'[]')}catch{return []}}),[recentlyViewed,setRecentlyViewed]=useState(()=>{try{return JSON.parse(localStorage.getItem('tumeni_recently_viewed')||'[]')}catch{return []}}),[cart,setCart]=useState({}),[checkout,setCheckout]=useState(null),[taskRequest,setTaskRequest]=useState(''),[trackingOrder,setTrackingOrder]=useState(null),[products,setProducts]=useState(fallbackProducts),[profile,setProfile]=useState(null),[searchQuery,setSearchQuery]=useState(''),[categories,setCategories]=useState([]),[paymentNotice,setPaymentNotice]=useState(null);
 const [personalizedRecommendations,setPersonalizedRecommendations]=useState([]),[recommendationsLoading,setRecommendationsLoading]=useState(false);
 const [promotionalBanners,setPromotionalBanners]=useState([]);const [retentionSummary,setRetentionSummary]=useState(null);const [notificationUnreadCount,setNotificationUnreadCount]=useState(0);
-const promotionalBannersEnabled=String(import.meta.env.VITE_PROMOTIONAL_BANNERS_ENABLED||'').toLowerCase()==='true';
+const promotionalBannersEnabled=true;
 
 useEffect(()=>{if(profile?.id){getMyRetentionSummary().then(r=>{if(!r.error)setRetentionSummary(r.data||null);return triggerMyRetentionEngagement()}).catch(()=>{});}else setRetentionSummary(null)},[profile?.id]);
 
