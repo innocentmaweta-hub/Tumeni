@@ -1323,8 +1323,29 @@ export async function deleteMarketingCampaign(id) {
 
 export async function getActivePromotionalBanners() {
   if (!supabase) return { data: [], error: null };
-  const now = new Date().toISOString();
-  return supabase.from('promotional_banners').select('*').eq('active', true).lte('starts_at', now).or('ends_at.is.null,ends_at.gte.' + now).order('sort_order', { ascending: true }).order('created_at', { ascending: false });
+
+  // Fetch every active banner first. Date filtering is done in JavaScript so
+  // PostgREST's OR/date expression cannot accidentally reduce the carousel
+  // to a single row.
+  const { data, error } = await supabase
+    .from('promotional_banners')
+    .select('*')
+    .eq('active', true)
+    .order('sort_order', { ascending: true })
+    .order('created_at', { ascending: false });
+
+  if (error) return { data: [], error };
+
+  const now = Date.now();
+  const active = (data || []).filter(banner => {
+    const startsAt = banner.starts_at ? new Date(banner.starts_at).getTime() : 0;
+    const endsAt = banner.ends_at ? new Date(banner.ends_at).getTime() : null;
+    return Number.isFinite(startsAt)
+      && startsAt <= now
+      && (endsAt === null || (Number.isFinite(endsAt) && endsAt >= now));
+  });
+
+  return { data: active, error: null };
 }
 export async function getAdminPromotionalBanners() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
