@@ -6,6 +6,8 @@ create table if not exists public.promotional_banners (
   image_url text,
   button_text text not null default 'Shop Now',
   destination text not null default 'Explore',
+  product_id uuid references public.products(id) on delete set null,
+  shop_id uuid references public.shops(id) on delete set null,
   starts_at timestamptz not null default now(),
   ends_at timestamptz,
   active boolean not null default true,
@@ -16,6 +18,10 @@ create table if not exists public.promotional_banners (
   updated_at timestamptz not null default now()
 );
 alter table public.promotional_banners add column if not exists is_exclusive_offer boolean not null default false;
+alter table public.promotional_banners add column if not exists product_id uuid references public.products(id) on delete set null;
+alter table public.promotional_banners add column if not exists shop_id uuid references public.shops(id) on delete set null;
+create index if not exists promotional_banners_product_idx on public.promotional_banners(product_id);
+create index if not exists promotional_banners_shop_idx on public.promotional_banners(shop_id);
 create unique index if not exists promotional_banners_one_exclusive_idx
   on public.promotional_banners(is_exclusive_offer) where is_exclusive_offer = true;
 create index if not exists promotional_banners_active_idx
