@@ -5,7 +5,7 @@ Tumeni is a shopping, delivery and task/request platform. The existing React/Vit
 ## Current foundation
 
 - React + Vite customer application
-- Purchase and task order data model
+- Purchase and task order data model 
 - Customers, shops, products, categories and addresses
 - Orders and order items
 - Payments and payment references
