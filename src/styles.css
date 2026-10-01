@@ -1128,7 +1128,18 @@ body{
 .home-screen .nw-order span{width:20px!important;height:20px!important;}
 .home-screen .nw-hero-image{
   position:absolute!important;
-  right:-4px!important;
-  top:15px!important;
-  height:calc(100% - 15px)!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:0!important;
+  border-radius:25px!important;
 }
+.home-screen .nw-hero-image img,
+.home-screen .nw-hero-image .product-image-avatar{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  border-radius:25px!important;
+}
+.home-screen .nw-hero-copy{z-index:2!important;}
+.home-screen .nw-dots{z-index:3!important;}
