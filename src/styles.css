@@ -1217,3 +1217,264 @@ h1,h2,h3{font-weight:700}
 .shops-grid{display:flex;flex-direction:column;gap:10px}.shop-list-card{width:100%;display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border:1px solid #eee;border-radius:16px;padding:12px;box-shadow:0 2px 10px #0000000a}.shop-list-card>div:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}.shop-list-card strong{font-size:14px}.shop-list-card small{font-size:11px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.shop-list-card:active{transform:scale(.99)}
 
 .detail-shop-link{display:inline-block;border:0;background:transparent;padding:0;margin-top:3px;color:#ef322d;font-size:9px;text-align:left;cursor:pointer}
+
+
+/* =========================================================
+   TUMENI HOMEPAGE VISUAL LANGUAGE — SHARED ACROSS APP
+   Extends the homepage's cream/red/white visual system to
+   inner pages without changing their existing structure.
+   ========================================================= */
+:root{
+  --tm-home-bg:#fff8ef;
+  --tm-home-red:#ef322d;
+  --tm-home-red-dark:#b91f1b;
+  --tm-home-card:#ffffff;
+  --tm-home-line:#eadfd6;
+  --tm-home-muted:#777;
+  --tm-home-soft:#fff1ea;
+  --tm-home-shadow:0 4px 16px rgba(70,35,20,.07);
+}
+
+/* Keep the homepage itself exactly in its established style. */
+.home-screen{background:var(--tm-home-bg)!important}
+
+/* Shared page canvas: warm homepage background, not a new design. */
+.screen.content:not(.home-screen){
+  background:linear-gradient(180deg,var(--tm-home-bg) 0%,#fffdfb 48%,var(--tm-home-bg) 100%)!important;
+  color:#171717;
+}
+
+/* Inner page headers use the same clean white/red/cream language. */
+.screen.content:not(.home-screen) .inner-head{
+  min-height:44px;
+  margin-bottom:14px;
+  padding:3px 0 10px;
+  border-bottom:1px solid var(--tm-home-line);
+}
+.screen.content:not(.home-screen) .inner-head h1{
+  color:#171717;
+  font-size:17px;
+  font-weight:800;
+  letter-spacing:-.2px;
+}
+.screen.content:not(.home-screen) .inner-head .icon-btn{
+  background:#fff;
+  border:1px solid var(--tm-home-line);
+  color:#333;
+  box-shadow:0 2px 8px rgba(70,35,20,.06);
+}
+
+/* Turn the existing white surfaces into the homepage's soft card system. */
+.screen.content:not(.home-screen) .shop-hero,
+.screen.content:not(.home-screen) .shop-list-card,
+.screen.content:not(.home-screen) .order-card,
+.screen.content:not(.home-screen) .tracking-panel,
+.screen.content:not(.home-screen) .tracking-hero,
+.screen.content:not(.home-screen) .tracking-address,
+.screen.content:not(.home-screen) .review-summary,
+.screen.content:not(.home-screen) .review-card,
+.screen.content:not(.home-screen) .account-card,
+.screen.content:not(.home-screen) .profile-login-card,
+.screen.content:not(.home-screen) .product-form,
+.screen.content:not(.home-screen) .seller-product,
+.screen.content:not(.home-screen) .pay-option,
+.screen.content:not(.home-screen) .saved-payment,
+.screen.content:not(.home-screen) .yaza-results,
+.screen.content:not(.home-screen) .yaza-task{
+  border-color:var(--tm-home-line);
+  box-shadow:var(--tm-home-shadow);
+}
+
+/* Consistent warm section surfaces. */
+.screen.content:not(.home-screen) .settings-list,
+.screen.content:not(.home-screen) .orders-tabs{
+  border-color:var(--tm-home-line);
+}
+.screen.content:not(.home-screen) .orders-tabs{
+  background:#f7eee8;
+}
+.screen.content:not(.home-screen) .orders-tabs button.active{
+  color:var(--tm-home-red);
+  background:#fff;
+  box-shadow:0 2px 8px rgba(70,35,20,.08);
+}
+
+/* Homepage red becomes the single action/accent color everywhere. */
+.screen.content:not(.home-screen) .primary,
+.screen.content:not(.home-screen) .explore-search button{
+  background:var(--tm-home-red);
+  border-color:var(--tm-home-red);
+}
+.screen.content:not(.home-screen) .primary:hover,
+.screen.content:not(.home-screen) .explore-search button:hover{
+  filter:brightness(.97);
+}
+.screen.content:not(.home-screen) .text-btn,
+.screen.content:not(.home-screen) .forgot,
+.screen.content:not(.home-screen) .detail-shop-link,
+.screen.content:not(.home-screen) .auth-switch{
+  color:var(--tm-home-red);
+}
+
+/* Inputs and selectors follow the homepage's soft, rounded feel. */
+.screen.content:not(.home-screen) input,
+.screen.content:not(.home-screen) textarea,
+.screen.content:not(.home-screen) select,
+.screen.content:not(.home-screen) .explore-search,
+.screen.content:not(.home-screen) .seller-form input,
+.screen.content:not(.home-screen) .seller-form textarea,
+.screen.content:not(.home-screen) .seller-form select{
+  border-color:var(--tm-home-line);
+  background:#fff;
+  border-radius:10px;
+}
+.screen.content:not(.home-screen) input:focus,
+.screen.content:not(.home-screen) textarea:focus,
+.screen.content:not(.home-screen) select:focus,
+.screen.content:not(.home-screen) .explore-search:focus-within{
+  border-color:#ef322d66;
+  box-shadow:0 0 0 3px #ef322d10;
+}
+
+/* Chips/categories mirror the homepage's compact red selected state. */
+.screen.content:not(.home-screen) .chips button,
+.screen.content:not(.home-screen) .cats button{
+  border-color:var(--tm-home-line);
+  background:#fff;
+  border-radius:999px;
+}
+.screen.content:not(.home-screen) .chips .active,
+.screen.content:not(.home-screen) .cats .active{
+  background:var(--tm-home-red);
+  border-color:var(--tm-home-red);
+  color:#fff;
+}
+
+/* Warm empty/info panels. */
+.screen.content:not(.home-screen) .empty-icon,
+.screen.content:not(.home-screen) .account-empty-icon,
+.screen.content:not(.home-screen) .request-big{
+  background:#ffece5;
+  color:var(--tm-home-red);
+}
+.screen.content:not(.home-screen) .pay-total,
+.screen.content:not(.home-screen) .status-card,
+.screen.content:not(.home-screen) .seller-shop,
+.screen.content:not(.home-screen) .profile-login-card{
+  background:#fff1e7;
+}
+
+/* Product detail and commerce areas use the same red/cream accents. */
+.screen.content:not(.home-screen) .heart-float.on,
+.screen.content:not(.home-screen) .heart.on{
+  color:var(--tm-home-red);
+}
+.screen.content:not(.home-screen) .qty button{
+  border-color:var(--tm-home-line);
+  background:#fff;
+}
+.screen.content:not(.home-screen) .chosen .radio{
+  border-color:var(--tm-home-red);
+}
+.screen.content:not(.home-screen) .pay-option.chosen,
+.screen.content:not(.home-screen) .saved-payment.selected{
+  border-color:#ef322d88;
+  background:#fff8f5;
+}
+
+/* Orders/tracking keep their meaning colors, but their neutral surfaces
+   now belong to the same cream/red visual family as Home. */
+.screen.content:not(.home-screen) .orders-page,
+.screen.content:not(.home-screen) .tracking-page{
+  background:linear-gradient(180deg,#fff8ef 0%,#fffdfb 52%,#fff8ef 100%)!important;
+}
+.screen.content:not(.home-screen) .order-card{
+  border-radius:17px;
+}
+.screen.content:not(.home-screen) .order-card::before{
+  background:var(--tm-home-red);
+}
+
+/* Profile/settings lists: warm separators and red active language. */
+.screen.content:not(.home-screen) .settings-list button{
+  background:#fff;
+  border-bottom-color:var(--tm-home-line);
+}
+.screen.content:not(.home-screen) .profile-role{
+  color:var(--tm-home-red);
+  background:#ffecea;
+}
+.screen.content:not(.home-screen) .profile-edit{
+  border-color:var(--tm-home-line);
+}
+
+/* Seller/admin areas: same card, border, button and background language. */
+.screen.content:not(.home-screen) .seller-entry{
+  border-color:#f0d9d0;
+  background:#fff7f3;
+}
+.screen.content:not(.home-screen) .banner-exclusive-toggle{
+  border-color:var(--tm-home-line);
+  background:#fffaf6;
+}
+.screen.content:not(.home-screen) .photo-upload{
+  border-color:#e3d5cc;
+  background:#fff;
+}
+.screen.content:not(.home-screen) .photo-upload-icon{
+  background:#fff1ea;
+  color:var(--tm-home-red);
+}
+
+/* Yaza keeps its own conversational layout, but inherits Tumeni Home's palette. */
+.screen.content:not(.home-screen) .yaza-hero{
+  background:linear-gradient(135deg,#fff,#fff1ea)!important;
+  border-color:#efd9d0!important;
+}
+.screen.content:not(.home-screen) .yaza-avatar{
+  background:var(--tm-home-red)!important;
+  color:#fff!important;
+}
+.screen.content:not(.home-screen) .yaza-message.user>div{
+  background:var(--tm-home-red)!important;
+}
+.screen.content:not(.home-screen) .yaza-composer{
+  background:#fff8ef!important;
+  border-top-color:var(--tm-home-line)!important;
+}
+
+/* Shared bottom navigation: match the homepage's white floating bar. */
+.nw-bottom{
+  background:#fff!important;
+  border-top:1px solid var(--tm-home-line)!important;
+  box-shadow:0 -4px 18px rgba(70,35,20,.06)!important;
+}
+.nw-bottom .nw-nav.selected{
+  color:var(--tm-home-red)!important;
+}
+.nw-bottom .nw-nav.center{
+  background:var(--tm-home-red)!important;
+  box-shadow:0 5px 14px #ef322d40!important;
+}
+
+/* Small status/feedback surfaces stay semantic while fitting the palette. */
+.screen.content:not(.home-screen) .success{
+  background:#edf9f0;
+  border-color:#cfead5;
+}
+.screen.content:not(.home-screen) .error{
+  background:#fff0f0;
+  border-color:#efcccc;
+}
+
+/* Mobile spacing stays compact like Home. */
+@media(max-width:430px){
+  .screen.content:not(.home-screen){
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .screen.content:not(.home-screen) .inner-head{
+    margin-bottom:12px;
+  }
+}
+
