@@ -45,12 +45,14 @@ create table if not exists public.shops (
   description text,
   location text,
   contact_phone text,
+  image_url text,
   opening_hours jsonb,
   partnership_status text not null default 'active',
   created_at timestamptz not null default now()
 );
 
 alter table public.shops add column if not exists owner_id uuid references public.profiles(id) on delete set null;
+alter table public.shops add column if not exists image_url text;
 
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),
@@ -1409,3 +1411,81 @@ drop policy if exists "public can view profile photos" on storage.objects;
 create policy "public can view profile photos"
 on storage.objects for select to public
 using (bucket_id = 'profile-images');
+
+
+-- Category and seller shop images.
+insert into storage.buckets (id,name,public)
+values ('category-images','category-images',true)
+on conflict (id) do update set public=true;
+
+drop policy if exists "admins can upload category images" on storage.objects;
+create policy "admins can upload category images"
+on storage.objects for insert to authenticated
+with check (bucket_id='category-images' and public.current_user_role()='admin');
+
+drop policy if exists "admins can update category images" on storage.objects;
+create policy "admins can update category images"
+on storage.objects for update to authenticated
+using (bucket_id='category-images' and public.current_user_role()='admin')
+with check (bucket_id='category-images' and public.current_user_role()='admin');
+
+drop policy if exists "admins can delete category images" on storage.objects;
+create policy "admins can delete category images"
+on storage.objects for delete to authenticated
+using (bucket_id='category-images' and public.current_user_role()='admin');
+
+drop policy if exists "public can view category images" on storage.objects;
+create policy "public can view category images"
+on storage.objects for select to public
+using (bucket_id='category-images');
+
+insert into storage.buckets (id,name,public)
+values ('shop-images','shop-images',true)
+on conflict (id) do update set public=true;
+
+drop policy if exists "sellers can upload own shop images" on storage.objects;
+create policy "sellers can upload own shop images"
+on storage.objects for insert to authenticated
+with check (
+  bucket_id='shop-images'
+  and (
+    (storage.foldername(name))[1]=auth.uid()::text
+    or public.current_user_role()='admin'
+  )
+);
+
+drop policy if exists "sellers can update own shop images" on storage.objects;
+create policy "sellers can update own shop images"
+on storage.objects for update to authenticated
+using (
+  bucket_id='shop-images'
+  and (
+    (storage.foldername(name))[1]=auth.uid()::text
+    or public.current_user_role()='admin'
+  )
+)
+with check (
+  bucket_id='shop-images'
+  and (
+    (storage.foldername(name))[1]=auth.uid()::text
+    or public.current_user_role()='admin'
+  )
+);
+
+drop policy if exists "sellers can delete own shop images" on storage.objects;
+create policy "sellers can delete own shop images"
+on storage.objects for delete to authenticated
+using (
+  bucket_id='shop-images'
+  and (
+    (storage.foldername(name))[1]=auth.uid()::text
+    or public.current_user_role()='admin'
+  )
+);
+
+drop policy if exists "public can view shop images" on storage.objects;
+create policy "public can view shop images"
+on storage.objects for select to public
+using (bucket_id='shop-images');
+
+notify pgrst, 'reload schema';
