@@ -1141,7 +1141,7 @@ returns public.orders
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   current_status public.order_status;
   result_order public.orders;
@@ -1165,14 +1165,14 @@ begin
   values (p_order_id,p_status,nullif(trim(p_note),''),auth.uid());
   return result_order;
 end;
-$;
+$$;
 
 create or replace function public.customer_cancel_order(p_order_id uuid, p_note text default null)
 returns public.orders
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   current_status public.order_status;
   result_order public.orders;
@@ -1191,7 +1191,7 @@ begin
   values (p_order_id,'cancelled',coalesce(nullif(trim(p_note),''),'Cancelled by customer'),auth.uid());
   return result_order;
 end;
-$;
+$$;
 
 grant execute on function public.admin_update_order_status(uuid,public.order_status,text) to authenticated;
 grant execute on function public.customer_cancel_order(uuid,text) to authenticated;
