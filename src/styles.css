@@ -1054,3 +1054,70 @@ body{
 
 .yaza-quick{display:flex;gap:6px;overflow-x:auto;padding:1px 0 8px;scrollbar-width:none}.yaza-quick::-webkit-scrollbar{display:none}.yaza-quick button{white-space:nowrap;border:1px solid #eee;background:#fff;border-radius:999px;padding:7px 9px;font-size:7px;color:#555}.yaza-quick button:hover{border-color:#dfbebe;color:#9f1717}
 .yaza-task-button{margin-top:9px!important;height:34px!important;font-size:8px!important}
+
+
+/* =========================================================
+   HOMEPAGE VISUAL REDESIGN — based on nw reference
+   Appearance only: existing actions/handlers remain unchanged.
+   ========================================================= */
+.nw-home{background:#fff8ef;padding:0 20px 94px;overflow-x:hidden}
+.nw-home .topbar{margin:0 -2px 12px;padding:12px 0 10px;gap:10px;align-items:center}
+.nw-home .brand{background:#fffdfb;border-radius:16px;box-shadow:0 3px 12px #0000000d;padding:9px 11px}
+.nw-home .brand-mark{font-size:18px;font-weight:900;color:#d51f26}
+.nw-home .brand>span:last-child{font-size:14px;font-weight:900;color:#d51f26}
+.nw-home .top-search{height:52px;border-radius:28px;background:#fff;box-shadow:0 3px 12px #0000000b;padding:0 14px;flex:1}
+.nw-home .top-search input{font-size:11px}
+.nw-home .top-actions{gap:7px}
+.nw-home .top-notification,.nw-home .top-account{width:42px;height:42px;border-radius:15px;background:#fff;box-shadow:0 3px 12px #0000000d}
+.nw-home .top-account small{display:none}
+.nw-home .request-card,.nw-home .yaza-entry{box-shadow:0 3px 12px #0000000b;border-radius:17px}
+.nw-home .request-card{background:#fff;padding:10px;margin-bottom:10px}
+.nw-home .yaza-entry{background:#fff;padding:10px;margin-bottom:12px}
+.nw-home .nw-hero{height:310px;border-radius:25px;background:linear-gradient(120deg,#64130b,#a90f0f 58%,#c42a12);position:relative;overflow:hidden;margin:0 0 17px;color:#fff}
+.nw-home .nw-hero .hero-copy{left:18px;top:22px;padding:0;z-index:4}
+.nw-home .nw-hero .hero-copy small{font-size:9px;letter-spacing:.08em}
+.nw-home .nw-hero .hero-copy h1{font-size:29px;line-height:1.02;margin:11px 0 12px;letter-spacing:-1px}
+.nw-home .nw-hero .hero-copy p{font-size:10px;line-height:1.45;margin:0 0 15px}
+.nw-home .nw-hero .order{background:#ef322d;border-radius:22px;padding:10px 13px;font-size:12px}
+.nw-home .nw-hero .order span{width:21px;height:21px;margin-left:5px}
+.nw-hero-products{position:absolute;right:-12px;top:14px;width:61%;height:84%;display:flex;align-items:center;justify-content:flex-end;gap:7px;z-index:2}
+.nw-hero-product{border:0;padding:0;width:43%;height:72%;background:transparent;border-radius:22px;overflow:hidden;box-shadow:0 10px 28px #35000045;transform:rotate(5deg)}
+.nw-hero-product:nth-child(2){transform:rotate(-7deg) translateY(20px);z-index:2}
+.nw-hero-product:nth-child(3){display:none}
+.nw-hero-product img,.nw-hero-product .product-image-avatar{width:100%;height:100%;object-fit:cover}
+.nw-home .nw-hero .dots{bottom:10px}
+.nw-home .nw-hero .dots i{width:7px;height:7px}
+.nw-category-section{margin-top:2px}
+.nw-home .section-head{margin:0 2px 11px}
+.nw-home .section-head h2{font-size:17px;font-weight:800;letter-spacing:-.3px}
+.nw-home .section-head button{font-size:10px;color:#b22b2c}
+.nw-home .section-head button span{font-size:17px}
+.nw-categories{display:flex;gap:12px;overflow-x:auto;margin:0 -2px 18px;padding:2px 2px 4px;scrollbar-width:none}
+.nw-categories::-webkit-scrollbar{display:none}
+.nw-category{width:54px;min-width:54px;border:0;background:transparent;padding:0;text-align:center;color:#222;font-size:9px;cursor:pointer}
+.nw-category img,.nw-category-avatar{width:54px;height:54px;object-fit:cover;border-radius:50%;display:grid;place-items:center;margin:0 auto 6px;border:3px solid transparent;background:#f1d9c7;color:#a52323;font-size:13px;font-weight:900}
+.nw-category.active img,.nw-category.active .nw-category-avatar{border-color:#d82327}
+.nw-category span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nw-popular .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.nw-home .card{background:#fff;border-radius:17px;padding:9px 8px 8px;box-shadow:0 2px 9px #00000012}
+.nw-home .card .photo{height:122px;border-radius:11px;margin-top:0}
+.nw-home .card .product-image-avatar span{width:42px;height:42px;font-size:13px}
+.nw-home .card .heart{right:7px;top:6px}
+.nw-home .product-row{gap:4px}
+.nw-home .product-name{font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nw-home .product-partner{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nw-home .product-price{font-size:10px}
+.nw-home .product-price strong{font-size:13px}
+.nw-home .product-rating{font-size:8px}
+.nw-home .product-stars{font-size:9px}
+.nw-home .nw-promo{height:124px;margin:15px 0 0;border-radius:17px;background:#f8e2cf;position:relative;overflow:hidden}
+.nw-home .nw-promo .promo-copy{left:15px;top:13px}
+.nw-home .nw-promo .promo-copy small{font-size:8px;color:#b43a37;font-weight:700}
+.nw-home .nw-promo .promo-copy h2{font-size:17px;margin:5px 0 3px}
+.nw-home .nw-promo .promo-copy p{font-size:9px;margin:0 0 6px}
+.nw-home .nw-promo .promo-copy .small{font-size:10px;padding:6px 10px}
+.nw-home .nw-promo>img{position:absolute;right:-12px;bottom:0;width:62%;height:100%;object-fit:cover}
+.nw-home .nw-promo-placeholder{position:absolute;right:12px;bottom:0;width:48%;height:100%;display:grid;place-items:center;font-size:42px;font-weight:900;color:#b51a1a}
+.nw-home .nw-promo .off{position:absolute;right:10px;top:15px;background:#d51f26;color:#fff;border-radius:50%;width:63px;height:63px;text-align:center;padding-top:14px;font-weight:900;font-size:15px;line-height:15px;z-index:3}
+@media(max-width:760px){.nw-home .topbar{grid-template-columns:auto minmax(0,1fr) auto}.nw-home .brand>span:last-child{display:none}.nw-home .top-account{display:none}}
+@media(max-width:430px){.nw-home{padding-left:20px;padding-right:20px}.nw-home .top-search{height:50px}.nw-home .nw-hero{height:300px}.nw-home .nw-popular .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px 9px}.nw-home .nw-popular .card .photo{height:113px}.nw-categories{gap:11px}}
