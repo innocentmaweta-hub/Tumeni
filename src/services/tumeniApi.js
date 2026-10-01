@@ -41,6 +41,19 @@ export async function getProducts() {
   };
 }
 
+export async function getShopDetails(shopId) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  if (!shopId) return { data: null, error: new Error('Shop ID is required.') };
+  const { data, error } = await supabase.from('shops').select('id,owner_id,name,location,contact_phone,description,partnership_status,created_at').eq('id', shopId).maybeSingle();
+  return { data: data || null, error };
+}
+
+export async function getAvailableShops() {
+  if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  const { data, error } = await supabase.from('shops').select('id,owner_id,name,location,contact_phone,description,partnership_status,created_at').eq('partnership_status', 'active').order('created_at', { ascending: false });
+  return { data: data || [], error };
+}
+
 export async function getCurrentProfile() {
   if (!supabase) return { data: null, error: null, configured: false };
 
