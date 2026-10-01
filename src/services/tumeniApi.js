@@ -1360,8 +1360,12 @@ export async function createPromotionalBanner(payload) {
     title:String(payload.title).trim(), subtitle:String(payload.subtitle||'').trim()||null,
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
     destination:String(payload.destination||'Explore').trim()||'Explore', starts_at:payload.startsAt||new Date().toISOString(),
-    ends_at:payload.endsAt||null, active:payload.active!==false, sort_order:Number(payload.sortOrder||0), created_by:user.id
+    ends_at:payload.endsAt||null, active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true, created_by:user.id
   }).select().single();
+  if (!result.data || result.error || payload.isExclusiveOffer!==true) return result;
+  const { error: clearError } = await supabase.from('promotional_banners').update({is_exclusive_offer:false}).neq('id', result.data.id);
+  if (clearError) return { data:result.data, error:clearError };
+  return result;
 }
 export async function updatePromotionalBanner({id,...payload}) {
   if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
@@ -1369,8 +1373,15 @@ export async function updatePromotionalBanner({id,...payload}) {
     title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null,
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
     destination:String(payload.destination||'Explore').trim()||'Explore', starts_at:payload.startsAt||null, ends_at:payload.endsAt||null,
-    active:payload.active!==false, sort_order:Number(payload.sortOrder||0)
+    active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true
   }).eq('id',id).select().single();
+}
+export async function setExclusivePromotionalBanner(id) {
+  if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
+  if (!id) return { data:null, error:new Error('Banner ID is required.') };
+  const { error: clearError } = await supabase.from('promotional_banners').update({is_exclusive_offer:false}).neq('id',id);
+  if (clearError) return { data:null, error:clearError };
+  return supabase.from('promotional_banners').update({is_exclusive_offer:true}).eq('id',id).select().single();
 }
 export async function deletePromotionalBanner(id) {
   if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
