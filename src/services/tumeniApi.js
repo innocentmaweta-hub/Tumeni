@@ -277,7 +277,7 @@ export async function getMyShop() {
   return supabase.from('shops').select('*').eq('owner_id', user.id).maybeSingle();
 }
 
-export async function createMyShop({ name, location, contactPhone, description = '' }) {
+export async function createMyShop({ name, location, contactPhone, description = '', imageUrl = '' }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Please sign in first.');
@@ -289,8 +289,22 @@ export async function createMyShop({ name, location, contactPhone, description =
     location: location.trim(),
     contact_phone: contactPhone.trim(),
     description: description.trim(),
+    image_url: imageUrl?.trim() || null,
     partnership_status: 'active'
   }).select().single();
+}
+
+export async function updateMyShop({ id, name, location, contactPhone, description = '', imageUrl = '' }) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Please sign in first.');
+  return supabase.from('shops').update({
+    name: name.trim(),
+    location: location.trim(),
+    contact_phone: contactPhone.trim(),
+    description: description.trim(),
+    image_url: imageUrl?.trim() || null
+  }).eq('id', id).eq('owner_id', user.id).select().single();
 }
 
 export async function getMyProducts() {
@@ -577,7 +591,7 @@ export async function deleteSellerProduct(id) {
 
 export async function getCategories() {
   if (!supabase) return { data: [], error: null };
-  return supabase.from('categories').select('id,name').order('name');
+  return supabase.from('categories').select('id,name,image_url').order('name');
 }
 
 
