@@ -1363,7 +1363,7 @@ export async function createPromotionalBanner(payload) {
   return supabase.from('promotional_banners').insert({
     title:String(payload.title).trim(), subtitle:String(payload.subtitle||'').trim()||null,
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
-    destination:String(payload.destination||'Explore').trim()||'Explore', starts_at:payload.startsAt||new Date().toISOString(),
+    destination:String(payload.destination||'Explore').trim()||'Explore', product_id:payload.productId||null, shop_id:payload.shopId||null, starts_at:payload.startsAt||new Date().toISOString(),
     ends_at:payload.endsAt||null, active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true, created_by:user.id
   }).select().single();
 }
@@ -1372,7 +1372,7 @@ export async function updatePromotionalBanner({id,...payload}) {
   return supabase.from('promotional_banners').update({
     title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null,
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
-    destination:String(payload.destination||'Explore').trim()||'Explore', starts_at:payload.startsAt||null, ends_at:payload.endsAt||null,
+    destination:String(payload.destination||'Explore').trim()||'Explore', product_id:payload.productId||null, shop_id:payload.shopId||null, starts_at:payload.startsAt||null, ends_at:payload.endsAt||null,
     active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true
   }).eq('id',id).select().single();
 }
