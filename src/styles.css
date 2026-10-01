@@ -1112,6 +1112,7 @@ body{
 .home-screen .nw-reference-hero{
   height:auto!important;
   min-height:0!important;
+  padding-top:18px!important;
   padding-bottom:18px!important;
 }
 .home-screen .nw-hero-copy{
@@ -1121,7 +1122,7 @@ body{
   width:46%!important;
   padding-left:12px!important;
 }
-.home-screen .nw-hero-copy h1{font-size:23px!important;line-height:1.02!important;}
+.home-screen .nw-hero-copy h1{font-size:28px!important;line-height:1.03!important;}
 .home-screen .nw-hero-copy small{font-size:8px!important;}
 .home-screen .nw-hero-copy p{font-size:9px!important;line-height:1.4!important;}
 .home-screen .nw-order{font-size:11px!important;}
