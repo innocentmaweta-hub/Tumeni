@@ -1356,16 +1356,16 @@ export async function createPromotionalBanner(payload) {
   const { data:{user} } = await supabase.auth.getUser();
   if (!user) return { data:null, error:new Error('Please sign in first.') };
   if (!String(payload.title||'').trim()) return { data:null, error:new Error('Banner title is required.') };
+  if (payload.isExclusiveOffer===true) {
+    const { error: clearError } = await supabase.from('promotional_banners').update({is_exclusive_offer:false});
+    if (clearError) return { data:null, error:clearError };
+  }
   return supabase.from('promotional_banners').insert({
     title:String(payload.title).trim(), subtitle:String(payload.subtitle||'').trim()||null,
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
     destination:String(payload.destination||'Explore').trim()||'Explore', starts_at:payload.startsAt||new Date().toISOString(),
     ends_at:payload.endsAt||null, active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true, created_by:user.id
   }).select().single();
-  if (!result.data || result.error || payload.isExclusiveOffer!==true) return result;
-  const { error: clearError } = await supabase.from('promotional_banners').update({is_exclusive_offer:false}).neq('id', result.data.id);
-  if (clearError) return { data:result.data, error:clearError };
-  return result;
 }
 export async function updatePromotionalBanner({id,...payload}) {
   if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
