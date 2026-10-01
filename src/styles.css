@@ -1531,3 +1531,13 @@ button.primary:hover,button.secondary:hover,.primary:hover,.secondary:hover,.det
 .phase3-section{margin-top:14px;padding:12px;border:1px solid var(--tm-home-line,#eadfd6);border-radius:14px;background:#fff;box-shadow:var(--tm-home-shadow,0 4px 16px rgba(70,35,20,.07))}
 .screen.content:not(.home-screen) .account-row{border-color:var(--tm-home-line);box-shadow:var(--tm-home-shadow)}
 @media(max-width:430px){.account-row{flex-direction:column;gap:5px}.account-row>small{max-width:100%;text-align:left}.admin-category{align-items:flex-start;flex-direction:column}.admin-category .form-actions{width:100%;justify-content:flex-start}.admin-category .form-actions button{flex:1;min-width:0}}
+
+/* Restored admin controls and interactive data rows */
+.admin-action{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:30px;padding:7px 10px;border-radius:8px;font-size:9px;font-weight:800;white-space:nowrap}
+.admin-row-main{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+.admin-row-main>span{font-size:10px;font-weight:800;color:#222;word-break:break-word}
+.admin-row-main>small{font-size:8px;color:#777;line-height:1.35;word-break:break-word}
+.admin-row-details{width:100%;margin:8px 0 0;padding:9px;border-radius:9px;background:#faf7f5;border:1px solid var(--tm-home-line,#eadfd6);font:7px/1.45 Arial,Helvetica,sans-serif;color:#555;white-space:pre-wrap;overflow:auto;max-height:220px;box-sizing:border-box}
+.account-row{position:relative;flex-wrap:wrap}
+.account-row>.admin-action{flex:none}
+@media(max-width:430px){.account-row>.admin-action{align-self:flex-start}.admin-row-details{order:3}}
