@@ -1084,9 +1084,9 @@ body{
 .home-screen .nw-hero-image{position:absolute;right:-4px;top:15px;width:68%;height:90%;border:0;padding:0;background:transparent;overflow:hidden}
 .home-screen .nw-hero-image img,.home-screen .nw-hero-image .product-image-avatar{width:100%;height:100%;object-fit:cover;border-radius:0 20px 20px 0}
 .home-screen .nw-image-avatar{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:80px;font-weight:900;color:#fff4;background:#8b1812}
-.home-screen .nw-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:7px}
-.home-screen .nw-dots i{width:7px;height:7px;background:#fff;border-radius:50%;opacity:.7}
-.home-screen .nw-dots .active{opacity:1}
+.home-screen .nw-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:4}
+.home-screen .nw-dots button{width:7px;height:7px;border:0;padding:0;background:#fff;border-radius:50%;opacity:.55;cursor:pointer}
+.home-screen .nw-dots button.active{opacity:1;transform:scale(1.15)}
 @media(max-width:430px){.home-screen .nw-reference-hero{height:300px}}
 
 /* Homepage category row matched to homepage-redesign */
