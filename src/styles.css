@@ -1122,10 +1122,10 @@ body{
   width:46%!important;
   padding-left:12px!important;
 }
-.home-screen .nw-hero-copy h1{font-size:28px!important;line-height:1.03!important;}
-.home-screen .nw-hero-copy small{font-size:8px!important;}
-.home-screen .nw-hero-copy p{font-size:9px!important;line-height:1.4!important;}
-.home-screen .nw-order{font-size:11px!important;}
+.home-screen .nw-hero-copy h1{font-size:28px!important;line-height:.94!important;margin:4px 0 2px!important;}
+.home-screen .nw-hero-copy small{font-size:8px!important;line-height:1!important;}
+.home-screen .nw-hero-copy p{font-size:9px!important;line-height:1.2!important;margin:2px 0 5px!important;}
+.home-screen .nw-order{font-size:11px!important;padding:5px 9px!important;}
 .home-screen .nw-order span{width:20px!important;height:20px!important;}
 .home-screen .nw-hero-image{
   position:absolute!important;
