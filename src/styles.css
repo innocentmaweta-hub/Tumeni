@@ -1478,3 +1478,28 @@ h1,h2,h3{font-weight:700}
   }
 }
 
+
+
+/* Final homepage-red system: no deep-red branding. */
+:root{--tm-home-red:#ef322d;--tm-home-red-hover:#d92a26;--tm-home-red-soft:#fff1ef}
+
+button.primary,button.secondary,.primary,.secondary,.detail button.primary,.detail button.secondary,.detail-cart-actions button,.explore-search button,.request-actions button,.form-actions button,.seller-toolbar button,.account-form button,.review-submit,.yaza-task-button,.yaza-composer button,.nw-order,.nw-price-row button{
+  background:var(--tm-home-red)!important;border-color:var(--tm-home-red)!important;color:#fff!important;
+}
+button.primary:hover,button.secondary:hover,.primary:hover,.secondary:hover,.detail button.primary:hover,.detail button.secondary:hover,.explore-search button:hover,.form-actions button:hover,.seller-toolbar button:hover,.account-form button:hover,.review-submit:hover,.yaza-composer button:hover,.nw-order:hover,.nw-price-row button:hover{
+  background:var(--tm-home-red-hover)!important;border-color:var(--tm-home-red-hover)!important;
+}
+.detail-cart-actions .secondary,.form-actions .secondary,button.review-hide-btn,button.view-reviews-btn{
+  background:#fff!important;color:var(--tm-home-red)!important;border-color:#f0b9b6!important;
+}
+.detail .back-float,.detail .heart-float,.detail-gallery-arrow,.detail-image-dots button.active,.qty button,.star-picker button.selected,.detail-shop-link,button.view-reviews-btn,button.review-hide-btn{
+  color:var(--tm-home-red)!important;border-color:#f0b9b6!important;
+}
+.detail .heart-float.on{background:var(--tm-home-red)!important;color:#fff!important;border-color:var(--tm-home-red)!important}
+.detail-image-dots button.active{background:var(--tm-home-red)!important}
+.star-picker button.selected{background:var(--tm-home-red)!important;color:#fff!important}
+.qty button:hover,.detail-gallery-arrow:hover{background:var(--tm-home-red-soft)!important}
+.chips button.active,.cats button.active,.filter-block .chips button.active,.account-choice button.selected{
+  background:var(--tm-home-red)!important;color:#fff!important;border-color:var(--tm-home-red)!important;
+}
+.settings-list button b,.account-card b,.seller-badge{color:var(--tm-home-red)!important}
