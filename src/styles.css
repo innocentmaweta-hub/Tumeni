@@ -1072,3 +1072,19 @@ body{
 .home-screen .nw-search input{border:0;outline:0;width:100%;font-size:13px;background:transparent;color:#777;margin-left:8px}
 .home-screen .nw-filter{width:53px;border:0;border-radius:18px;background:#fff;box-shadow:0 3px 12px #0000000b;font-size:25px}
 @media(max-width:430px){.home-screen .nw-search{height:50px}}
+
+/* Main homepage hero now uses the homepage-redesign banner appearance */
+.home-screen .nw-reference-hero{height:310px;border-radius:25px;background:linear-gradient(120deg,#64130b,#a90f0f 58%,#c42a12);overflow:hidden;position:relative;color:#fff;margin-bottom:17px}
+.home-screen .nw-hero-copy{position:absolute;left:18px;top:22px;z-index:2}
+.home-screen .nw-hero-copy small{font-size:10px}
+.home-screen .nw-hero-copy h1{font-size:28px;line-height:1.03;margin:11px 0 12px;letter-spacing:-1px}
+.home-screen .nw-hero-copy p{font-size:11px;line-height:1.5;margin:0 0 15px}
+.home-screen .nw-order{border:0;background:#ef322d;color:#fff;border-radius:22px;padding:11px 14px;font-size:13px;font-weight:700}
+.home-screen .nw-order span{display:inline-flex;background:#fff;color:#e62c28;border-radius:50%;width:22px;height:22px;align-items:center;justify-content:center;margin-left:5px}
+.home-screen .nw-hero-image{position:absolute;right:-4px;top:15px;width:68%;height:90%;border:0;padding:0;background:transparent;overflow:hidden}
+.home-screen .nw-hero-image img,.home-screen .nw-hero-image .product-image-avatar{width:100%;height:100%;object-fit:cover;border-radius:0 20px 20px 0}
+.home-screen .nw-image-avatar{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:80px;font-weight:900;color:#fff4;background:#8b1812}
+.home-screen .nw-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:7px}
+.home-screen .nw-dots i{width:7px;height:7px;background:#fff;border-radius:50%;opacity:.7}
+.home-screen .nw-dots .active{opacity:1}
+@media(max-width:430px){.home-screen .nw-reference-hero{height:300px}}
