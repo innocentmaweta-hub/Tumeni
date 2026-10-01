@@ -141,6 +141,7 @@ function TrustReport({onBack}){return <AdminMissingPage title="Trust report" onB
 function Rewards({onBack}){return <AdminMissingPage title="Rewards" onBack={onBack} message="Rewards are not currently configured for this account."/>}
 function AgentDashboard({onBack}){return <AdminMissingPage title="Agent Dashboard" onBack={onBack} message="The internal delivery-agent workspace is being restored."/>}
 function AdminEmployees({onBack}){return <AdminMissingPage title="Employees & Agents" onBack={onBack} message="Employee and agent management is available from this administrator section."/>}
+function AdminOperationsControlCenter({onBack}){return <AdminMissingPage title="Operations Control Center" onBack={onBack} message="The operations control center is available without the previous runtime crash. Its live operational data tools can be restored independently."/>}
 function AdminCommandCenter({onBack}){return <AdminOperationsControlCenter onBack={onBack}/>}
 function AdminOrderManagement({onBack}){return <AdminMissingPage title="Order Management" onBack={onBack} message="Admin order management is available, while this dedicated view is being restored."/>}
 function RefundDisputeCenter({onBack}){return <AdminMissingPage title="Refunds & Disputes" onBack={onBack}/>}
