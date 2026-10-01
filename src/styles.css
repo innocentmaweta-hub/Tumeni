@@ -1090,10 +1090,10 @@ body{
 @media(max-width:430px){.home-screen .nw-reference-hero{height:300px}}
 
 /* Homepage category row matched to homepage-redesign */
-.home-screen .nw-reference-categories{display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;margin:0 -2px 17px;padding:2px 2px 5px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.home-screen .nw-reference-categories{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;margin:0 -2px 14px;padding:1px 2px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .home-screen .nw-reference-categories::-webkit-scrollbar{display:none}
-.home-screen .nw-cat{flex:0 0 58px;width:58px;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;gap:6px;color:#555;font-size:9px;font-weight:700;white-space:nowrap}
-.home-screen .nw-cat img,.home-screen .nw-cat-avatar{width:54px;height:54px;border-radius:50%;object-fit:cover;display:grid;place-items:center;background:#f2f2f2;color:#888;font-size:15px;font-weight:850;border:2px solid transparent}
+.home-screen .nw-cat{flex:0 0 48px;width:48px;border:0;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;gap:4px;color:#555;font-size:8px;font-weight:700;white-space:nowrap}
+.home-screen .nw-cat img,.home-screen .nw-cat-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;display:grid;place-items:center;background:#f2f2f2;color:#888;font-size:12px;font-weight:850;border:2px solid transparent}
 .home-screen .nw-cat.active{color:#a91818}
 .home-screen .nw-cat.active img,.home-screen .nw-cat.active .nw-cat-avatar{border-color:#a91818}
 .home-screen .nw-cat:active{transform:scale(.96)}
