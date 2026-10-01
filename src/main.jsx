@@ -242,3 +242,7 @@ function AdminAssignmentIntelligence({onBack}){return <AdminDataPage title="Assi
 function TrustReport({onBack}){return <AdminDataPage title="Trust report" onBack={onBack} loader={()=>getAdminTrustReports()} render={d=><DataSummary data={d}/>}/>}
 function Rewards({onBack}){return <AdminDataPage title="Rewards" onBack={onBack} loader={async()=>({data:[]})} render={d=><DataSummary data={d}/>}/>}
 
+
+
+const rootElement=document.getElementById('root');
+if(rootElement){createRoot(rootElement).render(<App/>);}
