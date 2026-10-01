@@ -1109,9 +1109,25 @@ body{
 .home-screen.content{background:#fff8ef!important;}
 
 /* Compact homepage hero */
-.home-screen .nw-reference-hero{height:250px!important;min-height:250px!important;}
+.home-screen .nw-reference-hero{
+  height:auto!important;
+  min-height:0!important;
+  padding-bottom:18px!important;
+}
+.home-screen .nw-hero-copy{
+  position:relative!important;
+  left:auto!important;
+  top:auto!important;
+  width:46%!important;
+}
 .home-screen .nw-hero-copy h1{font-size:23px!important;line-height:1.02!important;}
 .home-screen .nw-hero-copy small{font-size:8px!important;}
 .home-screen .nw-hero-copy p{font-size:9px!important;line-height:1.4!important;}
 .home-screen .nw-order{font-size:11px!important;}
 .home-screen .nw-order span{width:20px!important;height:20px!important;}
+.home-screen .nw-hero-image{
+  position:absolute!important;
+  right:-4px!important;
+  top:15px!important;
+  height:calc(100% - 15px)!important;
+}
