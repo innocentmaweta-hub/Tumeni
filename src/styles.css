@@ -1054,3 +1054,21 @@ body{
 
 .yaza-quick{display:flex;gap:6px;overflow-x:auto;padding:1px 0 8px;scrollbar-width:none}.yaza-quick::-webkit-scrollbar{display:none}.yaza-quick button{white-space:nowrap;border:1px solid #eee;background:#fff;border-radius:999px;padding:7px 9px;font-size:7px;color:#555}.yaza-quick button:hover{border-color:#dfbebe;color:#9f1717}
 .yaza-task-button{margin-top:9px!important;height:34px!important;font-size:8px!important}
+
+/* Homepage topbar aligned with homepage-redesign reference */
+.home-screen .nw-top{display:flex;align-items:center;gap:13px;padding:3px 0 17px}
+.home-screen .nw-icon-btn{border:0;background:#fffdfb;width:54px;height:54px;border-radius:18px;box-shadow:0 3px 12px #0000000d;position:relative;flex:none;display:flex;align-items:center;justify-content:center;color:#171717}
+.home-screen .nw-hamb{display:flex;flex-direction:column;gap:5px;width:23px}
+.home-screen .nw-hamb i{height:2px;background:#171717;border-radius:2px;width:100%}
+.home-screen .nw-greeting{flex:1;line-height:1}
+.home-screen .nw-hello{font-size:11px;color:#252525;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-screen .nw-logo{font-size:28px;font-weight:900;font-style:italic;color:#d51f26;letter-spacing:-2px}
+.home-screen .nw-tagline{font-size:10px;color:#333;margin-top:5px}
+.home-screen .nw-top-actions{display:flex;gap:9px}
+.home-screen .nw-top-actions .nw-icon-btn{width:52px}
+.home-screen .nw-top-actions b{position:absolute;right:5px;top:3px;background:#d81f26;color:#fff;border-radius:50%;width:17px;height:17px;font-size:10px;line-height:17px}
+.home-screen .nw-search-row{display:flex;gap:10px;margin-bottom:17px}
+.home-screen .nw-search{height:53px;background:#fff;border-radius:28px;display:flex;align-items:center;padding:0 16px;flex:1;box-shadow:0 3px 12px #0000000b}
+.home-screen .nw-search input{border:0;outline:0;width:100%;font-size:13px;background:transparent;color:#777;margin-left:8px}
+.home-screen .nw-filter{width:53px;border:0;border-radius:18px;background:#fff;box-shadow:0 3px 12px #0000000b;font-size:25px}
+@media(max-width:430px){.home-screen .nw-search{height:50px}}
