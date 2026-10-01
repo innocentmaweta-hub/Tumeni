@@ -1108,7 +1108,7 @@ body{
 .home-screen{background:#fff8ef!important;color:#171717!important;}
 .home-screen.content{background:#fff8ef!important;}
 
-/* Homepage promotion carousel — content-driven height */
+/* Homepage promotion carousel — full-bleed background image */
 .home-screen .nw-reference-hero{
   height:auto!important;
   min-height:0!important;
@@ -1134,6 +1134,28 @@ body{
   min-height:0!important;
   overflow:hidden!important;
   padding:0 0 32px!important;
+  isolation:isolate!important;
+}
+.home-screen .nw-hero-slide .nw-hero-image{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  z-index:0!important;
+  border:0!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+  overflow:hidden!important;
+  border-radius:25px!important;
+}
+.home-screen .nw-hero-slide .nw-hero-image img,
+.home-screen .nw-hero-slide .nw-hero-image .product-image-avatar{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  border-radius:25px!important;
 }
 .home-screen .nw-hero-slide .nw-hero-copy{
   position:relative!important;
@@ -1144,27 +1166,13 @@ body{
   padding:15px 0 0 18px!important;
   z-index:2!important;
 }
-.home-screen .nw-hero-copy h1{font-size:28px!important;line-height:.94!important;margin:4px 0 2px!important}
+.home-screen .nw-hero-copy h1{
+  font-size:28px!important;
+  line-height:.94!important;
+  margin:4px 0 2px!important;
+}
 .home-screen .nw-hero-copy small{font-size:8px!important;line-height:1!important}
 .home-screen .nw-hero-copy p{font-size:9px!important;line-height:1.2!important;margin:2px 0 5px!important}
 .home-screen .nw-order{font-size:11px!important;padding:5px 9px!important}
 .home-screen .nw-order span{width:20px!important;height:20px!important}
-.home-screen .nw-hero-slide .nw-hero-image{
-  position:absolute!important;
-  right:-4px!important;
-  top:15px!important;
-  inset:auto -4px 0 auto!important;
-  width:68%!important;
-  height:calc(100% - 15px)!important;
-  min-height:0!important;
-  z-index:0!important;
-  border-radius:0 20px 20px 0!important;
-}
-.home-screen .nw-hero-slide .nw-hero-image img,
-.home-screen .nw-hero-slide .nw-hero-image .product-image-avatar{
-  width:100%!important;
-  height:100%!important;
-  object-fit:cover!important;
-  border-radius:0 20px 20px 0!important;
-}
 .home-screen .nw-dots{z-index:4!important;bottom:9px!important}
