@@ -1382,3 +1382,30 @@ revoke all on function public.get_personalized_recommendations(integer) from pub
 grant execute on function public.get_personalized_recommendations(integer) to authenticated;
 
 notify pgrst, 'reload schema';
+
+
+-- Storage bucket for customer profile photos.
+insert into storage.buckets (id,name,public)
+values ('profile-images','profile-images',true)
+on conflict (id) do update set public=true;
+
+drop policy if exists "users can upload own profile photos" on storage.objects;
+create policy "users can upload own profile photos"
+on storage.objects for insert to authenticated
+with check (bucket_id = 'profile-images' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "users can update own profile photos" on storage.objects;
+create policy "users can update own profile photos"
+on storage.objects for update to authenticated
+using (bucket_id = 'profile-images' and (storage.foldername(name))[1] = auth.uid()::text)
+with check (bucket_id = 'profile-images' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "users can delete own profile photos" on storage.objects;
+create policy "users can delete own profile photos"
+on storage.objects for delete to authenticated
+using (bucket_id = 'profile-images' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "public can view profile photos" on storage.objects;
+create policy "public can view profile photos"
+on storage.objects for select to public
+using (bucket_id = 'profile-images');
