@@ -1391,6 +1391,9 @@ export async function saveProductReview({ productId, rating, comment = '' }) {
   if (userError || !user) return { data: null, error: userError || new Error('Please sign in to review this product.') };
   const safeRating = Number(rating);
   if (!Number.isInteger(safeRating) || safeRating < 1 || safeRating > 5) return { data: null, error: new Error('Please choose a rating from 1 to 5 stars.') };
+  const { data: eligible, error: eligibilityError } = await supabase.rpc('can_customer_review_product', { p_product_id: productId });
+  if (eligibilityError) return { data: null, error: eligibilityError };
+  if (!eligible) return { data: null, error: new Error('You can review this product after your order containing it has been delivered.') };
   const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
   const reviewerName = (profile?.full_name || user.email || 'Tumeni customer').trim();
   return supabase.from('product_reviews').upsert({ product_id: productId, customer_id: user.id, reviewer_name: reviewerName, rating: safeRating, comment: comment.trim() || null, updated_at: new Date().toISOString() }, { onConflict: 'product_id,customer_id' }).select('id,product_id,customer_id,reviewer_name,rating,comment,created_at,updated_at').single();
