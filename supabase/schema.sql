@@ -899,6 +899,7 @@ begin
   where order_id = p_order_id
     and agent_id = auth.uid()
     and completed_at is null
+    and cancelled_at is null
   order by assigned_at desc
   limit 1;
   if assignment.id is null then
