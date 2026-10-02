@@ -41,6 +41,100 @@ export async function getProducts() {
   };
 }
 
+export async function getMyCart() {
+  if (!supabase) return { data: {}, error: null, configured: false };
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) return { data: {}, error: userError || null };
+
+  let { data: cart, error: cartError } = await supabase
+    .from('carts')
+    .select('id')
+    .eq('customer_id', user.id)
+    .maybeSingle();
+
+  if (cartError) return { data: {}, error: cartError };
+  if (!cart) return { data: {}, error: null };
+
+  const { data: items, error: itemsError } = await supabase
+    .from('cart_items')
+    .select('product_id,quantity')
+    .eq('cart_id', cart.id);
+
+  if (itemsError) return { data: {}, error: itemsError };
+  if (!(items || []).length) return { data: {}, error: null };
+
+  const ids = items.map(x => x.product_id).filter(Boolean);
+  const { data: products, error: productsError } = await supabase
+    .from('products')
+    .select('id,name,description,price,image_url,category_id,shop_id,available,shops(name),categories(name)')
+    .in('id', ids);
+
+  if (productsError) return { data: {}, error: productsError };
+
+  const byId = new Map((products || []).map(p => [p.id, {
+    ...p,
+    shop: p.shops?.name || null,
+    category: p.categories?.name || null
+  }]));
+  const result = {};
+  for (const item of items || []) {
+    const product = byId.get(item.product_id);
+    if (product && product.available !== false && Number(item.quantity) > 0) {
+      result[item.product_id] = { product, qty: Number(item.quantity) };
+    }
+  }
+  return { data: result, error: null };
+}
+
+export async function saveMyCart(cart) {
+  if (!supabase) return { data: null, error: null, configured: false };
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) return { data: null, error: userError || null };
+
+  let { data: existing, error: findError } = await supabase
+    .from('carts')
+    .select('id')
+    .eq('customer_id', user.id)
+    .maybeSingle();
+  if (findError) return { data: null, error: findError };
+
+  let cartId = existing?.id;
+  if (!cartId) {
+    const { data: created, error: createError } = await supabase
+      .from('carts')
+      .insert({ customer_id: user.id })
+      .select('id')
+      .single();
+    if (createError) return { data: null, error: createError };
+    cartId = created.id;
+  }
+
+  const desired = Object.values(cart || {}).filter(x => x?.product?.id && Number(x.qty) > 0)
+    .map(x => ({ cart_id: cartId, product_id: x.product.id, quantity: Math.max(1, Math.floor(Number(x.qty))) }));
+
+  const { data: existingItems, error: existingError } = await supabase
+    .from('cart_items')
+    .select('id,product_id')
+    .eq('cart_id', cartId);
+  if (existingError) return { data: null, error: existingError };
+
+  const desiredIds = new Set(desired.map(x => x.product_id));
+  const removeIds = (existingItems || []).filter(x => !desiredIds.has(x.product_id)).map(x => x.id);
+  if (removeIds.length) {
+    const { error } = await supabase.from('cart_items').delete().in('id', removeIds);
+    if (error) return { data: null, error };
+  }
+
+  if (desired.length) {
+    const { error } = await supabase
+      .from('cart_items')
+      .upsert(desired, { onConflict: 'cart_id,product_id' });
+    if (error) return { data: null, error };
+  }
+
+  return { data: { cartId }, error: null };
+}
+
 export async function getShopDetails(shopId) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   if (!shopId) return { data: null, error: new Error('Shop ID is required.') };
