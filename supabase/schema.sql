@@ -830,9 +830,9 @@ begin
   ) then
     raise exception 'Only paid or already-assigned orders can be assigned to an agent';
   end if;
-  update public.order_assignments
-    set completed_at = coalesce(completed_at, now())
-    where order_id = p_order_id and completed_at is null;
+  -- A reassignment must not mark the previous assignment as completed.
+  -- Leave the previous row open in history and let the active assignment be
+  -- selected by the application's latest-assignment logic.
   insert into public.order_assignments(order_id, agent_id)
   values (p_order_id, p_agent_id)
   returning * into result;
