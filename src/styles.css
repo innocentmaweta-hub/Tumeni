@@ -1155,6 +1155,13 @@ body{
   overflow:hidden!important;
   border-radius:25px!important;
 }
+.home-screen .nw-hero-slide .nw-hero-image,
+.home-screen .nw-hero-slide .nw-hero-image img,
+.home-screen .nw-hero-slide .nw-hero-image .product-image-avatar{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+}
 .home-screen .nw-hero-slide .nw-hero-image img,
 .home-screen .nw-hero-slide .nw-hero-image .product-image-avatar{
   display:block!important;
