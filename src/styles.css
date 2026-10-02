@@ -1584,3 +1584,27 @@ button.primary:hover,button.secondary:hover,.primary:hover,.secondary:hover,.det
 /* Orders + Admin quick actions polish */
 .orders-tabs{display:flex;gap:7px;background:#f7f7f7;border:1px solid #eee;border-radius:11px;padding:4px;margin-bottom:14px}.orders-tabs button{flex:1;min-width:0;border:0;background:transparent;border-radius:8px;padding:9px 7px;font-size:9px;font-weight:800;color:#777;white-space:nowrap}.orders-tabs button.active{background:#fff;color:#ef322d;box-shadow:0 2px 7px #0000000d}.order-filters{display:flex;gap:6px;overflow-x:auto;overflow-y:hidden;padding:1px 1px 7px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.order-filters::-webkit-scrollbar{display:none}.order-filters button{flex:0 0 auto;border:1px solid #e6e6e6;background:#fff;color:#555;border-radius:999px;padding:7px 10px;font-size:8px;font-weight:750;white-space:nowrap}.order-filters button.active{background:#fff0ed;border-color:#f1c6c1;color:#c52b27}.order-card-footer{align-items:flex-start;flex-wrap:wrap}.order-card-actions{display:flex;flex:1 1 100%;gap:6px;min-width:0;flex-wrap:wrap}.order-card-actions .order-track{flex:1 1 90px;justify-content:center;min-width:0;white-space:nowrap}.order-card-footer>.secondary.order-track{flex:1 1 100%;justify-content:center;background:#fff;border:1px solid #e4e4e4;color:#555}.secondary.order-track{border:1px solid #e2e2e2;background:#fff;color:#555;border-radius:8px}.secondary.order-track:hover{border-color:#efb7b3;background:#fffafa}.phase3-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.phase3-actions button{min-width:0;min-height:42px;border:1px solid #e7e7e7;background:#fff;border-radius:10px;padding:9px 8px;color:#444;font-size:9px;font-weight:750;text-align:center;line-height:1.25;white-space:normal;overflow-wrap:anywhere}.phase3-actions button:hover{border-color:#efc0bd;background:#fff8f7;color:#d12d29}.phase3-actions button:focus-visible{outline:2px solid #efb4b0;outline-offset:2px}
 @media(max-width:430px){.phase3-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.order-card-actions .order-track{flex:1 1 110px}}
+
+
+/* Orders page: reduce red button density while keeping one clear accent. */
+.screen.content:not(.home-screen) .orders-page .order-card-actions button,
+.screen.content:not(.home-screen) .orders-page .order-card-footer > button {
+  background:#fff!important;
+  color:#444!important;
+  border:1px solid #e2e2e2!important;
+  box-shadow:none!important;
+}
+.screen.content:not(.home-screen) .orders-page .order-card-actions .order-track {
+  background:#fff1ef!important;
+  color:#c52b27!important;
+  border-color:#f1c6c1!important;
+}
+.screen.content:not(.home-screen) .orders-page .order-card-actions button:hover,
+.screen.content:not(.home-screen) .orders-page .order-card-footer > button:hover {
+  background:#fafafa!important;
+  color:#c52b27!important;
+  border-color:#efc0bd!important;
+}
+.screen.content:not(.home-screen) .orders-page .order-card-actions .order-track:hover {
+  background:#ffe9e6!important;
+}
