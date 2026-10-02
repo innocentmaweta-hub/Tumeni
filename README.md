@@ -41,3 +41,4 @@ AI should interpret customer task requests and return structured requirements. P
 - Admin, partner and agent applications
 
 <!-- Deployment trigger: harmless documentation-only update. -->
+<!-- Deployment trigger: harmless README refresh. -->
