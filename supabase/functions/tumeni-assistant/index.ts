@@ -210,7 +210,7 @@ Deno.serve(async (req) => {
     const geminiKey = Deno.env.get("GEMINI_API_KEY");
     const model =
       Deno.env.get("AI_MODEL") ||
-      (provider === "gemini" ? "gemini-3.8-flash" : "google/gemini-3.8-flash");
+      (provider === "gemini" ? "gemini-2.5-flash" : "google/gemini-2.5-flash");
 
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error("Supabase function configuration is incomplete.");
@@ -351,14 +351,27 @@ Deno.serve(async (req) => {
       }),
     });
 
-    const result = await response.json();
+    let result: any = null;
+    const rawResponse = await response.text();
+    try {
+      result = rawResponse ? JSON.parse(rawResponse) : null;
+    } catch {
+      result = null;
+    }
 
     if (!response.ok) {
       const message =
         result?.error?.message ||
+        result?.error?.metadata?.raw ||
         result?.error ||
-        "The AI service could not process the request.";
-      return json({ error: String(message) }, response.status >= 500 ? 502 : 400);
+        rawResponse ||
+        `The AI service returned HTTP ${response.status}.`;
+      return json({
+        error: String(message),
+        provider,
+        model,
+        upstream_status: response.status,
+      }, 502);
     }
 
     const outputText = String(result?.choices?.[0]?.message?.content || "").trim();
@@ -376,6 +389,6 @@ Deno.serve(async (req) => {
   } catch (error) {
     return json({
       error: error instanceof Error ? error.message : "Could not process the assistant request.",
-    }, 400);
+    }, 500);
   }
 });
