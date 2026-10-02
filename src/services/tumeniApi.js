@@ -248,14 +248,57 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
   if (!UUID_RE.test(customerId)) throw new Error('Invalid customer account ID. Please sign out and sign in again.');
   if (addressId && !UUID_RE.test(addressId)) throw new Error('Invalid delivery address ID.');
   if (!items?.length) throw new Error('Your cart is empty.');
-  for (const item of items) {
-    if (!UUID_RE.test(item.product_id)) throw new Error('This product is not linked to the Tumeni database yet. Please refresh and choose a published product.');
-    if (item.shop_id && !UUID_RE.test(item.shop_id)) throw new Error('This product has an invalid partner shop ID.');
+
+  // Never trust prices, shop IDs, or product names supplied by the browser.
+  // Re-read the current published products from Supabase before creating the order.
+  const productIds = items.map(item => item?.product_id).filter(Boolean);
+  if (productIds.length !== items.length || productIds.some(id => !UUID_RE.test(id))) {
+    throw new Error('One or more cart products are invalid. Please refresh and try again.');
   }
-  const subtotal = items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0);
-  const serviceFee = Number(fees?.serviceFee || 0);
-  const deliveryFee = Number(fees?.deliveryFee || 0);
-  const handlingFee = Number(fees?.handlingFee || 0);
+
+  if (addressId) {
+    const { data: address, error: addressError } = await supabase
+      .from('addresses')
+      .select('id')
+      .eq('id', addressId)
+      .eq('customer_id', customerId)
+      .maybeSingle();
+    if (addressError) throw addressError;
+    if (!address) throw new Error('The selected delivery address does not belong to your account.');
+  }
+
+  const { data: products, error: productsError } = await supabase
+    .from('products')
+    .select('id,name,price,shop_id,available,stock_quantity')
+    .in('id', productIds);
+  if (productsError) throw productsError;
+
+  const productMap = new Map((products || []).map(product => [product.id, product]));
+  const orderItems = items.map(item => {
+    const product = productMap.get(item.product_id);
+    const quantity = Math.floor(Number(item.quantity));
+    if (!product || product.available === false || Number(product.stock_quantity) <= 0) {
+      throw new Error('One of the products in your cart is no longer available.');
+    }
+    if (!Number.isFinite(quantity) || quantity < 1) {
+      throw new Error('Invalid product quantity.');
+    }
+    if (Number.isFinite(Number(product.stock_quantity)) && quantity > Number(product.stock_quantity)) {
+      throw new Error(`Not enough stock is available for ${product.name}.`);
+    }
+    return {
+      product_id: product.id,
+      shop_id: product.shop_id || null,
+      product_name: product.name,
+      unit_price: Number(product.price),
+      quantity
+    };
+  });
+
+  const subtotal = orderItems.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
+  const serviceFee = Math.max(0, Number(fees?.serviceFee || 0));
+  const deliveryFee = Math.max(0, Number(fees?.deliveryFee || 0));
+  const handlingFee = Math.max(0, Number(fees?.handlingFee || 0));
   const total = subtotal + serviceFee + deliveryFee + handlingFee;
 
   const { data: order, error: orderError } = await supabase.from('orders').insert({
@@ -273,25 +316,36 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
   if (orderError) throw orderError;
 
   const { error: itemsError } = await supabase.from('order_items').insert(
-    items.map(item => ({
-      order_id: order.id,
-      product_id: item.product_id || null,
-      shop_id: item.shop_id || null,
-      product_name: item.product_name,
-      unit_price: item.unit_price,
-      quantity: item.quantity
-    }))
+    orderItems.map(item => ({ ...item, order_id: order.id }))
   );
 
-  if (itemsError) throw itemsError;
+  if (itemsError) {
+    await supabase.from('orders').delete().eq('id', order.id).eq('customer_id', customerId);
+    throw itemsError;
+  }
   return order;
 }
 
 export async function createTaskOrder({ customerId, description, addressId, fees, customerNotes = '' }) {
   if (!supabase) throw new Error('Supabase is not configured.');
-  const serviceFee = Number(fees?.serviceFee || 0);
-  const deliveryFee = Number(fees?.deliveryFee || 0);
-  const handlingFee = Number(fees?.handlingFee || 0);
+  if (!UUID_RE.test(customerId)) throw new Error('Invalid customer account ID. Please sign out and sign in again.');
+  if (!String(description || '').trim()) throw new Error('Please describe the task you want Tumeni to handle.');
+  if (addressId && !UUID_RE.test(addressId)) throw new Error('Invalid delivery address ID.');
+
+  if (addressId) {
+    const { data: address, error: addressError } = await supabase
+      .from('addresses')
+      .select('id')
+      .eq('id', addressId)
+      .eq('customer_id', customerId)
+      .maybeSingle();
+    if (addressError) throw addressError;
+    if (!address) throw new Error('The selected delivery address does not belong to your account.');
+  }
+
+  const serviceFee = Math.max(0, Number(fees?.serviceFee || 0));
+  const deliveryFee = Math.max(0, Number(fees?.deliveryFee || 0));
+  const handlingFee = Math.max(0, Number(fees?.handlingFee || 0));
   const total = serviceFee + deliveryFee + handlingFee;
 
   const { data: order, error: orderError } = await supabase.from('orders').insert({
@@ -303,18 +357,21 @@ export async function createTaskOrder({ customerId, description, addressId, fees
     handling_fee: handlingFee,
     total,
     delivery_address_id: addressId || null,
-    task_description: description,
-    customer_notes: customerNotes || null
+    task_description: String(description).trim(),
+    customer_notes: String(customerNotes || '').trim() || null
   }).select().single();
 
   if (orderError) throw orderError;
 
   const { error: taskError } = await supabase.from('tasks').insert({
     order_id: order.id,
-    raw_request: description
+    raw_request: String(description).trim()
   });
 
-  if (taskError) throw taskError;
+  if (taskError) {
+    await supabase.from('orders').delete().eq('id', order.id).eq('customer_id', customerId);
+    throw taskError;
+  }
   return order;
 }
 
