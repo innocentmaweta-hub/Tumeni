@@ -147,59 +147,33 @@ async function searchCatalog(supabase: any, query: string) {
   const cleanQuery = cleanSearchText(query);
   if (!cleanQuery) return [];
 
-  const terms = extractSearchTerms(cleanQuery);
   const budget = extractBudget(cleanQuery);
-  const searchParts = terms.length
-    ? terms.map(term => `name.ilike.%${term}%,description.ilike.%${term}%`)
-    : [`name.ilike.%${cleanQuery}%,description.ilike.%${cleanQuery}%`];
-
-  const { data, error } = await supabase
-    .from("products")
-    .select("id,name,description,price,image_url,category_id,shop_id,shops(name),categories(name)")
-    .eq("available", true)
-    .or(searchParts.join(","))
-    .order("created_at", { ascending: false })
-    .limit(60);
+  const { data, error } = await supabase.rpc("search_products_advanced", {
+    p_query: cleanQuery,
+    p_limit: 100,
+    p_offset: 0,
+  });
 
   if (error) throw error;
 
-  const phrase = cleanQuery;
   return (data || [])
     .map((product: any) => {
-      const haystack = [
-        product.name,
-        product.description,
-        product.categories?.name,
-        product.shops?.name
-      ].filter(Boolean).join(" ").toLowerCase();
-
-      let score = 0;
-      if (haystack.includes(phrase)) score += 100;
-
-      for (const term of terms) {
-        if (String(product.name || "").toLowerCase().includes(term)) score += 20;
-        else if (haystack.includes(term)) score += 8;
-      }
-
       const price = Number(product.price || 0);
       const withinBudget = budget === null ? null : price <= budget;
-      if (withinBudget === true) score += 35;
-      if (withinBudget === false) score -= Math.min(40, ((price - budget) / Math.max(budget, 1)) * 40);
-
       return {
         id: product.id,
         name: product.name,
         description: product.description || "",
         price,
         image_url: product.image_url || null,
-        shop: product.shops?.name || "admin product",
-        category: product.categories?.name || null,
+        shop: product.shop || "admin product",
+        category: product.category || null,
+        rating: Number(product.rating || 0),
         within_budget: withinBudget,
-        score
+        score: Number(product.relevance || 0),
       };
     })
     .filter((product: any) => budget === null || product.within_budget)
-    .sort((a: any, b: any) => b.score - a.score)
     .slice(0, MAX_PRODUCTS);
 }
 
