@@ -1811,7 +1811,7 @@ export async function getAdminOperationsControlCenter(){
   const [orders,assignments,tasks]=await Promise.all([
     supabase.from('orders').select('id,status,created_at,customer_id').order('created_at',{ascending:false}).limit(500),
     supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(500),
-    supabase.from('tasks').select('id,customer_id,assigned_employee_id,customer_approved_at,completed_at,created_at,deadline_at').order('created_at',{ascending:false}).limit(500)
+    supabase.from('tasks').select('id,order_id,assigned_employee_id,customer_approved_at,completed_at,created_at,deadline_at').order('created_at',{ascending:false}).limit(500)
   ]);
   for(const r of [orders,assignments,tasks]) if(r.error) return {data:null,error:r.error};
   const os=orders.data||[], as=assignments.data||[], ts=tasks.data||[];
