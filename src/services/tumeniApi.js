@@ -1807,7 +1807,9 @@ export async function getAdminOperationsControlCenter(){
   if(!supabase) return {data:null,error:new Error('Supabase is not configured.')};
   const {data:{user}}=await supabase.auth.getUser();
   if(!user) return {data:null,error:new Error('Please sign in first.')};
-  if((user.email||'').trim().toLowerCase()!=='innocentmaweta@gmail.com') return {data:null,error:new Error('Admin access required.')};
+  const {data:profile,error:profileError}=await supabase.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  if(profileError) return {data:null,error:profileError};
+  if(profile?.role!=='admin') return {data:null,error:new Error('Admin access required.')};
   const [orders,assignments,tasks]=await Promise.all([
     supabase.from('orders').select('id,status,created_at,customer_id').order('created_at',{ascending:false}).limit(500),
     supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(500),
@@ -1832,7 +1834,9 @@ export async function getAdminAssignmentIntelligence(){
   if(!supabase) return {data:null,error:new Error('Supabase is not configured.')};
   const {data:{user}}=await supabase.auth.getUser();
   if(!user) return {data:null,error:new Error('Please sign in first.')};
-  if((user.email||'').trim().toLowerCase()!=='innocentmaweta@gmail.com') return {data:null,error:new Error('Admin access required.')};
+  const {data:profile,error:profileError}=await supabase.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  if(profileError) return {data:null,error:profileError};
+  if(profile?.role!=='admin') return {data:null,error:new Error('Admin access required.')};
   const [profiles,assignments,orders,tasks]=await Promise.all([
     supabase.from('profiles').select('id,full_name,role'),
     supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(1000),
@@ -1853,7 +1857,9 @@ export async function getAdminDeliveryTaskMonitoring(){
   if(!supabase) return {data:null,error:new Error('Supabase is not configured.')};
   const {data:{user}}=await supabase.auth.getUser();
   if(!user) return {data:null,error:new Error('Please sign in first.')};
-  if((user.email||'').trim().toLowerCase()!=='innocentmaweta@gmail.com') return {data:null,error:new Error('Admin access required.')};
+  const {data:profile,error:profileError}=await supabase.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  if(profileError) return {data:null,error:profileError};
+  if(profile?.role!=='admin') return {data:null,error:new Error('Admin access required.')};
   const [orders,assignments,tasks]=await Promise.all([
     supabase.from('orders').select('id,order_number,status,created_at').in('status',['paid','assigned','preparing','shopping','picked_up','on_the_way']).order('created_at',{ascending:true}).limit(500),
     supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(1000),
@@ -1871,7 +1877,9 @@ export async function getAdminOperationalAlerts(){
   if(!supabase) return {data:null,error:new Error('Supabase is not configured.')};
   const {data:{user}}=await supabase.auth.getUser();
   if(!user) return {data:null,error:new Error('Please sign in first.')};
-  if((user.email||'').trim().toLowerCase()!=='innocentmaweta@gmail.com') return {data:null,error:new Error('Admin access required.')};
+  const {data:profile,error:profileError}=await supabase.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  if(profileError) return {data:null,error:profileError};
+  if(profile?.role!=='admin') return {data:null,error:new Error('Admin access required.')};
   const [orders,assignments,tasks]=await Promise.all([
     supabase.from('orders').select('id,order_number,status,created_at').in('status',['paid','assigned','preparing','shopping','picked_up','on_the_way']).order('created_at',{ascending:true}).limit(500),
     supabase.from('order_assignments').select('id,order_id,agent_id,assigned_at,accepted_at,completed_at').order('assigned_at',{ascending:false}).limit(1000),
