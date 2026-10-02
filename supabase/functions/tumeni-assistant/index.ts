@@ -144,20 +144,27 @@ async function getCustomerContext(supabase: any, userId: string) {
 }
 
 async function searchCatalog(supabase: any, query: string) {
-  const cleanQuery = cleanSearchText(query);
-  if (!cleanQuery) return [];
+  const rawQuery = String(query || "").trim();
+  const budget = extractBudget(rawQuery);
 
-  const budget = extractBudget(cleanQuery);
+  // A request such as "products under MWK 20,000" is a valid catalog
+  // request even though it has no specific product keyword. In that case,
+  // search the catalog broadly and apply the budget locally.
+  const normalizedQuery = cleanSearchText(
+    rawQuery
+      .replace(/(?:under|below|less than|up to|max(?:imum)?(?: of)?|within)\s*(?:mwk|mk|k)?\s*[0-9][0-9,]*(?:\.\d+)?/gi, "")
+      .replace(/\b(?:products?|items?)\b/gi, "")
+  );
+
   const { data, error } = await supabase.rpc("search_products_advanced", {
-    p_query: cleanQuery,
+    p_query: normalizedQuery,
     p_limit: 100,
     p_offset: 0,
   });
 
   // Yaza must remain usable even if the optional advanced-search RPC is
   // missing, stale in PostgREST's schema cache, or incompatible with an
-  // existing Tumeni database. Fall back to the same product tables used by
-  // the main storefront instead of turning a product question into HTTP 500.
+  // existing Tumeni database.
   let catalog = data || [];
   if (error) {
     console.error("Yaza advanced product search failed; using direct catalog fallback:", error);
@@ -174,7 +181,7 @@ async function searchCatalog(supabase: any, query: string) {
       return [];
     }
 
-    const term = cleanQuery.toLowerCase();
+    const term = normalizedQuery.toLowerCase();
     catalog = (fallbackProducts || [])
       .filter((product: any) => {
         const shop = product.shops?.name || "";
@@ -211,8 +218,8 @@ async function searchCatalog(supabase: any, query: string) {
         description: product.description || "",
         price,
         image_url: product.image_url || null,
-        shop: product.shop || "admin product",
-        category: product.category || null,
+        shop: product.shop || product.shops?.name || "admin product",
+        category: product.category || product.categories?.name || null,
         rating: Number(product.rating || 0),
         within_budget: withinBudget,
         score: Number(product.relevance || 0),
@@ -221,7 +228,6 @@ async function searchCatalog(supabase: any, query: string) {
     .filter((product: any) => budget === null || product.within_budget)
     .slice(0, MAX_PRODUCTS);
 }
-
 function cleanMessages(input: unknown) {
   if (!Array.isArray(input)) throw new Error("messages must be an array.");
 
