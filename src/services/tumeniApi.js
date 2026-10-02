@@ -789,8 +789,10 @@ export async function getAgentAssignments() {
   // receives everything it needs for each delivery card.
   return supabase
     .from('order_assignments')
-    .select('id,order_id,agent_id,assigned_at,accepted_at,completed_at,orders(id,order_number,order_type,status,total,task_description,delivery_address:addresses(address_line,area,city))')
+    .select('id,order_id,agent_id,assigned_at,accepted_at,completed_at,cancelled_at,orders(id,order_number,order_type,status,total,task_description,delivery_address:addresses(address_line,area,city))')
     .eq('agent_id', user.id)
+    .is('completed_at', null)
+    .is('cancelled_at', null)
     .is('completed_at', null)
     .order('assigned_at', { ascending: false });
 }
