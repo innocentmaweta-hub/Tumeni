@@ -66,7 +66,7 @@ export async function getCurrentProfile() {
     .eq('id', user.id)
     .maybeSingle();
 
-  const isDesignatedAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
+  const isDesignatedAdmin = profile?.role === 'admin';
 
   // Authentication is authoritative for whether the customer is signed in.
   // If the profile row is temporarily unavailable, return a safe profile
@@ -312,7 +312,8 @@ export async function getMyProducts() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: [], error: new Error('Please sign in first.') };
 
-  const isAdmin = (user.email || '').trim().toLowerCase() === 'innocentmaweta@gmail.com';
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle();
+  const isAdmin = profile?.role === 'admin';
   let query = supabase
     .from('products')
     .select('id,name,description,price,image_url,category_id,shop_id,available,created_at,categories(name)')
