@@ -240,6 +240,34 @@ create index if not exists order_assignments_agent_id_idx on public.order_assign
 create index if not exists order_assignments_active_idx on public.order_assignments(order_id,assigned_at desc) where completed_at is null and cancelled_at is null;
 create index if not exists order_status_history_order_id_idx on public.order_status_history(order_id);
 
+-- Keep customer tracking complete: every order gets an initial history event.
+create or replace function public.record_order_status_history()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $function$
+begin
+  if tg_op = 'INSERT' then
+    insert into public.order_status_history(order_id,status,note,changed_by)
+    values (new.id,new.status,'Order created.',new.customer_id);
+    return new;
+  end if;
+
+  if new.status is distinct from old.status then
+    insert into public.order_status_history(order_id,status,note,changed_by)
+    values (new.id,new.status,'Order status updated.',auth.uid());
+  end if;
+
+  return new;
+end;
+$function$;
+
+drop trigger if exists orders_status_history on public.orders;
+create trigger orders_status_history
+after insert or update of status on public.orders
+for each row execute procedure public.record_order_status_history();
+
 -- Keep updated_at fields current whenever a row changes.
 create or replace function public.set_updated_at()
 returns trigger
