@@ -154,9 +154,54 @@ async function searchCatalog(supabase: any, query: string) {
     p_offset: 0,
   });
 
-  if (error) throw error;
+  // Yaza must remain usable even if the optional advanced-search RPC is
+  // missing, stale in PostgREST's schema cache, or incompatible with an
+  // existing Tumeni database. Fall back to the same product tables used by
+  // the main storefront instead of turning a product question into HTTP 500.
+  let catalog = data || [];
+  if (error) {
+    console.error("Yaza advanced product search failed; using direct catalog fallback:", error);
 
-  return (data || [])
+    const { data: fallbackProducts, error: fallbackError } = await supabase
+      .from("products")
+      .select("id,name,description,price,image_url,category_id,shop_id,available,created_at,shops(name),categories(name)")
+      .eq("available", true)
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (fallbackError) {
+      console.error("Yaza direct catalog fallback failed:", fallbackError.message);
+      return [];
+    }
+
+    const term = cleanQuery.toLowerCase();
+    catalog = (fallbackProducts || [])
+      .filter((product: any) => {
+        const shop = product.shops?.name || "";
+        const category = product.categories?.name || "";
+        const haystack = [
+          product.name,
+          product.description,
+          shop,
+          category,
+        ].map(value => String(value || "").toLowerCase());
+
+        return !term || haystack.some(value => value.includes(term));
+      })
+      .map((product: any) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description || "",
+        price: Number(product.price || 0),
+        image_url: product.image_url || null,
+        shop: product.shops?.name || "admin product",
+        category: product.categories?.name || null,
+        rating: 0,
+        relevance: 0,
+      }));
+  }
+
+  return (catalog || [])
     .map((product: any) => {
       const price = Number(product.price || 0);
       const withinBudget = budget === null ? null : price <= budget;
