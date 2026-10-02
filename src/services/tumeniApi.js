@@ -277,7 +277,7 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
   const orderItems = items.map(item => {
     const product = productMap.get(item.product_id);
     const quantity = Math.floor(Number(item.quantity));
-    if (!product || product.available === false || Number(product.stock_quantity) <= 0) {
+    if (!product || product.available === false || (product.stock_quantity != null && Number.isFinite(Number(product.stock_quantity)) && Number(product.stock_quantity) <= 0)) {
       throw new Error('One of the products in your cart is no longer available.');
     }
     if (!Number.isFinite(quantity) || quantity < 1) {
