@@ -212,7 +212,8 @@ create table if not exists public.order_assignments (
   agent_id uuid references public.profiles(id),
   assigned_at timestamptz not null default now(),
   accepted_at timestamptz,
-  completed_at timestamptz
+  completed_at timestamptz,
+  cancelled_at timestamptz
 );
 
 create table if not exists public.order_status_history (
@@ -236,6 +237,7 @@ create index if not exists payments_order_id_idx on public.payments(order_id);
 create index if not exists tasks_order_id_idx on public.tasks(order_id);
 create index if not exists order_assignments_order_id_idx on public.order_assignments(order_id);
 create index if not exists order_assignments_agent_id_idx on public.order_assignments(agent_id);
+create index if not exists order_assignments_active_idx on public.order_assignments(order_id,assigned_at desc) where completed_at is null and cancelled_at is null;
 create index if not exists order_status_history_order_id_idx on public.order_status_history(order_id);
 
 -- Keep updated_at fields current whenever a row changes.
@@ -427,6 +429,8 @@ using (
     where o.delivery_address_id = addresses.id
       and oa.agent_id = auth.uid()
       and oa.completed_at is null
+       and oa.cancelled_at is null
+      and oa.cancelled_at is null
   )
 );
 
@@ -1084,7 +1088,7 @@ with check (public.current_user_role() = 'admin');
 drop policy if exists "agents can view assigned order messages" on public.order_messages;
 create policy "agents can view assigned order messages"
 on public.order_messages for select to authenticated
-using (exists (select 1 from public.order_assignments oa where oa.order_id = order_messages.order_id and oa.agent_id = auth.uid() and oa.completed_at is null));
+using (exists (select 1 from public.order_assignments oa where oa.order_id = order_messages.order_id and oa.agent_id = auth.uid() and oa.completed_at is null and oa.cancelled_at is null));
 
 drop policy if exists "agents can send assigned order messages" on public.order_messages;
 create policy "agents can send assigned order messages"
