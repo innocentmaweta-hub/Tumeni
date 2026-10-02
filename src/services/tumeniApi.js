@@ -44,13 +44,13 @@ export async function getProducts() {
 export async function getShopDetails(shopId) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   if (!shopId) return { data: null, error: new Error('Shop ID is required.') };
-  const { data, error } = await supabase.from('shops').select('id,owner_id,name,location,contact_phone,description,partnership_status,created_at').eq('id', shopId).maybeSingle();
+  const { data, error } = await supabase.from('shops').select('id,owner_id,name,location,contact_phone,description,image_url,partnership_status,created_at').eq('id', shopId).maybeSingle();
   return { data: data || null, error };
 }
 
 export async function getAvailableShops() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
-  const { data, error } = await supabase.from('shops').select('id,owner_id,name,location,contact_phone,description,partnership_status,created_at').eq('partnership_status', 'active').order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('shops').select('id,owner_id,name,location,contact_phone,description,image_url,partnership_status,created_at').eq('partnership_status', 'active').order('created_at', { ascending: false });
   return { data: data || [], error };
 }
 
@@ -229,7 +229,7 @@ export async function getSellerVerificationCandidates() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   const { data: shops, error: shopsError } = await supabase
     .from('shops')
-    .select('id,owner_id,name,location,contact_phone,description,partnership_status,created_at')
+    .select('id,owner_id,name,location,contact_phone,description,image_url,partnership_status,created_at')
     .order('created_at', { ascending: false });
   if (shopsError) return { data: [], error: shopsError };
   const ownerIds = [...new Set((shops || []).map(s => s.owner_id).filter(Boolean))];
