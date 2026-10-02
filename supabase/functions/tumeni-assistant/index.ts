@@ -387,8 +387,13 @@ Deno.serve(async (req) => {
       customer_context_used: Boolean(customerContext.recent_orders.length || customerContext.name),
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error || "Unknown error");
+    const name = error instanceof Error ? error.name : "UnknownError";
+    console.error("Yaza AI internal error:", message);
     return json({
-      error: error instanceof Error ? error.message : "Could not process the assistant request.",
+      error: "Yaza AI encountered an internal error.",
+      internal_error: message.slice(0, 500),
+      error_type: name,
     }, 500);
   }
 });
