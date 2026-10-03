@@ -3606,3 +3606,21 @@ button.review-hide-btn,button.view-reviews-btn{
   .cart-screen .cart-item>img,
   .cart-screen .cart-item .product-image-avatar{width:64px;height:64px}
 }
+
+
+/* Order Tracking — final visual consistency pass */
+.tracking-page{background:linear-gradient(180deg,#fff 0%,#fffdfb 58%,#fff9f5 100%)}
+.tracking-page>.inner-head{margin-bottom:12px}
+.tracking-hero{border-color:#ececec;background:#fff;box-shadow:0 4px 16px #00000009}
+.tracking-hero-icon{background:#fff1f0;color:#ef322d}
+.tracking-current{font-size:7.5px}
+.tracking-address{border-color:#ececec;background:#fff;box-shadow:0 3px 12px #00000006}
+.tracking-address-icon{background:#fff4dc;color:#b47a16}
+.tracking-panel{border-color:#e9e9e9;box-shadow:0 4px 16px #00000008}
+.tracking-panel-head{background:#fff}
+.tracking-total{color:#ef322d;background:#fff4f3;border-color:#f2d6d4}
+.tracking-event-success .tracking-node{background:#edf9f1;color:#218447;border-color:#d3eedc}
+.tracking-event-active .tracking-node{background:#fff1f0;color:#ef322d;border-color:#f2d6d4}
+.tracking-event-active .tracking-line{background:#efd9d7}
+.tracking-message-button{margin-top:11px}
+@media(max-width:430px){.tracking-page{padding-left:16px;padding-right:16px}.tracking-hero{padding:12px}.tracking-panel-head{padding:12px 13px}.tracking-message-button{margin-top:10px}}
