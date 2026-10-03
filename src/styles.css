@@ -2101,3 +2101,27 @@ button.review-hide-btn,button.view-reviews-btn{
   .phase3-metric,.admin-metric{padding:11px 10px}
   .phase3-metric b,.admin-metric b{font-size:18px}
 }
+
+
+/* Admin text language: mirror My Orders / Tracking hierarchy and status colours. */
+.phase3-stack,.phase3-section,.admin-page,.admin-dashboard{color:#333}
+.phase3-stack h1,.phase3-stack h2,.phase3-stack h3,.phase3-section h1,.phase3-section h2,.phase3-section h3,.admin-page h1,.admin-page h2,.admin-page h3{color:#222;letter-spacing:-.15px}
+.phase3-stack p,.phase3-section p,.admin-page p{color:#555;line-height:1.45}
+.phase3-stack .muted,.phase3-section .muted,.admin-page .muted{color:#888!important}
+.phase3-section-title h2,.phase3-section>.section-head h2{font-size:13px!important;font-weight:850!important}
+.phase3-section-title span,.phase3-section>.section-head span{color:#888!important;font-size:7px!important;font-weight:850!important;letter-spacing:.45px;text-transform:uppercase}
+.phase3-metric b,.admin-metric b{color:#222!important;font-size:17px!important;font-weight:850!important}
+.phase3-metric span,.admin-metric span{color:#888!important;font-size:7px!important;font-weight:850!important;letter-spacing:.5px}
+.phase3-metric small,.admin-metric small{color:#888!important;font-size:7px!important}
+.admin-category b,.admin-data-list .admin-row-main span{color:#333!important;font-size:10px!important;font-weight:850!important}
+.admin-category small,.admin-data-list .admin-row-main small{color:#888!important;font-size:8px!important}
+.admin-category .seller-badge,.phase3-status-pill{font-size:7px!important;font-weight:850!important;letter-spacing:.15px}
+.phase3-top-product>div b{color:#333!important;font-size:10px!important;font-weight:850!important}
+.phase3-top-product>div small{color:#888!important;font-size:7px!important}
+.phase3-top-product strong{color:#222!important;font-size:10px!important;font-weight:850!important}
+.phase3-alert-empty{color:#888!important;font-size:8px!important}
+.phase3-stack .empty.compact h2,.phase3-section .empty.compact h2{color:#333!important;font-size:13px!important;font-weight:850!important}
+.phase3-stack .empty.compact p,.phase3-section .empty.compact p{color:#888!important;font-size:8px!important}
+.phase3-actions button{font-size:8px!important;font-weight:800!important;color:#555!important}
+.admin-form label,.phase3-form label{color:#888!important;font-size:7px!important;font-weight:850!important;letter-spacing:.35px;text-transform:uppercase}
+.admin-form input,.admin-form textarea,.admin-form select,.phase3-form input,.phase3-form textarea,.phase3-form select{color:#444!important;font-size:9px!important}
