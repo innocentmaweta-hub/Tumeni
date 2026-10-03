@@ -5027,9 +5027,10 @@ button.review-hide-btn,button.view-reviews-btn{
 }
 
 /* My Cart — product price and review interaction */
-.cart-screen .cart-product-price{
+.cart-screen .cart-info > strong.cart-product-price{
   color:#ef322d!important;
-  font-weight:800;
+  -webkit-text-fill-color:#ef322d!important;
+  font-weight:800!important;
 }
 .cart-screen .cart-item{
   cursor:pointer;
