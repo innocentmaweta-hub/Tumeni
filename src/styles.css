@@ -1499,16 +1499,25 @@ h1,h2,h3{font-weight:700}
 
 
 
-/* Final homepage-red system: no deep-red branding. */
+/* Final button hierarchy: red is reserved for primary actions.
+   Secondary buttons keep the neutral treatment defined by .secondary above. */
 :root{--tm-home-red:#ef322d;--tm-home-red-hover:#d92a26;--tm-home-red-soft:#fff1ef}
 
-button.primary,button.secondary,.primary,.secondary,.detail button.primary,.detail button.secondary,.detail-cart-actions button,.explore-search button,.request-actions button,.form-actions button,.seller-toolbar button,.account-form button,.review-submit,.yaza-task-button,.yaza-composer button,.nw-order,.nw-price-row button{
+button.primary,.primary,.detail button.primary,.explore-search button,.review-submit,.yaza-task-button,.yaza-composer button,.nw-order,.nw-price-row button{
   background:var(--tm-home-red)!important;border-color:var(--tm-home-red)!important;color:#fff!important;
 }
-button.primary:hover,button.secondary:hover,.primary:hover,.secondary:hover,.detail button.primary:hover,.detail button.secondary:hover,.explore-search button:hover,.form-actions button:hover,.seller-toolbar button:hover,.account-form button:hover,.review-submit:hover,.yaza-composer button:hover,.nw-order:hover,.nw-price-row button:hover{
+button.primary:hover,.primary:hover,.detail button.primary:hover,.explore-search button:hover,.review-submit:hover,.yaza-task-button:hover,.yaza-composer button:hover,.nw-order:hover,.nw-price-row button:hover{
   background:var(--tm-home-red-hover)!important;border-color:var(--tm-home-red-hover)!important;
 }
-.detail-cart-actions .secondary,.form-actions .secondary,button.review-hide-btn,button.view-reviews-btn{
+
+/* Secondary actions must never inherit the primary red treatment. */
+button.secondary,.secondary,.detail button.secondary,.detail-cart-actions .secondary,.form-actions .secondary{
+  background:#fff!important;color:#444!important;border:1px solid #ddd!important;
+}
+button.secondary:hover,.secondary:hover,.detail button.secondary:hover,.detail-cart-actions .secondary:hover,.form-actions .secondary:hover{
+  background:#fafafa!important;color:#222!important;border-color:#cfcfcf!important;
+}
+button.review-hide-btn,button.view-reviews-btn{
   background:#fff!important;color:var(--tm-home-red)!important;border-color:#f0b9b6!important;
 }
 .detail .back-float,.detail .heart-float,.detail-gallery-arrow,.detail-image-dots button.active,.qty button,.star-picker button.selected,.detail-shop-link,button.view-reviews-btn,button.review-hide-btn{
