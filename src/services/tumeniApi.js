@@ -328,6 +328,14 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
   return order;
 }
 
+export async function getTaskQuote(request) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const cleanRequest = String(request || '').trim();
+  if (!cleanRequest) return { data: null, error: new Error('Enter the task request.') };
+  const { data, error } = await supabase.rpc('quote_task_request', { p_request: cleanRequest });
+  return { data: data || null, error };
+}
+
 export async function createTaskOrder({ customerId, description, addressId, fees, customerNotes = '' }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   if (!UUID_RE.test(customerId)) throw new Error('Invalid customer account ID. Please sign out and sign in again.');
