@@ -3805,3 +3805,207 @@ button.review-hide-btn,button.view-reviews-btn{
     flex-basis:52px;
   }
 }
+
+
+/* Yaza AI — final visual consistency pass */
+.yaza-page{
+  padding-bottom:30px;
+  background:linear-gradient(180deg,#fff8ef 0%,#fffdfb 52%,#fff8ef 100%)!important;
+}
+.yaza-page>.inner-head{
+  margin-bottom:10px;
+}
+.yaza-page .yaza-hero{
+  margin-bottom:12px;
+  padding:13px;
+  border-radius:16px;
+  border:1px solid #eadfd6;
+  background:linear-gradient(135deg,#fff,#fff1ea)!important;
+  box-shadow:0 4px 16px rgba(70,35,20,.07);
+}
+.yaza-page .yaza-avatar{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  background:#ef322d!important;
+  box-shadow:0 4px 10px #ef322d22;
+}
+.yaza-page .yaza-hero strong{
+  font-size:12px;
+  font-weight:850;
+  color:#202020;
+}
+.yaza-page .yaza-hero span{
+  font-size:8px;
+  color:#777;
+}
+.yaza-page .yaza-login-note{
+  margin-bottom:10px;
+  border-radius:11px;
+  border-color:#f1dfb5;
+  background:#fff8e7;
+  font-size:8px;
+  line-height:1.4;
+}
+.yaza-page .yaza-quick{
+  gap:7px;
+  padding:1px 0 10px;
+}
+.yaza-page .yaza-quick button{
+  padding:7px 10px;
+  border-color:#eadfd6;
+  background:#fff;
+  color:#555;
+  font-size:7.5px;
+  box-shadow:0 2px 7px #00000005;
+}
+.yaza-page .yaza-quick button:hover{
+  border-color:#efc9c6;
+  color:#ef322d;
+  background:#fffafa;
+}
+.yaza-page .yaza-messages{
+  min-height:250px;
+  gap:9px;
+  margin-bottom:11px;
+}
+.yaza-page .yaza-message>div{
+  padding:10px 12px;
+  border-radius:13px;
+  font-size:9.5px;
+  line-height:1.5;
+}
+.yaza-page .yaza-message.assistant>div{
+  background:#fff;
+  border-color:#eadfd6;
+  box-shadow:0 2px 9px #00000005;
+  border-top-left-radius:6px;
+}
+.yaza-page .yaza-message.user>div{
+  background:#ef322d!important;
+  box-shadow:0 3px 9px #ef322d1c;
+  border-top-right-radius:6px;
+}
+.yaza-page .yaza-results,
+.yaza-page .yaza-task{
+  margin-bottom:11px;
+  padding:12px;
+  border-radius:14px;
+  border-color:#eadfd6;
+  background:#fff;
+  box-shadow:0 4px 14px #00000007;
+}
+.yaza-page .yaza-results .section-head,
+.yaza-page .yaza-task .section-head{
+  margin-bottom:9px;
+}
+.yaza-page .yaza-results .section-head h2,
+.yaza-page .yaza-task .section-head h2{
+  font-size:11px;
+  font-weight:850;
+}
+.yaza-page .yaza-results .section-head>span,
+.yaza-page .yaza-task .section-head>span{
+  font-size:7.5px;
+  color:#888;
+}
+.yaza-page .yaza-product-list{
+  gap:8px;
+}
+.yaza-page .yaza-product{
+  padding:8px;
+  gap:9px;
+  border:1px solid #eee5df;
+  border-radius:11px;
+  background:#fff;
+}
+.yaza-page .yaza-product:hover{
+  border-color:#efd2cf;
+  background:#fffafa;
+}
+.yaza-page .yaza-product-image{
+  width:54px;
+  height:54px;
+  border-radius:9px;
+  overflow:hidden;
+  background:#f7f3f1;
+}
+.yaza-page .yaza-product b{
+  font-size:9px;
+  color:#222;
+}
+.yaza-page .yaza-product small{
+  font-size:7px;
+  color:#888;
+}
+.yaza-page .yaza-product strong{
+  font-size:9px;
+  color:#ef322d;
+}
+.yaza-page .yaza-product del{
+  font-size:7px;
+  color:#aaa;
+}
+.yaza-page .yaza-task p{
+  font-size:9px;
+  line-height:1.5;
+  color:#666;
+}
+.yaza-page .yaza-task small{
+  font-size:7.5px;
+  color:#777;
+}
+.yaza-page .yaza-task-button{
+  border-radius:10px!important;
+  box-shadow:0 4px 11px #ef322d1c;
+}
+.yaza-page .error{
+  margin-top:8px;
+  border-radius:10px;
+  font-size:8px;
+}
+.yaza-page .yaza-composer{
+  position:sticky;
+  bottom:0;
+  z-index:3;
+  display:flex;
+  align-items:flex-end;
+  gap:7px;
+  margin:0 -2px;
+  padding:9px 2px 3px;
+  background:#fff8ef!important;
+  border-top:1px solid #eadfd6!important;
+}
+.yaza-page .yaza-composer textarea{
+  min-height:42px;
+  max-height:90px;
+  padding:10px 11px;
+  border-radius:11px;
+  border-color:#eadfd6;
+  background:#fff;
+  font-size:9px;
+  box-shadow:0 2px 8px #00000005;
+}
+.yaza-page .yaza-send-button{
+  min-width:58px;
+  height:42px;
+  padding:0 10px;
+  border-radius:10px!important;
+  font-size:8px;
+  font-weight:800;
+}
+@media(max-width:430px){
+  .yaza-page{
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .yaza-page .yaza-hero{
+    padding:12px;
+  }
+  .yaza-page .yaza-messages{
+    min-height:230px;
+  }
+  .yaza-page .yaza-composer{
+    margin:0;
+  }
+}
