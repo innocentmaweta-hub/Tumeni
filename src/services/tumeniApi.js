@@ -1275,7 +1275,7 @@ export async function getTaskRequestDetails(orderId) {
 
   const { data: task, error: taskError } = await supabase
     .from('tasks')
-    .select('id,order_id,raw_request,ai_interpretation,created_at')
+    .select('id,order_id,raw_request,ai_interpretation,due_at,created_at')
     .eq('order_id', orderId)
     .maybeSingle();
   if (taskError) return { data: null, error: taskError };
