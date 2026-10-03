@@ -328,19 +328,22 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
   return order;
 }
 
-export async function createTaskOrder({ customerId, description, addressId, fees, customerNotes = '' }) {
+export async function getTaskQuote(request) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  const cleanRequest = String(request || '').trim();
+  if (!cleanRequest) return { data: null, error: new Error('Enter the task request.') };
+  const { data, error } = await supabase.rpc('quote_task_request', { p_request: cleanRequest });
+  return { data: data || null, error };
+}
+
+export async function createTaskOrder({ customerId, description, addressId, fees, customerNotes = '', locations = [], attachments = [], dueAt = null }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   if (!UUID_RE.test(customerId)) throw new Error('Invalid customer account ID. Please sign out and sign in again.');
   if (!String(description || '').trim()) throw new Error('Please describe the task you want Tumeni to handle.');
   if (addressId && !UUID_RE.test(addressId)) throw new Error('Invalid delivery address ID.');
 
   if (addressId) {
-    const { data: address, error: addressError } = await supabase
-      .from('addresses')
-      .select('id')
-      .eq('id', addressId)
-      .eq('customer_id', customerId)
-      .maybeSingle();
+    const { data: address, error: addressError } = await supabase.from('addresses').select('id').eq('id', addressId).eq('customer_id', customerId).maybeSingle();
     if (addressError) throw addressError;
     if (!address) throw new Error('The selected delivery address does not belong to your account.');
   }
@@ -351,32 +354,55 @@ export async function createTaskOrder({ customerId, description, addressId, fees
   const total = serviceFee + deliveryFee + handlingFee;
 
   const { data: order, error: orderError } = await supabase.from('orders').insert({
-    customer_id: customerId,
-    order_type: 'task',
-    status: 'pending_payment',
-    service_fee: serviceFee,
-    delivery_fee: deliveryFee,
-    handling_fee: handlingFee,
-    total,
-    delivery_address_id: addressId || null,
-    task_description: String(description).trim(),
+    customer_id: customerId, order_type: 'task', status: 'pending_payment',
+    service_fee: serviceFee, delivery_fee: deliveryFee, handling_fee: handlingFee, total,
+    delivery_address_id: addressId || null, task_description: String(description).trim(),
     customer_notes: String(customerNotes || '').trim() || null
   }).select().single();
-
   if (orderError) throw orderError;
 
-  const { error: taskError } = await supabase.from('tasks').insert({
-    order_id: order.id,
-    raw_request: String(description).trim()
-  });
+  try {
+    const { data: task, error: taskError } = await supabase.from('tasks').insert({
+      order_id: order.id, raw_request: String(description).trim(),
+      due_at: dueAt || null,
+      ai_interpretation: { locations: (locations || []).map((x, index) => ({
+        sequence: index + 1, type: x.type, address: x.address || null,
+        latitude: Number(x.lat), longitude: Number(x.lng)
+      })) }
+    }).select('id').single();
+    if (taskError) throw taskError;
 
-  if (taskError) {
+    if (locations?.length) {
+      const rows = locations.map((x, index) => ({
+        task_id: task.id, sequence: index + 1, location_type: x.type,
+        address: x.address || null, latitude: Number(x.lat), longitude: Number(x.lng)
+      }));
+      const { error } = await supabase.from('task_locations').insert(rows);
+      if (error) throw error;
+    }
+
+    for (let index = 0; index < (attachments || []).length; index++) {
+      const item = attachments[index];
+      if (!item?.file) continue;
+      const safeName = String(item.name || `attachment-${index + 1}`).replace(/[^a-zA-Z0-9._-]+/g, '_');
+      const path = `${customerId}/${order.id}/${Date.now()}-${index}-${safeName}`;
+      const { error: uploadError } = await supabase.storage.from('task-attachments').upload(path, item.file, {
+        contentType: item.file.type || undefined, upsert: false
+      });
+      if (uploadError) throw uploadError;
+      const { error: rowError } = await supabase.from('task_attachments').insert({
+        task_id: task.id, attachment_type: item.type === 'voice' ? 'voice' : 'image',
+        storage_path: path, file_name: safeName, mime_type: item.file.type || null,
+        file_size: Number(item.file.size || 0), sequence: index + 1
+      });
+      if (rowError) throw rowError;
+    }
+    return order;
+  } catch (error) {
     await supabase.from('orders').delete().eq('id', order.id).eq('customer_id', customerId);
-    throw taskError;
+    throw error;
   }
-  return order;
 }
-
 
 export async function getSellerVerificationCandidates() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
@@ -1243,14 +1269,65 @@ export async function cancelMyOrder({ orderId, note = '' }) {
   return supabase.rpc('customer_cancel_order', { p_order_id: orderId, p_note: note || null });
 }
 
+export async function getTaskRequestDetails(orderId) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  if (!orderId) return { data: null, error: new Error('Order ID is required.') };
+
+  const { data: task, error: taskError } = await supabase
+    .from('tasks')
+    .select('id,order_id,raw_request,ai_interpretation,due_at,created_at')
+    .eq('order_id', orderId)
+    .maybeSingle();
+  if (taskError) return { data: null, error: taskError };
+  if (!task) return { data: null, error: null };
+
+  const [locationsResult, attachmentsResult] = await Promise.all([
+    supabase.from('task_locations')
+      .select('id,sequence,location_type,address,latitude,longitude,created_at')
+      .eq('task_id', task.id)
+      .order('sequence'),
+    supabase.from('task_attachments')
+      .select('id,attachment_type,storage_path,file_name,mime_type,file_size,sequence,created_at')
+      .eq('task_id', task.id)
+      .order('sequence')
+  ]);
+  if (locationsResult.error) return { data: null, error: locationsResult.error };
+  if (attachmentsResult.error) return { data: null, error: attachmentsResult.error };
+
+  const attachments = [];
+  for (const item of attachmentsResult.data || []) {
+    const { data: signed, error } = await supabase.storage
+      .from('task-attachments')
+      .createSignedUrl(item.storage_path, 3600);
+    attachments.push({ ...item, url: error ? '' : (signed?.signedUrl || '') });
+  }
+
+  return {
+    data: {
+      ...task,
+      locations: locationsResult.data || [],
+      attachments
+    },
+    error: null
+  };
+}
+
 export async function getAdminOrderDetails(orderId) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   if (!orderId) return { data: null, error: new Error('Order ID is required.') };
-  const [itemsResult, historyResult] = await Promise.all([
+  const [itemsResult, historyResult, taskResult] = await Promise.all([
     supabase.from('order_items').select('id,product_id,product_name,unit_price,quantity,line_total,shop_id').eq('order_id', orderId).order('id'),
-    supabase.from('order_status_history').select('id,status,note,created_at').eq('order_id', orderId).order('created_at', { ascending: true })
+    supabase.from('order_status_history').select('id,status,note,created_at').eq('order_id', orderId).order('created_at', { ascending: true }),
+    getTaskRequestDetails(orderId)
   ]);
-  return { data: { items: itemsResult.error ? [] : (itemsResult.data || []), history: historyResult.error ? [] : (historyResult.data || []) }, error: null };
+  return {
+    data: {
+      items: itemsResult.error ? [] : (itemsResult.data || []),
+      history: historyResult.error ? [] : (historyResult.data || []),
+      task: taskResult.error ? null : taskResult.data
+    },
+    error: itemsResult.error || historyResult.error || taskResult.error || null
+  };
 }
 
 export async function getAdminUsers() {
@@ -1510,13 +1587,11 @@ export async function deleteMarketingCampaign(id) {
 export async function getActivePromotionalBanners() {
   if (!supabase) return { data: [], error: null };
 
-  // Fetch every active banner first. Date filtering is done in JavaScript so
-  // PostgREST's OR/date expression cannot accidentally reduce the carousel
-  // to a single row.
   const { data, error } = await supabase
     .from('promotional_banners')
     .select('*')
     .eq('active', true)
+    .eq('is_exclusive_offer', false)
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false });
 
@@ -1526,12 +1601,30 @@ export async function getActivePromotionalBanners() {
   const active = (data || []).filter(banner => {
     const startsAt = banner.starts_at ? new Date(banner.starts_at).getTime() : 0;
     const endsAt = banner.ends_at ? new Date(banner.ends_at).getTime() : null;
-    return Number.isFinite(startsAt)
-      && startsAt <= now
+    return Number.isFinite(startsAt) && startsAt <= now
       && (endsAt === null || (Number.isFinite(endsAt) && endsAt >= now));
   });
 
   return { data: active, error: null };
+}
+export async function getActiveExclusivePromotionalBanner() {
+  if (!supabase) return { data: null, error: null };
+  const { data, error } = await supabase
+    .from('promotional_banners')
+    .select('*')
+    .eq('active', true)
+    .eq('is_exclusive_offer', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) return { data: null, error };
+  if (!data) return { data: null, error: null };
+  const now = Date.now();
+  const startsAt = data.starts_at ? new Date(data.starts_at).getTime() : 0;
+  const endsAt = data.ends_at ? new Date(data.ends_at).getTime() : null;
+  const valid = Number.isFinite(startsAt) && startsAt <= now
+    && (endsAt === null || (Number.isFinite(endsAt) && endsAt >= now));
+  return { data: valid ? data : null, error: null };
 }
 export async function getAdminPromotionalBanners() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
@@ -1547,7 +1640,7 @@ export async function createPromotionalBanner(payload) {
     if (clearError) return { data:null, error:clearError };
   }
   return supabase.from('promotional_banners').insert({
-    title:String(payload.title).trim(), subtitle:String(payload.subtitle||'').trim()||null,
+    title:String(payload.title).trim(), subtitle:String(payload.subtitle||'').trim()||null, eyebrow:String(payload.eyebrow||'LIMITED TIME').trim()||'LIMITED TIME', exclusive_label:String(payload.exclusiveLabel||'EXCLUSIVE OFFER').trim()||'EXCLUSIVE OFFER',
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
     destination:String(payload.destination||'Explore').trim()||'Explore', product_id:payload.productId||null, shop_id:payload.shopId||null, starts_at:payload.startsAt||new Date().toISOString(),
     ends_at:payload.endsAt||null, active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true, created_by:user.id
@@ -1560,7 +1653,7 @@ export async function updatePromotionalBanner({id,...payload}) {
     if (clearError) return { data:null, error:clearError };
   }
   return supabase.from('promotional_banners').update({
-    title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null,
+    title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null, eyebrow:String(payload.eyebrow||'LIMITED TIME').trim()||'LIMITED TIME', exclusive_label:String(payload.exclusiveLabel||'EXCLUSIVE OFFER').trim()||'EXCLUSIVE OFFER',
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
     destination:String(payload.destination||'Explore').trim()||'Explore', product_id:payload.productId||null, shop_id:payload.shopId||null, starts_at:payload.startsAt||null, ends_at:payload.endsAt||null,
     active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true
