@@ -2481,3 +2481,23 @@ button.review-hide-btn,button.view-reviews-btn{
   flex:none;
   color:#777;
 }
+
+
+/* My Account Administration: restore the visible outer inset around the whole section while keeping rows continuous. */
+.profile-page .admin-groups{
+  margin-top:17px;
+  margin-left:11px;
+  margin-right:11px;
+}
+.profile-page .admin-groups .admin-group:first-of-type{
+  border-top:1px solid #eee;
+  border-left:1px solid #eee;
+  border-right:1px solid #eee;
+  border-radius:10px 10px 0 0;
+}
+.profile-page .admin-groups .admin-group:last-of-type{
+  border-left:1px solid #eee;
+  border-right:1px solid #eee;
+  border-bottom:1px solid #eee;
+  border-radius:0 0 10px 10px;
+}
