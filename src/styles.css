@@ -2547,3 +2547,30 @@ button.review-hide-btn,button.view-reviews-btn{
 .request-due label span{font-weight:700;font-size:14px}
 .request-due input{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid var(--border,#ddd);border-radius:9px;background:var(--surface,#fff);font:inherit}
 .request-due small{display:block;margin-top:7px;color:var(--muted,#777);font-size:12px}
+
+/* Subtle global container depth — slightly stronger shadows without changing layout. */
+:where(
+  .request-card,
+  .nw-feed-section,
+  .nw-feed-categories,
+  .nw-product-card,
+  .explore-suggestions,
+  .explore-filter-panel,
+  .explore-beauty-card,
+  .order-card,
+  .tracking-card,
+  .account-row,
+  .metric-card,
+  .phase3-section,
+  .admin-section,
+  .seller-card,
+  .pay-total,
+  .pay-option,
+  .saved-payment,
+  .status-card,
+  .review-card,
+  .shop-description,
+  .shop-summary
+){
+  box-shadow:0 4px 14px rgba(20,15,15,.07);
+}
