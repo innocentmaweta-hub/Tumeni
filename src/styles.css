@@ -2548,12 +2548,21 @@ button.review-hide-btn,button.view-reviews-btn{
 .request-due input{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid var(--border,#ddd);border-radius:9px;background:var(--surface,#fff);font:inherit}
 .request-due small{display:block;margin-top:7px;color:var(--muted,#777);font-size:12px}
 
-/* Homepage container depth — keep shadows limited to banners, product cards, categories and topbar. */
+/* Homepage container depth — apply shadows to the visible individual components. */
 .home-screen .topbar,
 .home-screen .nw-reference-hero,
 .home-screen .nw-reference-promo,
-.home-screen .nw-product-card,
-.home-screen .nw-reference-categories,
-.home-screen .nw-feed-categories{
+.home-screen .nw-product-card{
+  box-shadow:0 4px 14px rgba(20,15,15,.07);
+}
+
+/* Category shadow belongs to each category image, not the whole category row. */
+.home-screen .nw-cat img,
+.home-screen .nw-cat .nw-cat-avatar{
+  box-shadow:0 4px 14px rgba(20,15,15,.07);
+}
+
+/* Shop shadow belongs to each individual shop card, not the Popular Shops section. */
+.home-screen .nw-category-tile{
   box-shadow:0 4px 14px rgba(20,15,15,.07);
 }
