@@ -4970,3 +4970,35 @@ button.review-hide-btn,button.view-reviews-btn{
 .screen.content:not(.home-screen) .empty.loading-state h2{
   color:#555;
 }
+
+
+/* Final cross-page consistency — keep homepage styling untouched */
+.screen.content:not(.home-screen) button.primary,
+.screen.content:not(.home-screen) .primary{
+  border-radius:11px;
+  font-weight:850;
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
+}
+.screen.content:not(.home-screen) button.primary:not(:disabled):hover,
+.screen.content:not(.home-screen) .primary:not(:disabled):hover{
+  transform:translateY(-1px);
+}
+.screen.content:not(.home-screen) button.secondary,
+.screen.content:not(.home-screen) .secondary{
+  border-radius:10px;
+  font-weight:800;
+}
+.screen.content:not(.home-screen) input,
+.screen.content:not(.home-screen) textarea,
+.screen.content:not(.home-screen) select{
+  border-radius:10px;
+}
+.screen.content:not(.home-screen) .icon-btn{
+  border-radius:10px;
+}
+.screen.content:not(.home-screen) .section-head h2{
+  letter-spacing:-.15px;
+}
+.screen.content:not(.home-screen) .muted{
+  color:#888;
+}
