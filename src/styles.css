@@ -2319,3 +2319,73 @@ button.review-hide-btn,button.view-reviews-btn{
 .profile-page .admin-groups .admin-group:last-child .admin-group-items{
   border-bottom:0;
 }
+
+
+/* My Account Administration — align spacing, typography and icon treatment with the main account options. */
+.profile-page .admin-groups .admin-group-toggle,
+.profile-page .admin-groups .admin-group-items .seller-entry{
+  font-family:Arial,Helvetica,sans-serif;
+}
+.profile-page .admin-groups .admin-group-toggle{
+  min-height:52px;
+  padding:12px 11px;
+}
+.profile-page .admin-groups .admin-group-toggle>span{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.profile-page .admin-groups .admin-group-toggle>span>svg{
+  width:19px;
+  height:19px;
+  flex:none;
+  color:#555;
+}
+.profile-page .admin-groups .admin-group-toggle b{
+  font-size:10px;
+  line-height:1.2;
+}
+.profile-page .admin-groups .admin-group-toggle small{
+  margin-top:3px;
+  font-size:8px;
+  line-height:1.2;
+}
+.profile-page .admin-groups .admin-group-toggle>svg{
+  width:16px;
+  height:16px;
+  flex:none;
+  color:#777;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry{
+  min-height:50px;
+  padding:12px 11px 12px 40px;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span>svg{
+  width:17px;
+  height:17px;
+  flex:none;
+  color:#666;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span>div{
+  min-width:0;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry b{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:10px;
+  line-height:1.2;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry small{
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:8px;
+  line-height:1.25;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>svg{
+  width:16px;
+  height:16px;
+  flex:none;
+}
