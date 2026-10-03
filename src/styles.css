@@ -2219,41 +2219,103 @@ button.review-hide-btn,button.view-reviews-btn{
 }
 
 
-/* Administration option groups: one continuous My Account-style list */
-.admin-group{
-  margin:0 0 10px;
+/* Administration on My Account: use the same continuous settings-list language as My activity.
+   Scoped only to the Administration block; all other pages/components keep their existing styles. */
+.profile-page .admin-groups{
+  margin-top:20px;
+}
+.profile-page .admin-groups .admin-section-label{
+  margin:0 0 7px;
+}
+.profile-page .admin-groups .admin-group{
+  margin:0;
   border:0;
-  border-radius:10px;
+  border-radius:0;
+  background:#fff;
   box-shadow:none;
-  background:transparent;
-}
-.admin-group-toggle{
-  border:1px solid #eee;
-  border-radius:10px;
-  box-shadow:0 4px 12px rgba(0,0,0,.035);
-}
-.admin-group.open .admin-group-toggle{
-  border-bottom:1px solid #eee;
-  border-radius:10px 10px 0 0;
-}
-.admin-group-items{
-  padding:0;
-  border:1px solid #eee;
-  border-top:0;
-  border-radius:0 0 10px 10px;
-  box-shadow:0 4px 12px rgba(0,0,0,.035);
   overflow:hidden;
 }
-.admin-group-items .seller-entry,
-.admin-group-items .seller-entry.admin-entry{
+.profile-page .admin-groups .admin-group:first-of-type{
+  border-radius:10px 10px 0 0;
+}
+.profile-page .admin-groups .admin-group:last-of-type{
+  border-radius:0 0 10px 10px;
+}
+.profile-page .admin-groups .admin-group-toggle{
+  width:100%;
+  min-height:50px;
+  padding:12px 11px;
+  border:0;
   border-bottom:1px solid #eee;
   border-radius:0;
-  padding:12px 11px;
+  background:#fff;
+  box-shadow:none;
+}
+.profile-page .admin-groups .admin-group-toggle:hover{
+  background:#fafafa;
+}
+.profile-page .admin-groups .admin-group-toggle b{
+  font-size:10px;
+  font-weight:750;
+}
+.profile-page .admin-groups .admin-group-toggle small{
+  font-size:8px;
+  color:#777;
+  margin-top:3px;
+}
+.profile-page .admin-groups .admin-group-toggle svg{
+  color:#777;
+}
+.profile-page .admin-groups .admin-group.open .admin-group-toggle{
+  background:#fff;
+  border-bottom:1px solid #eee;
+  border-radius:0;
+}
+.profile-page .admin-groups .admin-group-items{
+  padding:0;
+  border:0;
+  border-bottom:1px solid #eee;
+  border-radius:0;
+  background:#fff;
+  box-shadow:none;
+  overflow:hidden;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry,
+.profile-page .admin-groups .admin-group-items .seller-entry.admin-entry{
+  width:100%;
   min-height:50px;
+  margin:0;
+  padding:12px 11px 12px 28px;
+  border:0;
+  border-bottom:1px solid #eee;
+  border-radius:0;
+  background:#fff;
+  box-shadow:none;
 }
-.admin-group-items .seller-entry:first-child{
-  border-top:0;
+.profile-page .admin-groups .admin-group-items .seller-entry:hover{
+  background:#fafafa;
 }
-.admin-group-items .seller-entry:last-child{
+.profile-page .admin-groups .admin-group-items .seller-entry:last-child{
+  border-bottom:0;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry b{
+  font-size:10px;
+  font-weight:750;
+  color:#222;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry small{
+  font-size:8px;
+  line-height:1.35;
+  color:#777;
+  margin-top:3px;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span{
+  gap:9px;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span>svg,
+.profile-page .admin-groups .admin-group-items .seller-entry>svg{
+  color:#777;
+}
+.profile-page .admin-groups .admin-group:last-child .admin-group-items{
   border-bottom:0;
 }
