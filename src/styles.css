@@ -2524,3 +2524,6 @@ button.review-hide-btn,button.view-reviews-btn{
   border-bottom:1px solid #eee;
   border-radius:0 0 10px 10px;
 }
+
+.request-actions label{display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;}
+.request-attachment{margin:8px 0;padding:9px 11px;border:1px solid #ececec;border-radius:10px;background:#fafafa;font-size:13px;color:#555;}
