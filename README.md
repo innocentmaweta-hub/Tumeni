@@ -43,3 +43,4 @@ AI should interpret customer task requests and return structured requirements. P
 <!-- Deployment trigger: harmless README refresh. -->
 <!-- Deployment trigger: keeps the main deployment pipeline active. -->
 <!-- Sync verification trigger: no application code change. -->
+<!-- Sync verification: token permission test. -->
