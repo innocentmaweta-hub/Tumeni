@@ -148,53 +148,40 @@ async function searchCatalog(supabase: any, query: string) {
   const rawQuery = String(query || "").trim();
   const budget = extractBudget(rawQuery);
 
-  // A request such as "products under MWK 20,000" is a valid catalog
-  // request even though it has no specific product keyword. In that case,
-  // search the catalog broadly and apply the budget locally.
+  // Normalize the user's request into optional product/category terms.
+  // Budget-only requests such as "products under MWK 20,000" intentionally
+  // produce an empty term so the whole available catalog can be checked.
   const normalizedQuery = cleanSearchText(
     rawQuery
       .replace(/(?:under|below|less than|up to|max(?:imum)?(?: of)?|within)\s*(?:mwk|mk|k)?\s*[0-9][0-9,]*(?:\.\d+)?/gi, "")
       .replace(/\b(?:products?|items?)\b/gi, "")
   );
+  const terms = normalizedQuery.split(/\s+/).filter(Boolean);
 
-  const { data, error } = await supabase.rpc("search_products_advanced", {
-    p_query: normalizedQuery,
-    p_limit: 100,
-    p_offset: 0,
-  });
+  // Read the live catalog directly first. This is deliberately deterministic:
+  // Yaza's product answers must not depend on the advanced-search RPC or on
+  // how that RPC ranks an empty/broad query.
+  const { data: directProducts, error: directError } = await supabase
+    .from("products")
+    .select("id,name,description,price,image_url,category_id,shop_id,available,created_at,shops(name),categories(name)")
+    .eq("available", true)
+    .order("created_at", { ascending: false })
+    .limit(200);
 
-  // Yaza must remain usable even if the optional advanced-search RPC is
-  // missing, stale in PostgREST's schema cache, or incompatible with an
-  // existing Tumeni database.
-  let catalog = data || [];
-  if (error || !catalog.length) {
-    console.error(error ? "Yaza advanced product search failed; using direct catalog fallback:" : "Yaza advanced product search returned no products; using direct catalog fallback:", error || "empty result");
-
-    const { data: fallbackProducts, error: fallbackError } = await supabase
-      .from("products")
-      .select("id,name,description,price,image_url,category_id,shop_id,available,created_at,shops(name),categories(name)")
-      .eq("available", true)
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (fallbackError) {
-      console.error("Yaza direct catalog fallback failed:", fallbackError.message);
-      return [];
-    }
-
-    const term = normalizedQuery.toLowerCase();
-    catalog = (fallbackProducts || [])
+  let catalog: any[] = [];
+  if (!directError) {
+    catalog = (directProducts || [])
       .filter((product: any) => {
-        const shop = product.shops?.name || "";
-        const category = product.categories?.name || "";
+        if (!terms.length) return true;
         const haystack = [
           product.name,
           product.description,
-          shop,
-          category,
-        ].map(value => String(value || "").toLowerCase());
-
-        return !term || haystack.some(value => value.includes(term));
+          product.shops?.name,
+          product.categories?.name,
+        ].join(" ").toLowerCase();
+        // Match all meaningful terms somewhere in the product's searchable
+        // text instead of requiring the entire multi-word query as one phrase.
+        return terms.every(term => haystack.includes(term));
       })
       .map((product: any) => ({
         id: product.id,
@@ -207,12 +194,25 @@ async function searchCatalog(supabase: any, query: string) {
         rating: 0,
         relevance: 0,
       }));
+  } else {
+    console.error("Yaza direct catalog search failed:", directError.message);
   }
 
-  return (catalog || [])
+  // If the direct read cannot run, retain the advanced-search RPC as a
+  // compatibility fallback for databases that expose it.
+  if (directError) {
+    const { data, error } = await supabase.rpc("search_products_advanced", {
+      p_query: normalizedQuery,
+      p_limit: 100,
+      p_offset: 0,
+    });
+    if (!error) catalog = data || [];
+    else console.error("Yaza advanced product search failed:", error.message);
+  }
+
+  return catalog
     .map((product: any) => {
       const price = Number(product.price || 0);
-      const withinBudget = budget === null ? null : price <= budget;
       return {
         id: product.id,
         name: product.name,
@@ -222,11 +222,15 @@ async function searchCatalog(supabase: any, query: string) {
         shop: product.shop || product.shops?.name || "admin product",
         category: product.category || product.categories?.name || null,
         rating: Number(product.rating || 0),
-        within_budget: withinBudget,
+        within_budget: budget === null ? null : price <= budget,
         score: Number(product.relevance || 0),
       };
     })
     .filter((product: any) => budget === null || product.within_budget)
+    .sort((a: any, b: any) => {
+      if (budget !== null) return a.price - b.price;
+      return Number(b.score || 0) - Number(a.score || 0);
+    })
     .slice(0, MAX_PRODUCTS);
 }
 function cleanMessages(input: unknown) {
