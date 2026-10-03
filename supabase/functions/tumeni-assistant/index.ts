@@ -61,9 +61,10 @@ function looksLikeProductRequest(text: string) {
   if (taskSignals.some(signal => lower.includes(signal))) return false;
 
   return [
-    "buy", "need", "looking for", "find me", "product", "charger",
-    "phone", "laptop", "food", "groceries", "shoes", "dress",
-    "electronics", "under mwk", "below mwk"
+    "buy", "need", "looking for", "find me", "show me", "list",
+    "products", "items", "product", "charger", "phone", "laptop",
+    "food", "groceries", "shoes", "dress", "electronics",
+    "under mwk", "below mwk", "less than mwk", "up to mwk"
   ].some(signal => lower.includes(signal));
 }
 
@@ -166,8 +167,8 @@ async function searchCatalog(supabase: any, query: string) {
   // missing, stale in PostgREST's schema cache, or incompatible with an
   // existing Tumeni database.
   let catalog = data || [];
-  if (error) {
-    console.error("Yaza advanced product search failed; using direct catalog fallback:", error);
+  if (error || !catalog.length) {
+    console.error(error ? "Yaza advanced product search failed; using direct catalog fallback:" : "Yaza advanced product search returned no products; using direct catalog fallback:", error || "empty result");
 
     const { data: fallbackProducts, error: fallbackError } = await supabase
       .from("products")
@@ -357,7 +358,7 @@ Deno.serve(async (req) => {
       "You are Yaza AI, the customer-facing AI assistant for Tumeni.",
       "Help users search Tumeni products, understand products, interpret task/service requests, explain Tumeni processes, answer customer questions, and make useful recommendations.",
       "When a user asks Tumeni to perform a task, identify the task itself, items involved, location, budget, urgency, and missing information. Do not treat a task request as a normal product purchase unless the user clearly wants to purchase an existing catalog product.",
-      "Do not claim that you searched the live catalog unless catalog data was explicitly supplied to you.",
+      "You have access to Tumeni's live customer-visible product catalog through the LIVE TUMENI CATALOG RESULTS supplied below. When results are supplied, say that you checked Tumeni's catalog and use those results directly. Never say that you do not have access to the live catalog when results are supplied.",
       "Do not invent product availability, prices, delivery fees, delivery times, order status, seller information, or policies.",
       "If the user asks for a purchase, payment, refund, transfer, wallet action, or any other financial action, explain that you can help them understand or prepare the request, but the actual financial action must go through Tumeni's normal confirmation and payment flow.",
       "Never ask for or expose passwords, payment PINs, card security codes, secret keys, or authentication tokens.",
