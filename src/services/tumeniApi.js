@@ -1587,13 +1587,11 @@ export async function deleteMarketingCampaign(id) {
 export async function getActivePromotionalBanners() {
   if (!supabase) return { data: [], error: null };
 
-  // Fetch every active banner first. Date filtering is done in JavaScript so
-  // PostgREST's OR/date expression cannot accidentally reduce the carousel
-  // to a single row.
   const { data, error } = await supabase
     .from('promotional_banners')
     .select('*')
     .eq('active', true)
+    .eq('is_exclusive_offer', false)
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false });
 
@@ -1603,12 +1601,30 @@ export async function getActivePromotionalBanners() {
   const active = (data || []).filter(banner => {
     const startsAt = banner.starts_at ? new Date(banner.starts_at).getTime() : 0;
     const endsAt = banner.ends_at ? new Date(banner.ends_at).getTime() : null;
-    return Number.isFinite(startsAt)
-      && startsAt <= now
+    return Number.isFinite(startsAt) && startsAt <= now
       && (endsAt === null || (Number.isFinite(endsAt) && endsAt >= now));
   });
 
   return { data: active, error: null };
+}
+export async function getActiveExclusivePromotionalBanner() {
+  if (!supabase) return { data: null, error: null };
+  const { data, error } = await supabase
+    .from('promotional_banners')
+    .select('*')
+    .eq('active', true)
+    .eq('is_exclusive_offer', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) return { data: null, error };
+  if (!data) return { data: null, error: null };
+  const now = Date.now();
+  const startsAt = data.starts_at ? new Date(data.starts_at).getTime() : 0;
+  const endsAt = data.ends_at ? new Date(data.ends_at).getTime() : null;
+  const valid = Number.isFinite(startsAt) && startsAt <= now
+    && (endsAt === null || (Number.isFinite(endsAt) && endsAt >= now));
+  return { data: valid ? data : null, error: null };
 }
 export async function getAdminPromotionalBanners() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
@@ -1624,7 +1640,7 @@ export async function createPromotionalBanner(payload) {
     if (clearError) return { data:null, error:clearError };
   }
   return supabase.from('promotional_banners').insert({
-    title:String(payload.title).trim(), subtitle:String(payload.subtitle||'').trim()||null,
+    title:String(payload.title).trim(), subtitle:String(payload.subtitle||'').trim()||null, eyebrow:String(payload.eyebrow||'LIMITED TIME').trim()||'LIMITED TIME', exclusive_label:String(payload.exclusiveLabel||'EXCLUSIVE OFFER').trim()||'EXCLUSIVE OFFER',
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
     destination:String(payload.destination||'Explore').trim()||'Explore', product_id:payload.productId||null, shop_id:payload.shopId||null, starts_at:payload.startsAt||new Date().toISOString(),
     ends_at:payload.endsAt||null, active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true, created_by:user.id
@@ -1637,7 +1653,7 @@ export async function updatePromotionalBanner({id,...payload}) {
     if (clearError) return { data:null, error:clearError };
   }
   return supabase.from('promotional_banners').update({
-    title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null,
+    title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null, eyebrow:String(payload.eyebrow||'LIMITED TIME').trim()||'LIMITED TIME', exclusive_label:String(payload.exclusiveLabel||'EXCLUSIVE OFFER').trim()||'EXCLUSIVE OFFER',
     image_url:String(payload.imageUrl||'').trim()||null, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
     destination:String(payload.destination||'Explore').trim()||'Explore', product_id:payload.productId||null, shop_id:payload.shopId||null, starts_at:payload.startsAt||null, ends_at:payload.endsAt||null,
     active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true
