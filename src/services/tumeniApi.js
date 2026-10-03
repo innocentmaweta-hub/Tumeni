@@ -277,13 +277,15 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
   const orderItems = items.map(item => {
     const product = productMap.get(item.product_id);
     const quantity = Math.floor(Number(item.quantity));
-    if (!product || product.available === false || (product.stock_quantity != null && Number.isFinite(Number(product.stock_quantity)) && Number(product.stock_quantity) <= 0)) {
+    if (!product || product.available === false) {
       throw new Error('One of the products in your cart is no longer available.');
     }
     if (!Number.isFinite(quantity) || quantity < 1) {
       throw new Error('Invalid product quantity.');
     }
-    if (Number.isFinite(Number(product.stock_quantity)) && quantity > Number(product.stock_quantity)) {
+    // Inventory is optional for existing Tumeni products. Only enforce a
+    // stock limit when a positive stock quantity has been explicitly set.
+    if (Number.isFinite(Number(product.stock_quantity)) && Number(product.stock_quantity) > 0 && quantity > Number(product.stock_quantity)) {
       throw new Error(`Not enough stock is available for ${product.name}.`);
     }
     return {
