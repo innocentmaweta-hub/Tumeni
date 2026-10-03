@@ -3624,3 +3624,40 @@ button.review-hide-btn,button.view-reviews-btn{
 .tracking-event-active .tracking-line{background:#efd9d7}
 .tracking-message-button{margin-top:11px}
 @media(max-width:430px){.tracking-page{padding-left:16px;padding-right:16px}.tracking-hero{padding:12px}.tracking-panel-head{padding:12px 13px}.tracking-message-button{margin-top:10px}}
+
+
+/* My Account — final visual consistency pass */
+.profile-page{background:linear-gradient(180deg,#fff 0%,#fffdfb 58%,#fff9f5 100%);padding-bottom:30px}
+.profile-page>.inner-head{padding-bottom:10px;border-bottom:1px solid #eee;margin-bottom:4px}
+.profile-head{margin:0 -2px;padding:15px 2px 18px}
+.profile-avatar{width:54px;height:54px;background:#fff1f0;color:#ef322d;border:1px solid #f2d6d4;box-shadow:0 3px 10px #00000008}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.profile-main b{font-size:13px;color:#202326}
+.profile-main small{font-size:8.5px;color:#7d8387}
+.profile-role{font-size:6.5px;padding:4px 7px}
+.profile-edit{border-color:#e8e8e8;border-radius:9px;padding:7px 10px;color:#333;background:#fff}
+.profile-section{margin-top:15px}
+.profile-section h3,.admin-section-label{font-size:8px;color:#888;letter-spacing:.65px;margin-bottom:7px}
+.profile-section .settings-list{border:1px solid #e9e9e9;border-radius:12px;background:#fff;box-shadow:0 3px 12px #00000006}
+.profile-section .settings-list button{padding:12px 12px}
+.settings-list button{border-bottom-color:#f0f0f0}
+.settings-list button>span{font-size:10px;gap:9px}
+.settings-list button>span svg{color:#ef322d}
+.settings-list button>svg{color:#999}
+.seller-entry{border-color:#f0dedd;background:#fff7f7;border-radius:12px;padding:12px;box-shadow:0 3px 12px #00000005;margin-bottom:0}
+.seller-entry>span{gap:9px}
+.seller-entry>span>svg,.seller-entry>span svg{color:#ef322d}
+.seller-entry b{font-size:10px}
+.seller-entry small{font-size:7.5px;color:#858585;margin-top:3px}
+.admin-groups{margin-top:2px}
+.admin-section-label{margin-top:18px}
+.admin-group{margin-top:7px;border-color:#e9e9e9;border-radius:12px;box-shadow:0 3px 12px #00000005}
+.admin-group-toggle{padding:12px;background:#fff}
+.admin-group-toggle b{font-size:10px}
+.admin-group-toggle small{font-size:7.5px}
+.admin-group.open .admin-group-toggle{background:#fff7f7}
+.admin-group-items{padding:7px;border-top-color:#f0e5e5}
+.admin-group-items .seller-entry{margin-bottom:6px;background:#fffafa;border-color:#f0e4e4;box-shadow:none}
+.profile-login-card{border:1px solid #f2dfc1;box-shadow:0 3px 12px #00000005}
+.profile-logout{border-radius:12px!important}
+@media(max-width:430px){.profile-page{padding-left:16px;padding-right:16px}.profile-head{padding-top:13px}.profile-section{margin-top:14px}.admin-section-label{margin-top:17px}}
