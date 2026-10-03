@@ -2789,3 +2789,150 @@ button.review-hide-btn,button.view-reviews-btn{
 }
 .search-results-grid{margin-top:0}
 .search-results-page .empty{padding:58px 20px}
+
+
+/* Search Results — polished Tumeni top section */
+.search-results-page .inner-head{
+  position:relative;
+  min-height:46px;
+  height:46px;
+  margin:0 -2px 12px;
+  padding:0 4px;
+  border:1px solid #f0e2e2;
+  border-radius:13px;
+  background:linear-gradient(135deg,#fff8f7 0%,#fff 72%);
+  box-shadow:0 3px 12px rgba(20,15,15,.055);
+}
+.search-results-page .inner-head::after{
+  content:'';
+  position:absolute;
+  right:14px;
+  top:9px;
+  width:42px;
+  height:28px;
+  border-radius:50%;
+  background:rgba(239,50,45,.055);
+  transform:rotate(-12deg);
+  pointer-events:none;
+}
+.search-results-page .inner-head h1{
+  position:relative;
+  z-index:1;
+  font-size:16px;
+  font-weight:850;
+  letter-spacing:-.15px;
+  color:#222;
+}
+.search-results-page .inner-head .icon-btn{
+  position:relative;
+  z-index:2;
+  width:32px;
+  height:32px;
+  border:1px solid #eadede;
+  background:#fff;
+  color:#444;
+  box-shadow:0 2px 7px rgba(20,15,15,.055);
+}
+.search-results-page .inner-head .icon-btn:hover{
+  border-color:#efc9c7;
+  color:#ef322d;
+  background:#fff8f7;
+}
+.search-results-page .search-results-search{
+  position:relative;
+  height:46px;
+  margin:0 0 15px;
+  padding:0 5px 0 13px;
+  border:1px solid #e7dada;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 4px 14px rgba(20,15,15,.07);
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.search-results-page .search-results-search:focus-within{
+  border-color:#efb8b5;
+  box-shadow:0 0 0 3px rgba(239,50,45,.07),0 5px 16px rgba(20,15,15,.075);
+}
+.search-results-page .search-results-search>svg{
+  color:#ef322d;
+  width:17px;
+  height:17px;
+}
+.search-results-page .search-results-search input{
+  font-size:10px;
+  font-weight:600;
+}
+.search-results-page .search-results-search input::placeholder{
+  color:#a08f8f;
+  font-weight:500;
+}
+.search-results-page .search-results-search button{
+  height:34px;
+  min-width:66px;
+  border-radius:9px;
+  background:#ef322d;
+  padding:0 12px;
+  font-size:9px;
+  font-weight:850;
+  box-shadow:0 3px 8px rgba(239,50,45,.16);
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+}
+.search-results-page .search-results-search button:hover{
+  filter:brightness(.98);
+  transform:translateY(-1px);
+  box-shadow:0 4px 11px rgba(239,50,45,.20);
+}
+.search-results-page .search-results-search button:active{
+  transform:translateY(0);
+}
+.search-results-page .search-results-heading{
+  position:relative;
+  margin:0 0 15px;
+  padding:12px 13px;
+  border:1px solid #f0e2e2;
+  border-radius:13px;
+  background:linear-gradient(180deg,#fffafa 0%,#fff 100%);
+  box-shadow:0 3px 11px rgba(20,15,15,.045);
+  align-items:center;
+}
+.search-results-page .search-results-heading::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:11px;
+  bottom:11px;
+  width:3px;
+  border-radius:4px;
+  background:#ef322d;
+}
+.search-results-page .search-results-heading>div{
+  min-width:0;
+  padding-left:4px;
+}
+.search-results-page .search-results-heading span{
+  font-size:8px;
+  letter-spacing:.7px;
+  color:#ef322d;
+  margin-bottom:4px;
+}
+.search-results-page .search-results-heading h2{
+  font-size:14px;
+  line-height:1.2;
+  font-weight:850;
+  letter-spacing:-.1px;
+  color:#252020;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.search-results-page .search-results-heading>strong{
+  padding:6px 8px;
+  border:1px solid #f0dddd;
+  border-radius:9px;
+  background:#fff;
+  color:#777;
+  font-size:8px;
+  font-weight:800;
+  white-space:nowrap;
+  box-shadow:0 2px 6px rgba(20,15,15,.035);
+}
