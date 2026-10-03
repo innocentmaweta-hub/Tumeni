@@ -4905,3 +4905,68 @@ button.review-hide-btn,button.view-reviews-btn{
     height:58px;
   }
 }
+
+
+/* Loading / Empty / Error states — final visual consistency pass */
+.screen.content:not(.home-screen) .empty{
+  margin:0;
+  padding:42px 18px;
+  border:1px dashed #e5dcd7;
+  border-radius:14px;
+  background:rgba(255,255,255,.82);
+  color:#444;
+  box-sizing:border-box;
+}
+.screen.content:not(.home-screen) .empty:not(.compact) h2{
+  margin:0 0 6px;
+  font-size:14px;
+  font-weight:850;
+  color:#292929;
+}
+.screen.content:not(.home-screen) .empty:not(.compact) p{
+  margin:0;
+  font-size:8.5px;
+  line-height:1.5;
+  color:#888;
+}
+.screen.content:not(.home-screen) .empty.compact{
+  padding:24px 14px;
+  background:#fffaf8;
+}
+.screen.content:not(.home-screen) .empty.compact h2{
+  margin:0 0 4px;
+  color:#333;
+  font-size:11px;
+  font-weight:850;
+}
+.screen.content:not(.home-screen) .empty.compact p{
+  margin:0;
+  color:#888;
+  font-size:8px;
+  line-height:1.45;
+}
+.screen.content:not(.home-screen) .error,
+.screen.content:not(.home-screen) .success{
+  padding:10px 11px;
+  border-radius:10px;
+  font-size:8.5px;
+  line-height:1.45;
+  box-shadow:0 3px 10px #00000005;
+}
+.screen.content:not(.home-screen) .error{
+  background:#fff4f4;
+  color:#b32626;
+  border-color:#efcaca;
+}
+.screen.content:not(.home-screen) .success{
+  background:#f1faf3;
+  color:#26743b;
+  border-color:#cde8d2;
+}
+.screen.content:not(.home-screen) .empty.loading-state{
+  border-style:solid;
+  background:#fff;
+}
+.screen.content:not(.home-screen) .empty.loading-state h2{
+  color:#555;
+}
