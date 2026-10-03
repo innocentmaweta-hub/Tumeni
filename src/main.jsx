@@ -183,6 +183,81 @@ function AdminCommandCenter({onBack,onPage}){
   </>}</div>
 }
 
+function AdminOrderConversation({order}){
+  const [messages,setMessages]=useState([]),[text,setText]=useState(''),[file,setFile]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[userId,setUserId]=useState('');
+
+  useEffect(()=>{if(supabase)void supabase.auth.getUser().then(({data})=>setUserId(data?.user?.id||''))},[]);
+
+  const load=async(silent=false)=>{
+    if(!silent)setLoading(true);
+    const r=await getOrderMessages(order.id);
+    if(r.error)setError(r.error.message||'Could not load conversation.');
+    else setMessages(r.data||[]);
+    setLoading(false);
+  };
+
+  useEffect(()=>{
+    void load();
+    const timer=setInterval(()=>void load(true),4000);
+    return()=>clearInterval(timer);
+  },[order.id]);
+
+  const send=async()=>{
+    if(!text.trim()&&!file)return;
+    setBusy(true);setError('');
+    try{
+      let attachment={url:'',name:''};
+      if(file)attachment=await uploadOrderAttachment(file,order.id);
+      const r=await sendOrderMessage({
+        orderId:order.id,
+        message:text,
+        attachmentUrl:attachment.url,
+        attachmentName:attachment.name
+      });
+      if(r.error)throw r.error;
+      setMessages(x=>[...x,r.data]);
+      setText('');
+      setFile(null);
+      const input=document.getElementById('admin-order-attachment-'+order.id);
+      if(input)input.value='';
+    }catch(e){setError(e.message||'Could not send reply.')}
+    finally{setBusy(false)}
+  };
+
+  return <div className="phase3-detail-wide admin-order-conversation">
+    <div className="admin-order-conversation-head">
+      <div><span>Customer conversation</span><small>Messages from the customer appear here. Tumeni replies are sent from this account.</small></div>
+      <button className="secondary" onClick={()=>load()} disabled={loading}>Refresh</button>
+    </div>
+    {error&&<div className="error">{error}</div>}
+    <div className="admin-message-list">
+      {loading?<div className="message-empty">Loading conversation…</div>:
+       !messages.length?<div className="message-empty"><b>No messages yet</b><span>The customer has not messaged Tumeni about this order.</span></div>:
+       messages.map(m=>{
+         const mine=m.sender_id===userId;
+         return <div className={'message-row '+(mine?'mine':'theirs')} key={m.id}>
+           <div className="message-bubble">
+             <div className="admin-message-sender">{mine?'Tumeni':(m.sender?.full_name||'Customer')}</div>
+             {m.message&&<p>{m.message}</p>}
+             {m.attachment_url&&<a href={m.attachment_url} target="_blank" rel="noreferrer" className="message-attachment"><Icon type="photo" size={16}/><span>{m.attachment_name||'View attachment'}</span></a>}
+             <time>{new Date(m.created_at).toLocaleString()}</time>
+           </div>
+         </div>
+       })}
+    </div>
+    <div className="admin-message-composer">
+      {file&&<div className="attachment-chip"><Icon type="photo" size={15}/><span>{file.name}</span><button onClick={()=>setFile(null)}>×</button></div>}
+      <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Reply to the customer…" maxLength={1000}/>
+      <div className="message-composer-actions">
+        <label className="secondary attach-button"><Icon type="photo" size={16}/> Attach
+          <input id={'admin-order-attachment-'+order.id} type="file" accept="image/*,.pdf,.doc,.docx" onChange={e=>setFile(e.target.files?.[0]||null)}/>
+        </label>
+        <button className="primary" disabled={busy||(!text.trim()&&!file)} onClick={send}>{busy?'Sending…':'Send reply'}</button>
+      </div>
+    </div>
+  </div>
+}
+
 function AdminOrderManagement({onBack}){
   const [orders,setOrders]=useState([]),[employees,setEmployees]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[query,setQuery]=useState(''),[status,setStatus]=useState('all'),[type,setType]=useState('all'),[selected,setSelected]=useState(null),[details,setDetails]=useState({}),[busy,setBusy]=useState('');
   const load=async()=>{setLoading(true);setError('');try{const [o,e]=await Promise.all([getAdminOrders(),getEmployees()]);if(o.error)throw o.error;if(e.error)throw e.error;setOrders(o.data||[]);setEmployees(e.data||[])}catch(e){setError(e.message||'Could not load orders.')}finally{setLoading(false)}};
@@ -193,7 +268,7 @@ function AdminOrderManagement({onBack}){
   const label=s=>({pending_payment:'Awaiting payment',paid:'Payment successful',assigned:'Assigned',preparing:'Preparing',shopping:'At pickup',picked_up:'Picked up',on_the_way:'On the way',delivered:'Delivered',cancelled:'Cancelled',failed:'Payment failed',returned:'Returned',disputed:'Disputed',refund_requested:'Refund requested',refunded:'Refunded'}[s]||String(s||'').replaceAll('_',' '));
   const filtered=useMemo(()=>orders.filter(o=>{const q=query.trim().toLowerCase();const text=[o.order_number,o.order_type,o.status,o.customer?.full_name,o.customer?.phone].join(' ').toLowerCase();return (!q||text.includes(q))&&(status==='all'||o.status===status)&&(type==='all'||o.order_type===type)}),[orders,query,status,type]);
   const statuses=Array.from(new Set(orders.map(o=>o.status).filter(Boolean)));
-  return <div className="screen content phase3-page"><Header title="Order Management" onBack={onBack} right={<button className="secondary" onClick={load}>Refresh</button>}/>{error&&<div className="error">{error}</div>}<div className="phase3-filter-card"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search order, customer or phone"/><div className="phase3-filters"><select value={status} onChange={e=>setStatus(e.target.value)}><option value="all">All statuses</option>{statuses.map(s=><option key={s} value={s}>{label(s)}</option>)}</select><select value={type} onChange={e=>setType(e.target.value)}><option value="all">All order types</option><option value="product">Product orders</option><option value="task">Task requests</option></select></div></div>{loading?<div className="empty"><h2>Loading orders…</h2></div>:<div className="phase3-order-list">{filtered.map(o=>{const d=details[o.id]||{};return <article className="phase3-admin-order" key={o.id}><div className="phase3-admin-order-head"><div><span>{o.order_type==='task'?'TASK REQUEST':'PRODUCT ORDER'}</span><b>{o.order_number}</b><small>{new Date(o.created_at).toLocaleString()}</small></div><strong>{money(o.total)}</strong></div><div className="phase3-admin-order-meta"><span className={'phase3-status-pill '+(o.status==='delivered'?'done':'')}>{label(o.status)}</span><span>{o.assignment_agent_id?'Assigned to '+(o.assignment_agent_name||'an agent'):'Unassigned'}</span></div><div className="phase3-admin-order-actions"><select value={o.assignment_agent_id||''} disabled={busy===o.id} onChange={e=>assign(o.id,e.target.value)}><option value="">Assign agent…</option>{employees.map(a=><option key={a.id} value={a.id}>{a.full_name||a.phone||'Agent'}</option>)}</select><button className="secondary" onClick={()=>openDetails(o.id)}>{selected===o.id?'Hide details':'View details'}</button></div>{selected===o.id&&<div className="phase3-order-details">{d.loading?<p className="muted">Loading details…</p>:d.error?<p className="error">{d.error}</p>:<><div className="phase3-detail-wide"><span>Change order status</span><select value="" disabled={busy.startsWith(o.id)} onChange={e=>changeStatus(o.id,e.target.value)}><option value="">Select next status…</option>{['paid','assigned','preparing','shopping','picked_up','on_the_way','delivered','cancelled','failed','returned','disputed','refund_requested','refunded'].map(s=><option key={s} value={s}>{label(s)}</option>)}</select><small className="muted">Every transition is added to the order timeline.</small></div><div><span>Customer</span><b>{o.customer?.full_name||'Customer'}</b></div><div><span>Phone</span><b>{o.customer?.phone||'Not provided'}</b></div><div><span>Delivery</span><b>{[o.delivery_address?.address_line,o.delivery_address?.area,o.delivery_address?.city].filter(Boolean).join(', ')||'Not provided'}</b></div><div><span>Agent</span><b>{o.assignment_agent_name||'Not assigned'}</b></div><div><span>Subtotal</span><b>{money(o.subtotal)}</b></div><div><span>Service + delivery</span><b>{money(Number(o.service_fee||0)+Number(o.delivery_fee||0)+Number(o.handling_fee||0))}</b></div>{o.task_description&&<div className="phase3-detail-wide"><span>Task request</span><b>{o.task_description}</b></div>}{o.customer_notes&&<div className="phase3-detail-wide"><span>Customer notes</span><b>{o.customer_notes}</b></div>}<div className="phase3-detail-wide"><span>Items</span>{d.items?.length?<div className="phase3-detail-items">{d.items.map(item=><div key={item.id}><span>{item.product_name} × {item.quantity}</span><b>{money(item.line_total)}</b></div>)}</div>:<b className="muted">No product line items.</b>}</div><div className="phase3-detail-wide"><span>Status history</span>{d.history?.length?<div className="phase3-history">{d.history.map(h=><div key={h.id}><b>{label(h.status)}</b><small>{new Date(h.created_at).toLocaleString()}{h.note?' · '+h.note:''}</small></div>)}</div>:<b className="muted">No status history available.</b>}</div></>}</div>}</article>})}{!filtered.length&&<div className="empty compact"><h2>No matching orders</h2><p>Try another search or filter.</p></div>}</div>}</div>
+  return <div className="screen content phase3-page"><Header title="Order Management" onBack={onBack} right={<button className="secondary" onClick={load}>Refresh</button>}/>{error&&<div className="error">{error}</div>}<div className="phase3-filter-card"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search order, customer or phone"/><div className="phase3-filters"><select value={status} onChange={e=>setStatus(e.target.value)}><option value="all">All statuses</option>{statuses.map(s=><option key={s} value={s}>{label(s)}</option>)}</select><select value={type} onChange={e=>setType(e.target.value)}><option value="all">All order types</option><option value="product">Product orders</option><option value="task">Task requests</option></select></div></div>{loading?<div className="empty"><h2>Loading orders…</h2></div>:<div className="phase3-order-list">{filtered.map(o=>{const d=details[o.id]||{};return <article className="phase3-admin-order" key={o.id}><div className="phase3-admin-order-head"><div><span>{o.order_type==='task'?'TASK REQUEST':'PRODUCT ORDER'}</span><b>{o.order_number}</b><small>{new Date(o.created_at).toLocaleString()}</small></div><strong>{money(o.total)}</strong></div><div className="phase3-admin-order-meta"><span className={'phase3-status-pill '+(o.status==='delivered'?'done':'')}>{label(o.status)}</span><span>{o.assignment_agent_id?'Assigned to '+(o.assignment_agent_name||'an agent'):'Unassigned'}</span></div><div className="phase3-admin-order-actions"><select value={o.assignment_agent_id||''} disabled={busy===o.id} onChange={e=>assign(o.id,e.target.value)}><option value="">Assign agent…</option>{employees.map(a=><option key={a.id} value={a.id}>{a.full_name||a.phone||'Agent'}</option>)}</select><button className="secondary" onClick={()=>openDetails(o.id)}>{selected===o.id?'Hide details':'View details'}</button></div>{selected===o.id&&<div className="phase3-order-details">{d.loading?<p className="muted">Loading details…</p>:d.error?<p className="error">{d.error}</p>:<><div className="phase3-detail-wide"><span>Change order status</span><select value="" disabled={busy.startsWith(o.id)} onChange={e=>changeStatus(o.id,e.target.value)}><option value="">Select next status…</option>{['paid','assigned','preparing','shopping','picked_up','on_the_way','delivered','cancelled','failed','returned','disputed','refund_requested','refunded'].map(s=><option key={s} value={s}>{label(s)}</option>)}</select><small className="muted">Every transition is added to the order timeline.</small></div><div><span>Customer</span><b>{o.customer?.full_name||'Customer'}</b></div><div><span>Phone</span><b>{o.customer?.phone||'Not provided'}</b></div><div><span>Delivery</span><b>{[o.delivery_address?.address_line,o.delivery_address?.area,o.delivery_address?.city].filter(Boolean).join(', ')||'Not provided'}</b></div><div><span>Agent</span><b>{o.assignment_agent_name||'Not assigned'}</b></div><div><span>Subtotal</span><b>{money(o.subtotal)}</b></div><div><span>Service + delivery</span><b>{money(Number(o.service_fee||0)+Number(o.delivery_fee||0)+Number(o.handling_fee||0))}</b></div>{o.task_description&&<div className="phase3-detail-wide"><span>Task request</span><b>{o.task_description}</b></div>}{o.customer_notes&&<div className="phase3-detail-wide"><span>Customer notes</span><b>{o.customer_notes}</b></div>}<AdminOrderConversation order={o}/><div className="phase3-detail-wide"><span>Items</span>{d.items?.length?<div className="phase3-detail-items">{d.items.map(item=><div key={item.id}><span>{item.product_name} × {item.quantity}</span><b>{money(item.line_total)}</b></div>)}</div>:<b className="muted">No product line items.</b>}</div><div className="phase3-detail-wide"><span>Status history</span>{d.history?.length?<div className="phase3-history">{d.history.map(h=><div key={h.id}><b>{label(h.status)}</b><small>{new Date(h.created_at).toLocaleString()}{h.note?' · '+h.note:''}</small></div>)}</div>:<b className="muted">No status history available.</b>}</div></>}</div>}</article>})}{!filtered.length&&<div className="empty compact"><h2>No matching orders</h2><p>Try another search or filter.</p></div>}</div>}</div>
 }
 
 function RefundDisputeCenter({onBack}){const [orders,setOrders]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[tab,setTab]=useState('refund'),[query,setQuery]=useState(''),[selected,setSelected]=useState(null);
