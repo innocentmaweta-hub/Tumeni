@@ -5002,3 +5002,6 @@ button.review-hide-btn,button.view-reviews-btn{
 .screen.content:not(.home-screen) .muted{
   color:#888;
 }
+
+/* Cart product amounts */
+.cart-screen .cart-info strong{color:#ef322d!important;}
