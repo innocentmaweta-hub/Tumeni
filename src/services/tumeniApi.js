@@ -9,7 +9,7 @@ export async function getProducts() {
   // must still load even when the optional image table relationship is absent.
   const { data: products, error } = await supabase
     .from('products')
-    .select('id,name,description,price,image_url,category_id,shop_id,shops(name),categories(name)')
+    .select('id,name,description,price,image_url,category_id,shop_id,shops(name,image_url),categories(name)')
     .eq('available', true)
     .order('created_at', { ascending: false });
 
