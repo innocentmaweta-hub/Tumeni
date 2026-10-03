@@ -2125,3 +2125,95 @@ button.review-hide-btn,button.view-reviews-btn{
 .phase3-actions button{font-size:8px!important;font-weight:800!important;color:#555!important}
 .admin-form label,.phase3-form label{color:#888!important;font-size:7px!important;font-weight:850!important;letter-spacing:.35px;text-transform:uppercase}
 .admin-form input,.admin-form textarea,.admin-form select,.phase3-form input,.phase3-form textarea,.phase3-form select{color:#444!important;font-size:9px!important}
+
+
+/* Administration — match the My Account section language */
+.admin-groups{
+  margin-top:20px;
+}
+.admin-section-label{
+  font-size:9px;
+  font-weight:750;
+  color:#777;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin:0 0 7px;
+}
+.admin-group{
+  margin:0 0 10px;
+  border:1px solid #eee;
+  border-radius:10px;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 4px 12px rgba(0,0,0,.035);
+}
+.admin-group-toggle{
+  min-height:50px;
+  padding:12px 11px;
+  background:#fff;
+  color:#222;
+}
+.admin-group-toggle>span{
+  display:block;
+  min-width:0;
+}
+.admin-group-toggle b{
+  font-size:10px;
+  font-weight:750;
+}
+.admin-group-toggle small{
+  font-size:8px;
+  color:#777;
+  margin-top:3px;
+}
+.admin-group-toggle svg{
+  color:#777;
+}
+.admin-group.open .admin-group-toggle{
+  background:#fff;
+  border-bottom:1px solid #eee;
+}
+.admin-group-items{
+  border-top:0;
+  padding:4px 10px 6px;
+  background:#fff;
+}
+.admin-group-items .seller-entry,
+.admin-group-items .seller-entry.admin-entry{
+  margin:0;
+  width:100%;
+  min-height:48px;
+  border:0;
+  border-bottom:1px solid #eee;
+  border-radius:0;
+  background:#fff;
+  padding:11px 2px;
+  box-shadow:none;
+}
+.admin-group-items .seller-entry:last-child{
+  border-bottom:0;
+}
+.admin-group-items .seller-entry:hover{
+  background:#fafafa;
+}
+.admin-group-items .seller-entry>span{
+  gap:9px;
+}
+.admin-group-items .seller-entry>span>svg{
+  color:#777;
+}
+.admin-group-items .seller-entry b{
+  font-size:10px;
+  font-weight:750;
+  color:#222;
+}
+.admin-group-items .seller-entry small{
+  font-size:8px;
+  line-height:1.35;
+  color:#777;
+  margin-top:3px;
+}
+.admin-group-items .seller-entry>svg{
+  color:#777;
+  flex:none;
+}
