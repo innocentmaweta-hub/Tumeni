@@ -2984,3 +2984,20 @@ button.review-hide-btn,button.view-reviews-btn{
   background:rgba(255,255,255,.92);
   box-shadow:0 2px 7px rgba(20,15,15,.10);
 }
+
+
+/* Explore product cards — keep the add-to-cart control compact and circular. */
+.explore-results-section .nw-price-row button{
+  flex:0 0 30px;
+  width:30px;
+  min-width:30px;
+  max-width:30px;
+  height:30px;
+  min-height:30px;
+  padding:0;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  line-height:1;
+  white-space:nowrap;
+}
