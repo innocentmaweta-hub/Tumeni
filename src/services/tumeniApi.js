@@ -1268,14 +1268,65 @@ export async function cancelMyOrder({ orderId, note = '' }) {
   return supabase.rpc('customer_cancel_order', { p_order_id: orderId, p_note: note || null });
 }
 
+export async function getTaskRequestDetails(orderId) {
+  if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
+  if (!orderId) return { data: null, error: new Error('Order ID is required.') };
+
+  const { data: task, error: taskError } = await supabase
+    .from('tasks')
+    .select('id,order_id,raw_request,ai_interpretation,created_at')
+    .eq('order_id', orderId)
+    .maybeSingle();
+  if (taskError) return { data: null, error: taskError };
+  if (!task) return { data: null, error: null };
+
+  const [locationsResult, attachmentsResult] = await Promise.all([
+    supabase.from('task_locations')
+      .select('id,sequence,location_type,address,latitude,longitude,created_at')
+      .eq('task_id', task.id)
+      .order('sequence'),
+    supabase.from('task_attachments')
+      .select('id,attachment_type,storage_path,file_name,mime_type,file_size,sequence,created_at')
+      .eq('task_id', task.id)
+      .order('sequence')
+  ]);
+  if (locationsResult.error) return { data: null, error: locationsResult.error };
+  if (attachmentsResult.error) return { data: null, error: attachmentsResult.error };
+
+  const attachments = [];
+  for (const item of attachmentsResult.data || []) {
+    const { data: signed, error } = await supabase.storage
+      .from('task-attachments')
+      .createSignedUrl(item.storage_path, 3600);
+    attachments.push({ ...item, url: error ? '' : (signed?.signedUrl || '') });
+  }
+
+  return {
+    data: {
+      ...task,
+      locations: locationsResult.data || [],
+      attachments
+    },
+    error: null
+  };
+}
+
 export async function getAdminOrderDetails(orderId) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   if (!orderId) return { data: null, error: new Error('Order ID is required.') };
-  const [itemsResult, historyResult] = await Promise.all([
+  const [itemsResult, historyResult, taskResult] = await Promise.all([
     supabase.from('order_items').select('id,product_id,product_name,unit_price,quantity,line_total,shop_id').eq('order_id', orderId).order('id'),
-    supabase.from('order_status_history').select('id,status,note,created_at').eq('order_id', orderId).order('created_at', { ascending: true })
+    supabase.from('order_status_history').select('id,status,note,created_at').eq('order_id', orderId).order('created_at', { ascending: true }),
+    getTaskRequestDetails(orderId)
   ]);
-  return { data: { items: itemsResult.error ? [] : (itemsResult.data || []), history: historyResult.error ? [] : (historyResult.data || []) }, error: null };
+  return {
+    data: {
+      items: itemsResult.error ? [] : (itemsResult.data || []),
+      history: historyResult.error ? [] : (historyResult.data || []),
+      task: taskResult.error ? null : taskResult.data
+    },
+    error: itemsResult.error || historyResult.error || taskResult.error || null
+  };
 }
 
 export async function getAdminUsers() {
