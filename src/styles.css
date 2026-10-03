@@ -4571,3 +4571,185 @@ button.review-hide-btn,button.view-reviews-btn{
     flex-basis:54px;
   }
 }
+
+
+/* Admin Center — final visual consistency pass */
+.admin-command-page{
+  padding-bottom:30px;
+  background:linear-gradient(180deg,#fff8ef 0%,#fffdfb 52%,#fff8ef 100%)!important;
+}
+.admin-command-page>.inner-head{
+  margin-bottom:10px;
+}
+.admin-command-page>.phase3-metrics{
+  gap:8px;
+  margin-bottom:11px;
+}
+.admin-command-page>.phase3-metrics .phase3-metric{
+  padding:11px;
+  border:1px solid #eadfd6;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 3px 11px #00000006;
+}
+.admin-command-page>.phase3-metrics .phase3-metric b{
+  font-size:17px!important;
+  color:#222!important;
+}
+.admin-command-page>.phase3-metrics .phase3-metric span{
+  font-size:7px!important;
+  color:#888!important;
+}
+.admin-command-page>.phase3-metrics .phase3-metric small{
+  font-size:6.5px!important;
+  color:#888!important;
+}
+.admin-command-page>.phase3-section{
+  margin-bottom:11px;
+  padding:13px;
+  border:1px solid #eadfd6;
+  border-radius:15px;
+  background:#fff;
+  box-shadow:0 4px 14px #00000007;
+}
+.admin-command-page>.phase3-section .phase3-section-title,
+.admin-command-page>.phase3-section>.section-head{
+  margin-bottom:9px;
+}
+.admin-command-page>.phase3-section-title b,
+.admin-command-page>.phase3-section .phase3-section-title b{
+  font-size:11px;
+  font-weight:850;
+  color:#252525;
+}
+.admin-command-page>.phase3-section .section-head h2{
+  font-size:11px!important;
+  font-weight:850!important;
+  color:#252525;
+}
+.admin-command-page>.phase3-section .section-head button{
+  padding:6px 9px;
+  border:1px solid #eadfd6;
+  border-radius:9px;
+  background:#fff;
+  color:#ef322d;
+  font-size:7.5px;
+  font-weight:850;
+}
+.admin-command-page .phase3-status-grid{
+  gap:7px;
+}
+.admin-command-page .phase3-status{
+  min-height:55px;
+  padding:9px 8px;
+  border:1px solid #eee3df;
+  border-radius:11px;
+  background:#fffaf8;
+  box-shadow:none;
+}
+.admin-command-page .phase3-status b{
+  font-size:15px;
+  color:#222;
+}
+.admin-command-page .phase3-status span{
+  margin-top:4px;
+  font-size:6.8px;
+  line-height:1.25;
+  color:#888;
+}
+.admin-command-page .phase3-alerts{
+  background:#fff;
+}
+.admin-command-page .phase3-alert{
+  margin-top:7px;
+  padding:9px 10px;
+  border-radius:10px;
+  background:#fffaf8;
+  border-color:#eee3df;
+}
+.admin-command-page .phase3-alert b{
+  font-size:8.5px;
+  color:#333;
+}
+.admin-command-page .phase3-alert span{
+  font-size:7.5px;
+  line-height:1.4;
+  color:#777;
+}
+.admin-command-page .phase3-alert.warning{
+  background:#fff9ed;
+  border-color:#f0dfbd;
+}
+.admin-command-page .phase3-alert.attention{
+  background:#fff6f5;
+  border-color:#f0d9d6;
+}
+.admin-command-page .phase3-alert-empty{
+  padding:10px;
+  border:1px dashed #e2d8d3;
+  border-radius:10px;
+  background:#fffaf8;
+  color:#888;
+  font-size:8px;
+}
+.admin-command-page .phase3-actions{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+}
+.admin-command-page .phase3-actions button{
+  min-height:39px;
+  padding:8px 9px;
+  border:1px solid #eadfd6;
+  border-radius:10px;
+  background:#fffaf8;
+  color:#444!important;
+  font-size:8px!important;
+  font-weight:800!important;
+  text-align:left;
+}
+.admin-command-page .phase3-actions button:hover{
+  border-color:#efc9c6;
+  background:#fff;
+  color:#ef322d!important;
+}
+.admin-command-page .phase3-order-list{
+  gap:6px;
+}
+.admin-command-page .phase3-order-row{
+  padding:9px;
+  border:1px solid #eee3df;
+  border-radius:11px;
+  background:#fff;
+}
+.admin-command-page .phase3-order-row b{
+  font-size:8.5px;
+  color:#333;
+}
+.admin-command-page .phase3-order-row small{
+  font-size:6.8px;
+  color:#888;
+}
+.admin-command-page .phase3-order-row span{
+  font-size:7px;
+  color:#777;
+}
+.admin-command-page .phase3-order-row strong{
+  font-size:8.5px;
+  color:#ef322d;
+}
+@media(max-width:430px){
+  .admin-command-page{
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .admin-command-page>.phase3-metrics{
+    gap:7px;
+  }
+  .admin-command-page>.phase3-section{
+    padding:12px;
+  }
+  .admin-command-page .phase3-actions{
+    gap:6px;
+  }
+}
