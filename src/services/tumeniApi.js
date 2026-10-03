@@ -336,7 +336,7 @@ export async function getTaskQuote(request) {
   return { data: data || null, error };
 }
 
-export async function createTaskOrder({ customerId, description, addressId, fees, customerNotes = '', locations = [], attachments = [] }) {
+export async function createTaskOrder({ customerId, description, addressId, fees, customerNotes = '', locations = [], attachments = [], dueAt = null }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   if (!UUID_RE.test(customerId)) throw new Error('Invalid customer account ID. Please sign out and sign in again.');
   if (!String(description || '').trim()) throw new Error('Please describe the task you want Tumeni to handle.');
@@ -364,6 +364,7 @@ export async function createTaskOrder({ customerId, description, addressId, fees
   try {
     const { data: task, error: taskError } = await supabase.from('tasks').insert({
       order_id: order.id, raw_request: String(description).trim(),
+      due_at: dueAt || null,
       ai_interpretation: { locations: (locations || []).map((x, index) => ({
         sequence: index + 1, type: x.type, address: x.address || null,
         latitude: Number(x.lat), longitude: Number(x.lng)
