@@ -1,0 +1,37 @@
+name: Universal Web Sync
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Push to destination repository
+        env:
+          GH_TOKEN: ${{ secrets.DESTINATION_GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config user.name "GitHub Actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git remote remove destination 2>/dev/null || true
+          git remote add destination "https://x-access-token:${GH_TOKEN}@github.com/innomaweta1-cmd/tumeni.git"
+
+          echo "Pushing all branches..."
+          git push destination --all --force
+
+          echo "Pushing tags..."
+          git push destination --tags --force
+
+          echo "SYNC COMPLETED SUCCESSFULLY"
