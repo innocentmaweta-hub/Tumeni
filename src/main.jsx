@@ -212,7 +212,7 @@ function AdminCommandCenter({onBack,onPage}){
   </>}</div>
 }
 
-function AdminOrderConversation({order}){
+function AdminOrderConversation({order,onBack}){
   const [messages,setMessages]=useState([]),[text,setText]=useState(''),[file,setFile]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[userId,setUserId]=useState('');
 
   useEffect(()=>{if(supabase)void supabase.auth.getUser().then(({data})=>setUserId(data?.user?.id||''))},[]);
@@ -253,7 +253,10 @@ function AdminOrderConversation({order}){
     finally{setBusy(false)}
   };
 
-  return <div className="phase3-detail-wide admin-order-conversation">
+  return <div className="screen content admin-order-conversation-page">
+    <Header title="Customer conversation" onBack={onBack}/>
+    <div className="admin-conversation-context"><span>ORDER</span><b>{order.order_number}</b><small>{order.customer?.full_name||'Customer'} · {order.order_type==='task'?'Task request':'Product order'}</small></div>
+    <div className="admin-order-conversation">
     <div className="admin-order-conversation-head">
       <div><span>Customer conversation</span><small>Messages from the customer appear here. Tumeni replies are sent from this account.</small></div>
       <button className="secondary" onClick={()=>load()} disabled={loading}>Refresh</button>
@@ -283,6 +286,7 @@ function AdminOrderConversation({order}){
         </label>
         <button className="primary" disabled={busy||(!text.trim()&&!file)} onClick={send}>{busy?'Sending…':'Send reply'}</button>
       </div>
+    </div>
     </div>
   </div>
 }
