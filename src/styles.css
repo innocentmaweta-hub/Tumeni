@@ -5352,3 +5352,168 @@ button.review-hide-btn,button.view-reviews-btn{
   .admin-message-list{min-height:240px}
   .message-bubble{max-width:88%}
 }
+
+
+/* My Account — Administration hubs */
+.profile-page .admin-hub-grid{
+  display:grid;
+  gap:8px;
+}
+.profile-page .admin-hub-entry{
+  width:100%;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:12px;
+  border:1px solid #f0dedd;
+  border-radius:12px;
+  background:#fff7f7;
+  color:#222;
+  box-shadow:0 3px 12px #00000005;
+  text-align:left;
+}
+.profile-page .admin-hub-entry:hover{
+  background:#fff4f3;
+  border-color:#efc9c6;
+}
+.profile-page .admin-hub-entry>span:nth-child(2){
+  min-width:0;
+  flex:1;
+  display:block;
+}
+.profile-page .admin-hub-entry-icon{
+  width:19px;
+  height:19px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  color:#ef322d;
+}
+.profile-page .admin-hub-entry b{
+  display:block;
+  font-size:10px;
+  line-height:1.2;
+  font-weight:750;
+}
+.profile-page .admin-hub-entry small{
+  display:block;
+  margin-top:3px;
+  font-size:7.5px;
+  line-height:1.3;
+  color:#858585;
+}
+.profile-page .admin-hub-entry>svg{
+  flex:none;
+  color:#777;
+}
+
+.admin-hub-page{
+  min-height:100%;
+  padding-bottom:30px;
+  background:linear-gradient(180deg,#fff8ef 0%,#fffdfb 54%,#fff8ef 100%);
+}
+.admin-hub-page>.inner-head{
+  margin-bottom:10px;
+}
+.admin-hub-intro{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:11px;
+  padding:12px;
+  border:1px solid #f0dedd;
+  border-radius:13px;
+  background:#fff7f7;
+  box-shadow:0 3px 12px #00000005;
+}
+.admin-hub-icon{
+  width:38px;
+  height:38px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:#fff0ef;
+  color:#ef322d;
+}
+.admin-hub-intro>div:last-child{
+  min-width:0;
+}
+.admin-hub-intro b{
+  display:block;
+  font-size:11px;
+  line-height:1.2;
+  font-weight:850;
+  color:#252525;
+}
+.admin-hub-intro span{
+  display:block;
+  margin-top:3px;
+  font-size:7.5px;
+  line-height:1.4;
+  color:#858585;
+}
+.admin-hub-list{
+  display:grid;
+  gap:8px;
+}
+.admin-hub-card{
+  width:100%;
+  min-height:56px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:11px 12px;
+  border:1px solid #eadfd6;
+  border-radius:12px;
+  background:#fff;
+  color:#222;
+  box-shadow:0 3px 12px #00000005;
+  text-align:left;
+}
+.admin-hub-card:hover{
+  border-color:#efc9c6;
+  background:#fffafa;
+}
+.admin-hub-card-icon{
+  width:34px;
+  height:34px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#fff1f0;
+  color:#ef322d;
+}
+.admin-hub-card-copy{
+  min-width:0;
+  flex:1;
+}
+.admin-hub-card-copy b{
+  display:block;
+  font-size:9.5px;
+  line-height:1.2;
+  font-weight:850;
+  color:#292929;
+}
+.admin-hub-card-copy small{
+  display:block;
+  margin-top:3px;
+  font-size:7px;
+  line-height:1.4;
+  color:#888;
+}
+.admin-hub-card>svg{
+  flex:none;
+  color:#777;
+}
+@media(max-width:430px){
+  .admin-hub-page{
+    padding-left:16px;
+    padding-right:16px;
+  }
+  .profile-page .admin-hub-entry{
+    padding:11px;
+  }
+}
