@@ -281,6 +281,14 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
+    // Keep customer authentication for the assistant itself, but use the
+    // service role for the live catalog so RLS on seller/customer data cannot
+    // accidentally make Yaza see an empty catalog.
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const catalogSupabase = serviceRoleKey
+      ? createClient(supabaseUrl, serviceRoleKey)
+      : supabase;
+
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData?.user) {
       return json({ error: "Your session is invalid or expired." }, 401);
@@ -292,7 +300,7 @@ Deno.serve(async (req) => {
       const query = String(body?.query || "").trim();
       if (!query) return json({ error: "Enter a product search." }, 400);
 
-      const products = await searchCatalog(supabase, query);
+      const products = await searchCatalog(catalogSupabase, query);
       return json({
         assistant_name: "Yaza AI",
         action: "search_products",
@@ -335,7 +343,7 @@ Deno.serve(async (req) => {
 
     let catalogProducts: any[] = [];
     if (body?.include_catalog !== false && looksLikeProductRequest(latestUserMessage)) {
-      catalogProducts = await searchCatalog(supabase, latestUserMessage);
+      catalogProducts = await searchCatalog(catalogSupabase, latestUserMessage);
     }
 
     const customerContextText = [
