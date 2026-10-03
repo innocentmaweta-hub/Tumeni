@@ -3649,18 +3649,130 @@ button.review-hide-btn,button.view-reviews-btn{
 .seller-entry>span>svg,.seller-entry>span svg{color:#ef322d}
 .seller-entry b{font-size:10px}
 .seller-entry small{font-size:7.5px;color:#858585;margin-top:3px}
-.admin-groups{margin-top:2px}
-.admin-section-label{margin-top:18px}
-.admin-group{margin-top:7px;border-color:#e9e9e9;border-radius:12px;box-shadow:0 3px 12px #00000005}
-.admin-group-toggle{padding:12px;background:#fff}
-.admin-group-toggle b{font-size:10px}
-.admin-group-toggle small{font-size:7.5px}
-.admin-group.open .admin-group-toggle{background:#fff7f7}
-.admin-group-items{padding:7px;border-top-color:#f0e5e5}
-.admin-group-items .seller-entry{margin-bottom:6px;background:#fffafa;border-color:#f0e4e4;box-shadow:none}
-.profile-login-card{border:1px solid #f2dfc1;box-shadow:0 3px 12px #00000005}
-.profile-logout{border-radius:12px!important}
-@media(max-width:430px){.profile-page{padding-left:16px;padding-right:16px}.profile-head{padding-top:13px}.profile-section{margin-top:14px}.admin-section-label{margin-top:17px}}
+
+/* Administration intentionally mirrors the Seller section appearance.
+   Only the Administration container/group rows are changed; functionality is untouched. */
+.profile-page .admin-groups{
+  margin-top:15px;
+}
+.profile-page .admin-groups .admin-section-label{
+  font-size:8px;
+  color:#888;
+  letter-spacing:.65px;
+  margin:0 0 7px;
+}
+.profile-page .admin-groups .admin-group{
+  margin:0 0 8px;
+  border:0;
+  border-radius:0;
+  overflow:visible;
+  background:transparent;
+  box-shadow:none;
+}
+.profile-page .admin-groups .admin-group-toggle{
+  width:100%;
+  min-height:0;
+  border:1px solid #f0dedd;
+  border-radius:12px;
+  background:#fff7f7;
+  box-shadow:0 3px 12px #00000005;
+  padding:12px;
+  color:#222;
+  text-align:left;
+}
+.profile-page .admin-groups .admin-group-toggle>span{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+}
+.profile-page .admin-groups .admin-group-toggle>span>svg{
+  width:19px;
+  height:19px;
+  flex:none;
+  color:#ef322d;
+}
+.profile-page .admin-groups .admin-group-toggle>span>span{
+  min-width:0;
+  display:block;
+}
+.profile-page .admin-groups .admin-group-toggle b{
+  display:block;
+  font-size:10px;
+  line-height:normal;
+  font-weight:750;
+}
+.profile-page .admin-groups .admin-group-toggle small{
+  display:block;
+  font-size:7.5px;
+  line-height:normal;
+  color:#858585;
+  margin-top:3px;
+}
+.profile-page .admin-groups .admin-group-toggle>svg{
+  width:18px;
+  height:18px;
+  flex:none;
+  color:#777;
+}
+.profile-page .admin-groups .admin-group.open .admin-group-toggle{
+  background:#fff7f7;
+  border-bottom-left-radius:12px;
+  border-bottom-right-radius:12px;
+}
+.profile-page .admin-groups .admin-group-items{
+  margin-top:5px;
+  padding:0;
+  border:0;
+  background:transparent;
+  overflow:visible;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry,
+.profile-page .admin-groups .admin-group-items .seller-entry.admin-entry{
+  width:100%;
+  min-height:0;
+  margin:0 0 6px;
+  padding:12px;
+  border:1px solid #f0dedd;
+  border-radius:12px;
+  background:#fff7f7;
+  box-shadow:3px 3px 12px #00000005;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry:last-child{
+  margin-bottom:0;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span>svg{
+  width:19px;
+  height:19px;
+  flex:none;
+  color:#ef322d;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry b{
+  font-size:10px;
+  line-height:normal;
+  font-weight:750;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry small{
+  font-size:7.5px;
+  line-height:1.25;
+  color:#858585;
+  margin-top:3px;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>svg{
+  width:18px;
+  height:18px;
+  flex:none;
+  color:#777;
+}
+.profile-page .admin-groups .admin-group-toggle:hover,
+.profile-page .admin-groups .admin-group-items .seller-entry:hover{
+  background:#fff7f7;
+}
 
 
 /* Shop / All Shops — final visual consistency pass */
