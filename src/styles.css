@@ -19,7 +19,7 @@ body{background:#f7b400}button,input,textarea{font:inherit}button{cursor:pointer
 .secondary:hover{background:#fafafa;border-color:#cfcfcf;color:#222;box-shadow:0 3px 10px #0000000b;transform:translateY(-1px)}
 .secondary:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
 .yaza-send-button{min-width:72px}
-.nw-reference-promo .nw-order.small{background:#fff;color:#ef322d;border:1px solid #ef322d}
+.nw-reference-promo .nw-order.small{background:#fff;color:#ef322d;border:1px solid #ef322d;border-radius:8px}
 .nw-reference-promo .nw-order.small span{display:inline-flex;background:#ef322d;color:#fff;border-radius:50%;width:20px;height:20px;align-items:center;justify-content:center;margin-left:5px}
 .nw-reference-promo .nw-order.small:hover{background:#fff7f7}
 .check-row{display:flex;align-items:center;gap:7px;font-size:9px}.check-row input{width:auto}
