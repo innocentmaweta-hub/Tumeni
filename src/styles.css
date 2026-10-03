@@ -2936,3 +2936,51 @@ button.review-hide-btn,button.view-reviews-btn{
   white-space:nowrap;
   box-shadow:0 2px 6px rgba(20,15,15,.035);
 }
+
+
+/* Explore refinements — slightly smaller categories and cleaner product presentation. */
+.explore-category{
+  flex-basis:60px;
+  width:60px;
+}
+.explore-category-image{
+  width:56px;
+  height:56px;
+  margin-bottom:6px;
+}
+.explore-category b{
+  font-size:9px;
+}
+
+/* Give Explore product cards a refined surface instead of a bare image/text stack. */
+.explore-grid .card{
+  padding:0 0 8px;
+  border:1px solid #eee4e4;
+  border-radius:12px;
+  background:#fff;
+  overflow:hidden;
+  box-shadow:0 3px 11px rgba(20,15,15,.055);
+}
+.explore-grid .card .photo{
+  height:113px;
+  border-radius:11px 11px 0 0;
+}
+.explore-grid .card .product-row{
+  padding-left:9px;
+  padding-right:9px;
+}
+.explore-grid .card .product-row:first-of-type{
+  margin-top:7px;
+}
+.explore-grid .card .product-bottom{
+  margin-top:2px;
+}
+.explore-grid .card .heart{
+  right:7px;
+  top:7px;
+  width:27px;
+  height:27px;
+  border-radius:50%;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 2px 7px rgba(20,15,15,.10);
+}
