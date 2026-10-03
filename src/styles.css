@@ -5150,3 +5150,205 @@ button.review-hide-btn,button.view-reviews-btn{
 .cart-screen .cart-item:active{
   transform:scale(.995);
 }
+
+
+/* Admin Order Management — dedicated customer conversation */
+.admin-order-conversation-page{
+  background:linear-gradient(180deg,#fff 0%,#fffafa 100%);
+  padding-bottom:28px;
+}
+.admin-order-conversation-page>.inner-head{
+  padding-bottom:11px;
+  margin-bottom:10px;
+  border-bottom:1px solid #eeeeee;
+}
+.admin-conversation-context{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  margin-bottom:12px;
+  padding:11px 12px;
+  border:1px solid #f0dede;
+  border-radius:13px;
+  background:#fff7f7;
+  box-shadow:0 3px 12px #00000005;
+}
+.admin-conversation-context span{
+  font-size:7px;
+  font-weight:850;
+  letter-spacing:.7px;
+  color:#ef322d;
+}
+.admin-conversation-context b{
+  font-size:12px;
+  color:#222;
+}
+.admin-conversation-context small{
+  font-size:8px;
+  color:#888;
+}
+.admin-order-conversation{
+  margin-top:0;
+  gap:10px;
+}
+.admin-order-conversation-head{
+  padding:11px 12px;
+  border:1px solid #ededed;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 3px 12px #00000005;
+}
+.admin-order-conversation-head span{
+  font-size:11px;
+}
+.admin-order-conversation-head small{
+  font-size:8px;
+}
+.admin-message-list{
+  min-height:260px;
+  max-height:none;
+  padding:10px;
+  border:1px solid #ededed;
+  border-radius:14px;
+  background:#fafafa;
+  box-shadow:0 3px 12px #00000004;
+}
+.message-row{
+  display:flex;
+  width:100%;
+}
+.message-row.mine{justify-content:flex-end}
+.message-row.theirs{justify-content:flex-start}
+.message-bubble{
+  max-width:82%;
+  padding:9px 10px;
+  border:1px solid #e8e8e8;
+  border-radius:13px 13px 13px 5px;
+  background:#fff;
+  box-shadow:0 2px 7px #00000005;
+}
+.message-row.mine .message-bubble{
+  border-color:#f0d4d4;
+  border-radius:13px 13px 5px 13px;
+  background:#fff4f4;
+}
+.admin-message-sender{
+  font-size:8px;
+  color:#777;
+  margin-bottom:3px;
+}
+.message-bubble p{
+  margin:0;
+  font-size:9px;
+  line-height:1.45;
+  color:#333;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.message-bubble time{
+  display:block;
+  margin-top:5px;
+  font-size:6.5px;
+  color:#999;
+}
+.message-attachment{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  margin-top:6px;
+  padding:6px 7px;
+  border:1px solid #eee;
+  border-radius:8px;
+  background:#fff;
+  color:#555;
+  text-decoration:none;
+  font-size:8px;
+}
+.admin-message-composer{
+  padding:10px;
+  border:1px solid #ededed;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 3px 12px #00000005;
+}
+.admin-message-composer textarea{
+  min-height:74px;
+  border-color:#e5e5e5;
+}
+.phase3-conversation-button{
+  width:100%;
+  margin-top:9px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.phase3-conversation-button span{
+  font-size:12px;
+  color:#ef322d;
+}
+
+/* Admin Order Management — Status history */
+.phase3-order-details .phase3-detail-wide:has(.phase3-history){
+  padding:11px 12px;
+  border:1px solid #ededed;
+  border-radius:13px;
+  background:#fff;
+}
+.phase3-history{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  margin-top:8px;
+  padding-left:19px;
+}
+.phase3-history::before{
+  content:"";
+  position:absolute;
+  left:5px;
+  top:7px;
+  bottom:7px;
+  width:1px;
+  background:#eadede;
+}
+.phase3-history>div{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  padding:0 0 12px 9px;
+}
+.phase3-history>div:last-child{
+  padding-bottom:0;
+}
+.phase3-history>div::before{
+  content:"";
+  position:absolute;
+  left:-18px;
+  top:2px;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#fff;
+  border:2px solid #ef322d;
+  box-sizing:border-box;
+}
+.phase3-history>div:first-child::before{
+  background:#ef322d;
+  box-shadow:0 0 0 3px #fff1f1;
+}
+.phase3-history b{
+  font-size:9px;
+  line-height:1.2;
+  font-weight:850;
+  color:#333;
+}
+.phase3-history small{
+  font-size:7px;
+  line-height:1.4;
+  color:#888;
+}
+@media(max-width:430px){
+  .admin-message-list{min-height:240px}
+  .message-bubble{max-width:88%}
+}
