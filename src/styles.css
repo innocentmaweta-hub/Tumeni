@@ -2389,3 +2389,95 @@ button.review-hide-btn,button.view-reviews-btn{
   height:16px;
   flex:none;
 }
+
+/* Final My Account Administration alignment: mirror .settings-list row geometry exactly. */
+.profile-page .admin-groups{
+  margin-top:17px;
+}
+.profile-page .admin-groups .admin-section-label{
+  font-size:9px;
+  font-weight:750;
+  color:#777;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin:0 0 7px;
+}
+.profile-page .admin-groups .admin-group-toggle{
+  min-height:0;
+  padding:12px 2px;
+}
+.profile-page .admin-groups .admin-group-toggle>span{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  font-size:10px;
+}
+.profile-page .admin-groups .admin-group-toggle>span>svg{
+  width:17px;
+  height:17px;
+  flex:none;
+  color:#777;
+}
+.profile-page .admin-groups .admin-group-toggle>span>span{
+  min-width:0;
+  display:block;
+}
+.profile-page .admin-groups .admin-group-toggle b{
+  display:block;
+  font-size:10px;
+  line-height:normal;
+  font-weight:750;
+}
+.profile-page .admin-groups .admin-group-toggle small{
+  display:block;
+  margin-top:3px;
+  font-size:8px;
+  line-height:normal;
+  color:#777;
+}
+.profile-page .admin-groups .admin-group-toggle>svg{
+  width:17px;
+  height:17px;
+  flex:none;
+  color:#777;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry,
+.profile-page .admin-groups .admin-group-items .seller-entry.admin-entry{
+  min-height:0;
+  padding:12px 2px;
+  border-bottom:1px solid #eee;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span>svg{
+  width:17px;
+  height:17px;
+  flex:none;
+  color:#777;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>span>span{
+  min-width:0;
+  display:block;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry b{
+  font-size:10px;
+  line-height:normal;
+  font-weight:750;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry small{
+  font-size:8px;
+  line-height:normal;
+  margin-top:3px;
+  color:#777;
+}
+.profile-page .admin-groups .admin-group-items .seller-entry>svg{
+  width:17px;
+  height:17px;
+  flex:none;
+  color:#777;
+}
