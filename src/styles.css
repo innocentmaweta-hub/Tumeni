@@ -3446,3 +3446,163 @@ button.review-hide-btn,button.view-reviews-btn{
   .detail-recommendations{padding-left:16px;padding-right:16px}
   .product-reviews{padding-left:16px;padding-right:16px}
 }
+
+/* Cart — polished Tumeni shopping flow (scoped to cart only) */
+.cart-screen{
+  background:linear-gradient(180deg,#fff 0%,#fffdfb 62%,#fff8f2 100%);
+}
+.cart-screen .inner-head{
+  padding-bottom:10px;
+  border-bottom:1px solid #eee;
+  margin-bottom:14px;
+}
+.cart-screen .cart-list{
+  gap:9px;
+}
+.cart-screen .cart-item{
+  position:relative;
+  align-items:center;
+  gap:11px;
+  padding:11px;
+  border:1px solid #ece8e6;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 3px 12px #00000008;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.cart-screen .cart-item:hover{
+  transform:translateY(-1px);
+  border-color:#e4d5d2;
+  box-shadow:0 7px 18px #0000000c;
+}
+.cart-screen .cart-item>img,
+.cart-screen .cart-item .product-image-avatar{
+  width:68px;
+  height:68px;
+  flex:none;
+  border-radius:10px;
+  object-fit:cover;
+  background:#f7f3f1;
+}
+.cart-screen .cart-info{
+  padding-right:2px;
+}
+.cart-screen .cart-info b{
+  font-size:11px;
+  line-height:1.3;
+  color:#222;
+}
+.cart-screen .cart-info small{
+  font-size:8px;
+  color:#888;
+  margin:3px 0;
+}
+.cart-screen .cart-info strong{
+  color:#ef322d;
+  font-size:11px;
+  margin-top:3px;
+}
+.cart-screen .cart-info .qty{
+  gap:7px;
+  margin-top:7px;
+}
+.cart-screen .cart-info .qty button{
+  width:25px;
+  height:25px;
+  border-radius:7px;
+  border-color:#e5dddd;
+  color:#444;
+}
+.cart-screen .cart-info .qty button:hover{
+  border-color:#efc5c2;
+  background:#fff7f6;
+  color:#ef322d;
+}
+.cart-screen .cart-info .qty span{
+  min-width:20px;
+  font-weight:800;
+}
+.cart-screen .delete{
+  width:29px;
+  height:29px;
+  padding:0;
+  flex:none;
+  display:grid;
+  place-items:center;
+  border:1px solid #eee;
+  border-radius:8px;
+  background:#fff;
+  color:#999;
+}
+.cart-screen .delete:hover{
+  color:#ef322d;
+  border-color:#efc9c7;
+  background:#fff7f7;
+}
+.cart-screen .summary{
+  margin-top:15px;
+  padding:12px 13px;
+  border:1px solid #eee5df;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 4px 14px #00000008;
+}
+.cart-screen .summary div{
+  padding:6px 0;
+  font-size:9px;
+  color:#777;
+}
+.cart-screen .summary div b{
+  color:#333;
+  font-size:9px;
+}
+.cart-screen .summary .total{
+  margin-top:6px;
+  padding-top:11px;
+  border-top:1px solid #eee;
+  color:#222;
+}
+.cart-screen .summary .total span{
+  font-size:11px;
+  font-weight:800;
+  color:#222;
+}
+.cart-screen .summary .total b{
+  color:#ef322d;
+  font-size:16px;
+  font-weight:900;
+}
+.cart-screen>.primary.full{
+  min-height:44px;
+  margin-top:13px;
+  border-radius:11px;
+  font-size:10px;
+  font-weight:850;
+  box-shadow:0 5px 14px #ef322d24;
+}
+.cart-screen .empty{
+  padding:66px 20px;
+}
+.cart-screen .empty-icon{
+  width:76px;
+  height:76px;
+  border-radius:22px;
+  background:#fff0e5;
+  box-shadow:0 5px 15px #00000008;
+}
+.cart-screen .empty h2{
+  margin:15px 0 5px;
+  font-size:16px;
+}
+.cart-screen .empty p{
+  line-height:1.5;
+  color:#888;
+}
+.cart-screen .empty .primary{
+  border-radius:10px;
+}
+@media(max-width:430px){
+  .cart-screen .cart-item{padding:10px}
+  .cart-screen .cart-item>img,
+  .cart-screen .cart-item .product-image-avatar{width:64px;height:64px}
+}
