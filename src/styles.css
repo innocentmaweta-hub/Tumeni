@@ -5005,3 +5005,23 @@ button.review-hide-btn,button.view-reviews-btn{
 
 /* Cart product amounts */
 .cart-screen .cart-info strong{color:#ef322d!important;}
+
+/* Yaza AI — regenerate control */
+.yaza-page .yaza-regenerate{
+  display:block;
+  margin:7px 0 0 1px;
+  padding:0;
+  border:0;
+  background:none;
+  color:#888;
+  font-size:7.5px;
+  font-weight:800;
+  cursor:pointer;
+}
+.yaza-page .yaza-regenerate:hover{
+  color:#ef322d;
+}
+.yaza-page .yaza-regenerate:disabled{
+  opacity:.5;
+  cursor:default;
+}
