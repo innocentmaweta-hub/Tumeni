@@ -5025,3 +5025,15 @@ button.review-hide-btn,button.view-reviews-btn{
   opacity:.5;
   cursor:default;
 }
+
+/* My Cart — product price and review interaction */
+.cart-screen .cart-product-price{
+  color:#ef322d!important;
+  font-weight:800;
+}
+.cart-screen .cart-item{
+  cursor:pointer;
+}
+.cart-screen .cart-item:active{
+  transform:scale(.995);
+}
