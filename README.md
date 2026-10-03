@@ -40,5 +40,5 @@ AI should interpret customer task requests and return structured requirements. P
 - Task quote flow
 - Admin, partner and agent applications
 
-<!-- Deployment trigger: harmless documentation-only update. -->
 <!-- Deployment trigger: harmless README refresh. -->
+<!-- Deployment trigger: keeps the main deployment pipeline active. -->
