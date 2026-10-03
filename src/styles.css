@@ -1756,3 +1756,348 @@ button.review-hide-btn,button.view-reviews-btn{
 .request-history-card .request-status.shopping,
 .request-history-card .request-status.picked-up,
 .request-history-card .request-status.on-the-way{background:#fff4e8;color:#a65a00}
+
+
+/* Administration content visual refresh — scoped below the Admin option content only. */
+.admin-page,
+.admin-dashboard,
+.phase3-stack,
+.phase3-page{
+  background:#f7f7f8;
+}
+.phase3-stack{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding:4px 0 28px;
+}
+.phase3-stack>.phase3-section,
+.phase3-stack>.admin-section,
+.phase3-stack>.admin-card{
+  background:#fff;
+  border:1px solid #ececec;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 5px 18px rgba(20,15,15,.045);
+}
+.phase3-section{
+  background:#fff;
+  border:1px solid #ececec;
+  border-radius:16px;
+  padding:14px;
+  box-shadow:0 5px 18px rgba(20,15,15,.045);
+}
+.phase3-section-title,
+.phase3-section>.section-head,
+.phase3-section>.phase3-section-title{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:11px;
+}
+.phase3-section-title h2,
+.phase3-section>.section-head h2{
+  margin:0;
+  font-size:15px;
+  line-height:1.15;
+  letter-spacing:-.2px;
+  color:#222;
+}
+.phase3-section-title span,
+.phase3-section>.section-head span{
+  font-size:8px;
+  color:#999;
+  font-weight:700;
+}
+.phase3-metrics,
+.admin-metrics,
+.phase3-metric-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-bottom:1px;
+}
+.phase3-metric,
+.admin-metric{
+  min-width:0;
+  padding:13px 12px;
+  border:1px solid #ededed;
+  border-radius:14px;
+  background:linear-gradient(145deg,#fff,#fafafa);
+  box-shadow:0 3px 10px rgba(20,15,15,.035);
+}
+.phase3-metric b,
+.admin-metric b{
+  display:block;
+  font-size:20px;
+  line-height:1;
+  letter-spacing:-.5px;
+  color:#222;
+}
+.phase3-metric span,
+.admin-metric span{
+  display:block;
+  margin-top:6px;
+  color:#777;
+  font-size:8px;
+  font-weight:750;
+  text-transform:uppercase;
+  letter-spacing:.35px;
+}
+.phase3-metric small,
+.admin-metric small{
+  display:block;
+  margin-top:5px;
+  color:#aaa;
+  font-size:7px;
+}
+.admin-list,
+.admin-data-list{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+.admin-category,
+.admin-data-list .account-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+  padding:11px 12px;
+  border:1px solid #ededed;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 2px 8px rgba(20,15,15,.025);
+}
+.admin-category>span:first-child,
+.admin-data-list .admin-row-main{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.admin-category b,
+.admin-data-list .admin-row-main span{
+  color:#252525;
+  font-size:10px;
+  font-weight:800;
+}
+.admin-category small,
+.admin-data-list .admin-row-main small{
+  color:#888;
+  font-size:8px;
+  line-height:1.35;
+}
+.admin-category .seller-badge,
+.phase3-status-pill{
+  flex:none;
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:7px;
+  font-weight:850;
+  white-space:nowrap;
+  background:#f5f5f5;
+  color:#666;
+}
+.phase3-status-pill.done,
+.admin-category .seller-badge.completed{
+  background:#edf8ef;
+  color:#2f7d42;
+}
+.phase3-admin-order{
+  padding:13px!important;
+  border:1px solid #e9e9e9!important;
+  border-radius:15px!important;
+  background:#fff!important;
+  box-shadow:0 4px 14px rgba(20,15,15,.045)!important;
+}
+.phase3-admin-order+.phase3-admin-order{margin-top:8px}
+.phase3-admin-order-head b{font-size:11px!important;color:#222}
+.phase3-admin-order-head span{font-size:7px!important;color:#999}
+.phase3-admin-order-head small{font-size:8px!important;color:#888}
+.phase3-admin-order-head>strong{font-size:10px!important;color:#222!important}
+.phase3-admin-order-meta{
+  padding:8px 0;
+  border-top:1px solid #f1f1f1;
+  border-bottom:1px solid #f1f1f1;
+}
+.phase3-order-details{
+  background:#fafafa;
+  border:1px solid #eee;
+  border-radius:11px;
+  padding:9px;
+}
+.phase3-admin-order-actions{
+  margin-top:9px;
+}
+.phase3-admin-order-actions button,
+.phase3-actions button{
+  border-radius:11px!important;
+  min-height:40px;
+  transition:all .16s ease;
+}
+.phase3-actions{
+  gap:8px!important;
+}
+.phase3-actions button{
+  background:#fff!important;
+  border:1px solid #e5e5e5!important;
+  color:#444!important;
+  box-shadow:0 2px 7px rgba(20,15,15,.025);
+}
+.phase3-actions button:hover{
+  background:#fff8f7!important;
+  border-color:#efc1bd!important;
+  color:#c52b27!important;
+  transform:translateY(-1px);
+}
+.phase3-filters{
+  background:#fafafa;
+  border:1px solid #eee;
+  border-radius:13px;
+  padding:9px;
+  margin-top:8px;
+}
+.phase3-filters select,
+.phase3-admin-order-actions select,
+.admin-page select{
+  min-height:38px!important;
+  border:1px solid #e3e3e3!important;
+  border-radius:10px!important;
+  background:#fff!important;
+  color:#444!important;
+  outline:none;
+}
+.phase3-filters select:focus,
+.phase3-admin-order-actions select:focus,
+.admin-page select:focus{
+  border-color:#efb8b4!important;
+  box-shadow:0 0 0 3px #ef322d0d;
+}
+.admin-form,
+.phase3-form{
+  display:grid;
+  gap:10px;
+}
+.admin-form label,
+.phase3-form label{
+  display:grid;
+  gap:5px;
+  color:#555;
+  font-size:8px;
+  font-weight:800;
+}
+.admin-form input,
+.admin-form textarea,
+.admin-form select,
+.phase3-form input,
+.phase3-form textarea,
+.phase3-form select{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid #e4e4e4;
+  border-radius:11px;
+  background:#fff;
+  color:#333;
+  padding:10px 11px;
+  font:inherit;
+  font-size:10px;
+  outline:none;
+}
+.admin-form textarea,
+.phase3-form textarea{min-height:80px;resize:vertical}
+.admin-form input:focus,
+.admin-form textarea:focus,
+.admin-form select:focus,
+.phase3-form input:focus,
+.phase3-form textarea:focus,
+.phase3-form select:focus{
+  border-color:#efb8b4;
+  box-shadow:0 0 0 3px #ef322d0d;
+}
+.admin-data-list .account-row{
+  padding:12px;
+}
+.phase3-top-products{
+  gap:8px!important;
+}
+.phase3-top-product{
+  padding:10px 11px!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  box-shadow:0 2px 8px rgba(20,15,15,.025);
+}
+.phase3-top-product>span{
+  background:#fff2f0!important;
+  color:#d12d29!important;
+}
+.phase3-top-product strong{
+  color:#222!important;
+}
+.phase3-alert-empty{
+  border:1px dashed #ddd;
+  border-radius:12px;
+  background:#fafafa;
+  color:#888;
+  text-align:center;
+  padding:22px 12px;
+  font-size:9px;
+}
+.phase3-stack .empty.compact,
+.phase3-section .empty.compact{
+  border:1px dashed #ddd;
+  border-radius:12px;
+  background:#fafafa;
+  padding:24px 12px;
+}
+.phase3-stack .empty.compact h2,
+.phase3-section .empty.compact h2{
+  font-size:13px;
+  margin-bottom:5px;
+}
+.phase3-stack .empty.compact p,
+.phase3-section .empty.compact p{
+  font-size:9px;
+  color:#888;
+  line-height:1.45;
+}
+.admin-order-conversation{
+  margin-top:12px;
+  padding:13px;
+  border:1px solid #ececec;
+  border-radius:15px;
+  background:#fafafa;
+  box-shadow:0 3px 12px rgba(20,15,15,.035);
+}
+.admin-message-list{
+  padding:8px;
+  border:1px solid #eee;
+  border-radius:12px;
+  background:#fff;
+}
+.admin-message-composer{
+  padding-top:10px;
+  background:transparent;
+}
+.admin-message-composer textarea{
+  background:#fff;
+  border-radius:11px;
+}
+@media(min-width:700px){
+  .phase3-metrics,.admin-metrics,.phase3-metric-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .phase3-stack{
+    gap:14px;
+  }
+}
+@media(max-width:430px){
+  .phase3-stack>.phase3-section,
+  .phase3-stack>.admin-section,
+  .phase3-stack>.admin-card,
+  .phase3-section{padding:12px;border-radius:14px}
+  .phase3-metric,.admin-metric{padding:11px 10px}
+  .phase3-metric b,.admin-metric b{font-size:18px}
+}
