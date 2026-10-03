@@ -2217,3 +2217,43 @@ button.review-hide-btn,button.view-reviews-btn{
   color:#777;
   flex:none;
 }
+
+
+/* Administration option groups: one continuous My Account-style list */
+.admin-group{
+  margin:0 0 10px;
+  border:0;
+  border-radius:10px;
+  box-shadow:none;
+  background:transparent;
+}
+.admin-group-toggle{
+  border:1px solid #eee;
+  border-radius:10px;
+  box-shadow:0 4px 12px rgba(0,0,0,.035);
+}
+.admin-group.open .admin-group-toggle{
+  border-bottom:1px solid #eee;
+  border-radius:10px 10px 0 0;
+}
+.admin-group-items{
+  padding:0;
+  border:1px solid #eee;
+  border-top:0;
+  border-radius:0 0 10px 10px;
+  box-shadow:0 4px 12px rgba(0,0,0,.035);
+  overflow:hidden;
+}
+.admin-group-items .seller-entry,
+.admin-group-items .seller-entry.admin-entry{
+  border-bottom:1px solid #eee;
+  border-radius:0;
+  padding:12px 11px;
+  min-height:50px;
+}
+.admin-group-items .seller-entry:first-child{
+  border-top:0;
+}
+.admin-group-items .seller-entry:last-child{
+  border-bottom:0;
+}
