@@ -6,6 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false,
   server: {
+    url: 'https://tumeni.vercel.app',
     androidScheme: 'https',
   },
 };
