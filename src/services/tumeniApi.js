@@ -1279,18 +1279,20 @@ export async function cancelMyOrder({ orderId, note = '' }) {
   return supabase.rpc('customer_cancel_order', { p_order_id: orderId, p_note: note || null });
 }
 
-export async function getTaskRequestDetails(orderId) {
+export async function getTaskRequestDetails(orderId, customerId = null) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   if (!orderId) return { data: null, error: new Error('Order ID is required.') };
 
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .select('id')
-    .eq('id', orderId)
-    .eq('customer_id', (await supabase.auth.getUser()).data.user?.id || '')
-    .maybeSingle();
-  if (orderError) return { data: null, error: orderError };
-  if (!order) return { data: null, error: new Error('Order not found or does not belong to your account.') };
+  if (customerId) {
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('id', orderId)
+      .eq('customer_id', customerId)
+      .maybeSingle();
+    if (orderError) return { data: null, error: orderError };
+    if (!order) return { data: null, error: new Error('Order not found or does not belong to your account.') };
+  }
 
   const { data: task, error: taskError } = await supabase
     .from('tasks')
