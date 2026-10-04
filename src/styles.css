@@ -5698,3 +5698,42 @@ button.review-hide-btn,button.view-reviews-btn{
   clip-path:inset(0 0 0 0 round 17px)!important;
   -webkit-clip-path:inset(0 0 0 0 round 17px)!important;
 }
+
+
+/* Exclusive offer: final four-corner radius fix.
+   Keep one true clipping boundary on the banner; do not use transparent
+   borders for spacing because they distort the visible bottom corners. */
+.home-screen .nw-reference-promo,
+.explore-results-section .nw-reference-promo{
+  border:0!important;
+  border-radius:17px!important;
+  overflow:hidden!important;
+  clip-path:inset(0 round 17px)!important;
+  -webkit-clip-path:inset(0 round 17px)!important;
+  background:transparent!important;
+  box-sizing:border-box!important;
+}
+.home-screen .nw-reference-promo .nw-promo-image-track,
+.explore-results-section .nw-reference-promo .nw-promo-image-track{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  border-radius:17px!important;
+  overflow:hidden!important;
+  clip-path:inset(0 round 17px)!important;
+  -webkit-clip-path:inset(0 round 17px)!important;
+}
+.home-screen .nw-reference-promo .nw-promo-image,
+.explore-results-section .nw-reference-promo .nw-promo-image{
+  border-radius:17px!important;
+  overflow:hidden!important;
+  clip-path:inset(0 round 17px)!important;
+  -webkit-clip-path:inset(0 round 17px)!important;
+}
+.home-screen .nw-reference-promo .nw-promo-image img,
+.home-screen .nw-reference-promo .nw-promo-image .product-image-avatar,
+.explore-results-section .nw-reference-promo .nw-promo-image img,
+.explore-results-section .nw-reference-promo .nw-promo-image .product-image-avatar{
+  border-radius:17px!important;
+}
