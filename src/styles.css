@@ -5582,3 +5582,23 @@ button.review-hide-btn,button.view-reviews-btn{
   )!important;
 }
 .nw-reference-promo .nw-order.small{margin-bottom:10px!important}
+
+/* Exclusive offer spacing: normalize the banner gap against every surrounding Home/Explore section. */
+.home-screen .nw-feed-categories + .nw-reference-promo,
+.home-screen .nw-reference-promo + .nw-feed-section,
+.home-screen .nw-feed-section + .nw-reference-promo,
+.home-screen .nw-reference-promo + .nw-reference-promo,
+.explore-results-section .explore-grid + .nw-reference-promo,
+.explore-results-section .nw-reference-promo + .nw-reference-promo{
+  margin-top:15px!important;
+}
+.home-screen .nw-reference-promo,
+.explore-results-section .nw-reference-promo{
+  margin-bottom:15px!important;
+}
+.nw-reference-promo .nw-promo-copy{
+  padding-bottom:10px!important;
+}
+.nw-reference-promo .nw-order.small{
+  margin-bottom:10px!important;
+}
