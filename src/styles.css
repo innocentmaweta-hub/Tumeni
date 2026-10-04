@@ -5645,3 +5645,18 @@ button.review-hide-btn,button.view-reviews-btn{
   max-width:50%!important;
   padding-left:15px!important;
 }
+
+/* Exclusive offer: keep the rounded banner as the actual clipping boundary for its full-bleed image layer. */
+.home-screen .nw-reference-promo,
+.explore-results-section .nw-reference-promo{
+  position:relative!important;
+  isolation:isolate!important;
+  border-radius:17px!important;
+  overflow:hidden!important;
+  clip-path:inset(0 round 17px)!important;
+  -webkit-clip-path:inset(0 round 17px)!important;
+}
+.nw-reference-promo .nw-promo-image-track,
+.nw-reference-promo .nw-promo-image{
+  border-radius:inherit!important;
+}
