@@ -5532,3 +5532,40 @@ button.review-hide-btn,button.view-reviews-btn{
 .nw-bottom .nw-nav.selected:not(.center):before{content:""!important;display:block!important;visibility:visible!important;position:absolute!important;top:1px!important;left:50%!important;transform:translateX(-50%)!important;width:20px!important;height:3px!important;border-radius:4px!important;background:#ffbd38!important}
 .nw-bottom .nw-nav{position:relative!important}
 .nw-bottom .nw-nav.center:before,.nw-bottom .nw-nav.center.selected:before{content:none!important;display:none!important}
+
+/* Exclusive offer final visual treatment */
+.nw-reference-promo{
+  margin-top:15px!important;
+  margin-bottom:15px!important;
+  display:block!important;
+}
+.nw-reference-promo + .nw-feed-section{margin-top:15px!important}
+.nw-reference-promo + .nw-reference-promo{margin-top:15px!important}
+.nw-feed-section + .nw-reference-promo{margin-top:15px!important}
+.nw-reference-promo .nw-off{
+  width:66px!important;
+  height:66px!important;
+  right:9px!important;
+  top:9px!important;
+  border-radius:0!important;
+  padding:0 9px!important;
+  box-sizing:border-box!important;
+  clip-path:polygon(
+    50% 0%, 57% 10%, 66% 4%, 70% 16%, 81% 12%, 82% 24%,
+    94% 27%, 89% 38%, 100% 50%, 89% 59%, 94% 72%, 82% 75%,
+    81% 88%, 69% 84%, 65% 96%, 56% 90%, 50% 100%, 43% 90%,
+    34% 96%, 30% 84%, 19% 88%, 18% 75%, 6% 72%, 11% 59%,
+    0% 50%, 11% 38%, 6% 27%, 18% 24%, 19% 12%, 30% 16%,
+    34% 4%, 43% 10%
+  )!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  overflow:hidden!important;
+  line-height:1.05!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  word-break:break-word!important;
+  overflow-wrap:anywhere!important;
+}
