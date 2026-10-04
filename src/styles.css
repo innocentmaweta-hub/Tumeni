@@ -5602,3 +5602,30 @@ button.review-hide-btn,button.view-reviews-btn{
 .nw-reference-promo .nw-order.small{
   margin-bottom:10px!important;
 }
+
+/* Exclusive offer: use real visual insets instead of margins that are hidden by the full-bleed absolute image layer. */
+.home-screen .nw-reference-promo,
+.explore-results-section .nw-reference-promo{
+  height:154px!important;
+  margin-top:0!important;
+  margin-bottom:0!important;
+  border-top:15px solid #fff8ef!important;
+  border-bottom:15px solid #fff8ef!important;
+  box-sizing:border-box!important;
+}
+.nw-reference-promo .nw-promo-copy{
+  top:0!important;
+  bottom:0!important;
+  height:100%!important;
+  box-sizing:border-box!important;
+  padding:13px 0 10px 15px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+}
+.nw-reference-promo .nw-promo-copy h2{margin:5px 0 3px!important}
+.nw-reference-promo .nw-promo-copy p{margin:0!important}
+.nw-reference-promo .nw-order.small{
+  margin-top:auto!important;
+  margin-bottom:0!important;
+}
