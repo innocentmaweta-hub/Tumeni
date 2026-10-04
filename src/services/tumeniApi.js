@@ -287,8 +287,10 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
     }
     // Inventory is optional for existing Tumeni products. Only enforce a
     // stock limit when a positive stock quantity has been explicitly set.
-    if (Number.isFinite(Number(product.stock_quantity)) && Number(product.stock_quantity) > 0 && quantity > Number(product.stock_quantity)) {
-      throw new Error(`Not enough stock is available for ${product.name}.`);
+    if (Number.isFinite(Number(product.stock_quantity)) && (Number(product.stock_quantity) <= 0 || quantity > Number(product.stock_quantity))) {
+      throw new Error(Number(product.stock_quantity) <= 0
+        ? `${product.name} is out of stock.`
+        : `Not enough stock is available for ${product.name}.`);
     }
     return {
       product_id: product.id,
@@ -371,6 +373,8 @@ export async function createTaskOrder({ customerId, description, addressId, fees
   }).select().single();
   if (orderError) throw orderError;
 
+  let taskId = null;
+  const uploadedPaths = [];
   try {
     const { data: task, error: taskError } = await supabase.from('tasks').insert({
       order_id: order.id, raw_request: String(description).trim(),
@@ -381,6 +385,7 @@ export async function createTaskOrder({ customerId, description, addressId, fees
       })) }
     }).select('id').single();
     if (taskError) throw taskError;
+    taskId = task.id;
 
     if (locations?.length) {
       const rows = locations.map((x, index) => ({
@@ -400,6 +405,8 @@ export async function createTaskOrder({ customerId, description, addressId, fees
         contentType: item.file.type || undefined, upsert: false
       });
       if (uploadError) throw uploadError;
+      uploadedPaths.push(path);
+
       const { error: rowError } = await supabase.from('task_attachments').insert({
         task_id: task.id, attachment_type: item.type === 'voice' ? 'voice' : 'image',
         storage_path: path, file_name: safeName, mime_type: item.file.type || null,
@@ -409,6 +416,17 @@ export async function createTaskOrder({ customerId, description, addressId, fees
     }
     return order;
   } catch (error) {
+    // Compensating rollback: remove storage objects first, then remove any
+    // database rows created for the task/order. This prevents failed requests
+    // from leaving orphaned attachments or partial task records.
+    if (uploadedPaths.length) {
+      await supabase.storage.from('task-attachments').remove(uploadedPaths).catch(() => {});
+    }
+    if (taskId) {
+      await supabase.from('task_attachments').delete().eq('task_id', taskId).catch(() => {});
+      await supabase.from('task_locations').delete().eq('task_id', taskId).catch(() => {});
+      await supabase.from('tasks').delete().eq('id', taskId).eq('order_id', order.id).catch(() => {});
+    }
     await supabase.from('orders').delete().eq('id', order.id).eq('customer_id', customerId);
     throw error;
   }
