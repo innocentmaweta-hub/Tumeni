@@ -760,7 +760,6 @@ export async function createSellerProduct({ shopId, name, description, price, ca
     category_id: categoryId || null,
     image_url: urls[0] || null,
     available,
-    out_of_stock: Math.max(0, Math.floor(Number(stockQuantity) || 0)) <= 0,
     stock_quantity: Math.max(0, Math.floor(Number(stockQuantity) || 0)),
     low_stock_threshold: Math.max(0, Math.floor(Number(lowStockThreshold) || 0))
   }).select().single();
@@ -782,7 +781,6 @@ export async function updateSellerProduct({ id, name, description, price, catego
     category_id: categoryId || null,
     image_url: urls[0] || null,
     available: Boolean(available),
-    out_of_stock: Math.max(0, Math.floor(Number(stockQuantity) || 0)) <= 0,
     stock_quantity: Math.max(0, Math.floor(Number(stockQuantity) || 0)),
     low_stock_threshold: Math.max(0, Math.floor(Number(lowStockThreshold) || 0))
   }).eq('id', id).select().single();
