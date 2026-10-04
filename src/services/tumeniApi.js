@@ -9,7 +9,7 @@ export async function getProducts() {
   // must still load even when the optional image table relationship is absent.
   const { data: products, error } = await supabase
     .from('products')
-    .select('id,name,description,price,image_url,category_id,shop_id,shops(name,image_url),categories(name)')
+    .select('id,name,description,price,image_url,category_id,shop_id,stock_quantity,low_stock_threshold,shops(name,image_url),categories(name)')
     .eq('available', true)
     .order('created_at', { ascending: false });
 
@@ -66,7 +66,7 @@ export async function getMyCart() {
   const ids = items.map(x => x.product_id).filter(Boolean);
   const { data: products, error: productsError } = await supabase
     .from('products')
-    .select('id,name,description,price,image_url,category_id,shop_id,available,shops(name),categories(name)')
+    .select('id,name,description,price,image_url,category_id,shop_id,stock_quantity,low_stock_threshold,available,shops(name),categories(name)')
     .in('id', ids);
 
   if (productsError) return { data: {}, error: productsError };
@@ -256,15 +256,17 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
     throw new Error('One or more cart products are invalid. Please refresh and try again.');
   }
 
+  let selectedAddress = null;
   if (addressId) {
     const { data: address, error: addressError } = await supabase
       .from('addresses')
-      .select('id')
+      .select('id,area,city')
       .eq('id', addressId)
       .eq('customer_id', customerId)
       .maybeSingle();
     if (addressError) throw addressError;
     if (!address) throw new Error('The selected delivery address does not belong to your account.');
+    selectedAddress = address;
   }
 
   const { data: products, error: productsError } = await supabase
@@ -298,9 +300,11 @@ export async function createPurchaseOrder({ customerId, items, addressId, fees }
   });
 
   const subtotal = orderItems.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
-  const serviceFee = Math.max(0, Number(fees?.serviceFee || 0));
-  const deliveryFee = Math.max(0, Number(fees?.deliveryFee || 0));
-  const handlingFee = Math.max(0, Number(fees?.handlingFee || 0));
+  // Recalculate all purchase fees from trusted application data instead of
+  // accepting totals supplied by the browser.
+  const serviceFee = Math.round(subtotal * 0.05);
+  const deliveryFee = items.length ? getDeliveryZoneForAddress(selectedAddress || {}).fee : 0;
+  const handlingFee = 0;
   const total = subtotal + serviceFee + deliveryFee + handlingFee;
 
   const { data: order, error: orderError } = await supabase.from('orders').insert({
@@ -342,15 +346,21 @@ export async function createTaskOrder({ customerId, description, addressId, fees
   if (!String(description || '').trim()) throw new Error('Please describe the task you want Tumeni to handle.');
   if (addressId && !UUID_RE.test(addressId)) throw new Error('Invalid delivery address ID.');
 
+  let selectedAddress = null;
   if (addressId) {
-    const { data: address, error: addressError } = await supabase.from('addresses').select('id').eq('id', addressId).eq('customer_id', customerId).maybeSingle();
+    const { data: address, error: addressError } = await supabase.from('addresses').select('id,area,city').eq('id', addressId).eq('customer_id', customerId).maybeSingle();
     if (addressError) throw addressError;
     if (!address) throw new Error('The selected delivery address does not belong to your account.');
+    selectedAddress = address;
   }
 
-  const serviceFee = Math.max(0, Number(fees?.serviceFee || 0));
-  const deliveryFee = Math.max(0, Number(fees?.deliveryFee || 0));
-  const handlingFee = Math.max(0, Number(fees?.handlingFee || 0));
+  // Recalculate the task quote from the server-side quoting function. The
+  // browser's displayed fee values are never trusted when creating the order.
+  const quoteResult = await getTaskQuote(String(description).trim());
+  if (quoteResult.error) throw quoteResult.error;
+  const serviceFee = Math.max(0, Number(quoteResult.data?.service_fee || 0));
+  const handlingFee = Math.max(0, Number(quoteResult.data?.handling_fee || 0));
+  const deliveryFee = getDeliveryZoneForAddress(selectedAddress || {}).fee;
   const total = serviceFee + deliveryFee + handlingFee;
 
   const { data: order, error: orderError } = await supabase.from('orders').insert({
@@ -1273,6 +1283,15 @@ export async function getTaskRequestDetails(orderId) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   if (!orderId) return { data: null, error: new Error('Order ID is required.') };
 
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('id', orderId)
+    .eq('customer_id', (await supabase.auth.getUser()).data.user?.id || '')
+    .maybeSingle();
+  if (orderError) return { data: null, error: orderError };
+  if (!order) return { data: null, error: new Error('Order not found or does not belong to your account.') };
+
   const { data: task, error: taskError } = await supabase
     .from('tasks')
     .select('id,order_id,raw_request,ai_interpretation,due_at,created_at')
@@ -1359,6 +1378,15 @@ export async function getMyOrderItems(orderId) {
   if (!orderId) return { data: [], error: new Error('Order ID is required.') };
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: [], error: new Error('Please sign in first.') };
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('id', orderId)
+    .eq('customer_id', user.id)
+    .maybeSingle();
+  if (orderError) return { data: [], error: orderError };
+  if (!order) return { data: [], error: new Error('Order not found or does not belong to your account.') };
+
   const { data, error } = await supabase
     .from('order_items')
     .select('id,order_id,product_id,product_name,unit_price,quantity,shop_id')
@@ -1369,6 +1397,19 @@ export async function getMyOrderItems(orderId) {
 
 export async function getMyOrderHistory(orderId) {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
+  if (!orderId) return { data: [], error: new Error('Order ID is required.') };
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: [], error: new Error('Please sign in first.') };
+
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('id', orderId)
+    .eq('customer_id', user.id)
+    .maybeSingle();
+  if (orderError) return { data: [], error: orderError };
+  if (!order) return { data: [], error: new Error('Order not found or does not belong to your account.') };
+
   return supabase
     .from('order_status_history')
     .select('id,order_id,status,note,created_at')
