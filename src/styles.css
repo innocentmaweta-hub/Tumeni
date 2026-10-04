@@ -5629,3 +5629,19 @@ button.review-hide-btn,button.view-reviews-btn{
   margin-top:auto!important;
   margin-bottom:0!important;
 }
+
+/* Exclusive offer: restore original horizontal fit, left inset, and rounded corners while keeping the matched vertical spacing. */
+.home-screen .nw-reference-promo,
+.explore-results-section .nw-reference-promo{
+  width:100%!important;
+  margin-left:0!important;
+  margin-right:0!important;
+  border-radius:17px!important;
+  overflow:hidden!important;
+}
+.nw-reference-promo .nw-promo-copy{
+  left:0!important;
+  width:50%!important;
+  max-width:50%!important;
+  padding-left:15px!important;
+}
