@@ -5660,3 +5660,19 @@ button.review-hide-btn,button.view-reviews-btn{
 .nw-reference-promo .nw-promo-image{
   border-radius:inherit!important;
 }
+
+/* Exclusive offer: make all four corners transparent while preserving the exact spacing and rounded clipping. */
+.home-screen .nw-reference-promo,
+.explore-results-section .nw-reference-promo{
+  border-top-color:transparent!important;
+  border-bottom-color:transparent!important;
+  background:transparent!important;
+  border-radius:17px!important;
+  clip-path:inset(0 round 17px)!important;
+  -webkit-clip-path:inset(0 round 17px)!important;
+}
+.nw-reference-promo .nw-promo-image-track,
+.nw-reference-promo .nw-promo-image{
+  border-radius:17px!important;
+  overflow:hidden!important;
+}
