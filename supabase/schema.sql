@@ -70,7 +70,6 @@ create table if not exists public.products (
   price numeric(12,2) not null check (price >= 0),
   image_url text,
   available boolean not null default true,
-  out_of_stock boolean not null default false,
   stock_quantity integer not null default 0 check (stock_quantity >= 0),
   low_stock_threshold integer not null default 5 check (low_stock_threshold >= 0),
   created_at timestamptz not null default now(),
@@ -90,8 +89,7 @@ create table if not exists public.product_reviews (
   unique(product_id, customer_id)
 );
 
--- Phase 5.4: seller inventory preparation. These fields support seller-controlled stock quantity, low-stock warnings, and explicit out-of-stock status.
-alter table public.products add column if not exists out_of_stock boolean not null default false;
+-- Phase 5.4: seller inventory preparation. These fields support seller-controlled stock quantity and low-stock warnings.
 alter table public.products add column if not exists stock_quantity integer not null default 0;
 alter table public.products add column if not exists low_stock_threshold integer not null default 5;
 alter table public.products drop constraint if exists products_stock_quantity_check;
