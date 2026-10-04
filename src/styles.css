@@ -5517,3 +5517,12 @@ button.review-hide-btn,button.view-reviews-btn{
     padding:11px;
   }
 }
+
+/* Final precise fixes: bottom navigation, exclusive offer spacing, and profile scroll clearance */
+.nw-bottom .nw-nav.selected:before{content:none!important;display:none!important;visibility:hidden!important}
+.nw-bottom .nw-nav.center.selected{color:#fff!important;background:var(--tm-home-red,#ef322d)!important}
+.nw-bottom .nw-nav.center.selected .navicon,.nw-bottom .nw-nav.center.selected .navicon svg{color:#fff!important;visibility:visible!important;opacity:1!important;display:block!important}
+.nw-bottom .nw-nav.center.selected span:last-child{color:#fff!important}
+.nw-bottom .nw-nav.center.selected svg{stroke:currentColor!important}
+.nw-reference-promo{margin-bottom:15px!important}
+.profile-page{padding-bottom:110px!important}
