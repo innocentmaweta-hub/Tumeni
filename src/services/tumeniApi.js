@@ -9,7 +9,7 @@ export async function getProducts() {
   // must still load even when the optional image table relationship is absent.
   const { data: products, error } = await supabase
     .from('products')
-    .select('id,name,description,price,image_url,category_id,shop_id,available,out_of_stock,stock_quantity,low_stock_threshold,shops(name,image_url),categories(name)')
+    .select('id,name,description,price,image_url,category_id,shop_id,available,stock_quantity,low_stock_threshold,shops(name,image_url),categories(name)')
     .eq('available', true)
     .order('created_at', { ascending: false });
 
@@ -66,7 +66,7 @@ export async function getMyCart() {
   const ids = items.map(x => x.product_id).filter(Boolean);
   const { data: products, error: productsError } = await supabase
     .from('products')
-    .select('id,name,description,price,image_url,category_id,shop_id,stock_quantity,low_stock_threshold,available,out_of_stock,shops(name),categories(name)')
+    .select('id,name,description,price,image_url,category_id,shop_id,stock_quantity,low_stock_threshold,available,shops(name),categories(name)')
     .in('id', ids);
 
   if (productsError) return { data: {}, error: productsError };
