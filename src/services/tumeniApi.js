@@ -749,7 +749,7 @@ export async function getMySellerRecommendations(days = 30) {
   return{data:{recommendations:rec.sort((x,y)=>(x.priority==='high'?0:1)-(y.priority==='high'?0:1)).slice(0,15)},error:null};
 }
 
-export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, imageUrls = [], available = true }) {
+export async function createSellerProduct({ shopId, name, description, price, categoryId, imageUrl, imageUrls = [], available = true, outOfStock = false, stockQuantity = 0, lowStockThreshold = 5 }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const urls = (imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : [])).map(x => x.trim()).filter(Boolean);
   const { data, error } = await supabase.from('products').insert({
@@ -759,7 +759,10 @@ export async function createSellerProduct({ shopId, name, description, price, ca
     price: Number(price),
     category_id: categoryId || null,
     image_url: urls[0] || null,
-    available
+    available,
+    out_of_stock: Boolean(outOfStock),
+    stock_quantity: Math.max(0, Math.floor(Number(stockQuantity) || 0)),
+    low_stock_threshold: Math.max(0, Math.floor(Number(lowStockThreshold) || 0))
   }).select().single();
   if (error) throw error;
   if (urls.length) {
@@ -769,7 +772,7 @@ export async function createSellerProduct({ shopId, name, description, price, ca
   return data;
 }
 
-export async function updateSellerProduct({ id, name, description, price, categoryId, imageUrl, imageUrls = [], available }) {
+export async function updateSellerProduct({ id, name, description, price, categoryId, imageUrl, imageUrls = [], available, outOfStock = false, stockQuantity = 0, lowStockThreshold = 5 }) {
   if (!supabase) throw new Error('Supabase is not configured.');
   const urls = (imageUrls.length ? imageUrls : (imageUrl ? [imageUrl] : [])).map(x => x.trim()).filter(Boolean);
   const { data, error } = await supabase.from('products').update({
@@ -778,7 +781,10 @@ export async function updateSellerProduct({ id, name, description, price, catego
     price: Number(price),
     category_id: categoryId || null,
     image_url: urls[0] || null,
-    available: Boolean(available)
+    available: Boolean(available),
+    out_of_stock: Boolean(outOfStock),
+    stock_quantity: Math.max(0, Math.floor(Number(stockQuantity) || 0)),
+    low_stock_threshold: Math.max(0, Math.floor(Number(lowStockThreshold) || 0))
   }).eq('id', id).select().single();
   if (error) throw error;
   const { error: deleteError } = await supabase.from('product_images').delete().eq('product_id', id);
