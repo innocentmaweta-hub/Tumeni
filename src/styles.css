@@ -5747,4 +5747,23 @@ button.review-hide-btn,button.view-reviews-btn{
   margin-top:3px!important;
 }
 
+/* Exclusive offer: let banner height grow with wrapped copy while keeping the existing vertical padding. */
+.home-screen .nw-reference-promo,
+.explore-results-section .nw-reference-promo{
+  height:auto!important;
+  min-height:124px!important;
+}
+.nw-reference-promo .nw-promo-copy{
+  position:relative!important;
+  left:0!important;
+  top:auto!important;
+  bottom:auto!important;
+  height:auto!important;
+  min-height:124px!important;
+  width:50%!important;
+  max-width:50%!important;
+  box-sizing:border-box!important;
+  padding:13px 0 10px 15px!important;
+}
+
 /* Harmless sync marker: preserve existing styling. */
