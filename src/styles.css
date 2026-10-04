@@ -5569,3 +5569,16 @@ button.review-hide-btn,button.view-reviews-btn{
   word-break:break-word!important;
   overflow-wrap:anywhere!important;
 }
+
+/* Exclusive offer badge depth and button spacing refinement */
+.nw-reference-promo .nw-off{
+  clip-path:polygon(
+    50% 0%, 57% 14%, 67% 3%, 70% 18%, 82% 10%, 82% 25%,
+    97% 27%, 89% 40%, 100% 50%, 89% 60%, 97% 73%, 82% 75%,
+    82% 90%, 68% 85%, 65% 100%, 55% 89%, 50% 100%, 43% 89%,
+    33% 97%, 30% 84%, 18% 90%, 18% 75%, 3% 73%, 11% 60%,
+    0% 50%, 11% 40%, 3% 27%, 18% 25%, 18% 10%, 30% 18%,
+    33% 3%, 43% 14%
+  )!important;
+}
+.nw-reference-promo .nw-order.small{margin-bottom:10px!important}
