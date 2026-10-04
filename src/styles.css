@@ -5526,3 +5526,9 @@ button.review-hide-btn,button.view-reviews-btn{
 .nw-bottom .nw-nav.center.selected svg{stroke:currentColor!important}
 .nw-reference-promo{margin-bottom:15px!important}
 .profile-page{padding-bottom:110px!important}
+
+/* Final account/nav tuning */
+.profile-page{padding-bottom:90px!important}
+.nw-bottom .nw-nav.selected:not(.center):before{content:""!important;display:block!important;visibility:visible!important;position:absolute!important;top:1px!important;left:50%!important;transform:translateX(-50%)!important;width:20px!important;height:3px!important;border-radius:4px!important;background:#ffbd38!important}
+.nw-bottom .nw-nav{position:relative!important}
+.nw-bottom .nw-nav.center:before,.nw-bottom .nw-nav.center.selected:before{content:none!important;display:none!important}
