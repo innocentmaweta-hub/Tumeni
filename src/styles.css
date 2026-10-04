@@ -5771,3 +5771,49 @@ button.review-hide-btn,button.view-reviews-btn{
 
 /* Explicit seller-controlled inventory status */
 .product-out-of-stock-banner{margin:0 15px 12px;padding:10px 14px;border-radius:10px;background:#f6a623;color:#fff;font-size:12px;font-weight:800;letter-spacing:.04em;text-align:center;box-sizing:border-box;}
+
+
+/* Product badges — every product gets one meaningful, color-coded status. */
+.nw-badge{
+  position:absolute;
+  left:7px;
+  top:7px;
+  z-index:4;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:20px;
+  max-width:calc(100% - 42px);
+  padding:4px 8px;
+  border-radius:999px;
+  color:#fff!important;
+  font-size:7px;
+  line-height:1.05;
+  font-weight:900;
+  letter-spacing:.35px;
+  white-space:nowrap;
+  box-shadow:0 2px 7px #00000022;
+  box-sizing:border-box;
+}
+.nw-badge.out-of-stock{
+  background:#d62828!important;
+}
+.nw-badge.low-stock{
+  background:#f28c28!important;
+}
+.nw-badge.sale{
+  background:#2e8b57!important;
+}
+.nw-badge.new{
+  background:#2878c8!important;
+}
+.nw-badge.popular{
+  background:#7b4bb7!important;
+}
+.nw-badge.in-stock{
+  background:#159a8c!important;
+}
+.card .nw-badge{
+  left:6px;
+  top:6px;
+}
