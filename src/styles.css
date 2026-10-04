@@ -5738,4 +5738,13 @@ button.review-hide-btn,button.view-reviews-btn{
   border-radius:17px!important;
 }
 
+/* Exclusive offer: match the button-to-copy spacing to the text spacing above it. */
+.nw-reference-promo .nw-order.small{
+  margin-top:0!important;
+  margin-bottom:0!important;
+}
+.nw-reference-promo .nw-promo-copy p + .nw-order.small{
+  margin-top:3px!important;
+}
+
 /* Harmless sync marker: preserve existing styling. */
