@@ -5676,3 +5676,25 @@ button.review-hide-btn,button.view-reviews-btn{
   border-radius:17px!important;
   overflow:hidden!important;
 }
+
+/* Exclusive offer: use identical explicit radii on every corner of the full banner and image layers. */
+.home-screen .nw-reference-promo,
+.explore-results-section .nw-reference-promo{
+  border-top-left-radius:17px!important;
+  border-top-right-radius:17px!important;
+  border-bottom-right-radius:17px!important;
+  border-bottom-left-radius:17px!important;
+  border-radius:17px!important;
+  clip-path:inset(0 0 0 0 round 17px)!important;
+  -webkit-clip-path:inset(0 0 0 0 round 17px)!important;
+}
+.nw-reference-promo .nw-promo-image-track,
+.nw-reference-promo .nw-promo-image{
+  border-top-left-radius:17px!important;
+  border-top-right-radius:17px!important;
+  border-bottom-right-radius:17px!important;
+  border-bottom-left-radius:17px!important;
+  border-radius:17px!important;
+  clip-path:inset(0 0 0 0 round 17px)!important;
+  -webkit-clip-path:inset(0 0 0 0 round 17px)!important;
+}
