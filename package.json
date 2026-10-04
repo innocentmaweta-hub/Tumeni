@@ -1,15 +1,25 @@
 {
-  "name":"tumeni-mobile",
-  "private":true,
-  "version":"1.0.0",
-  "type":"module",
-  "scripts":{"dev":"vite","build":"vite build","preview":"vite preview"},
-  "dependencies":{
-    "@supabase/supabase-js":"latest",
-    "@vitejs/plugin-react":"latest",
-    "vite":"8.3.1",
-    "react":"latest",
-    "react-dom":"latest"
+  "name": "tumeni-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android"
   },
-  "devDependencies":{}
+  "dependencies": {
+    "@supabase/supabase-js": "latest",
+    "@vitejs/plugin-react": "latest",
+    "vite": "8.3.1",
+    "react": "latest",
+    "react-dom": "latest",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/android": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  }
 }
