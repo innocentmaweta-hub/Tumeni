@@ -5767,3 +5767,7 @@ button.review-hide-btn,button.view-reviews-btn{
 }
 
 /* Harmless sync marker: preserve existing styling. */
+
+
+/* Explicit seller-controlled inventory status */
+.product-out-of-stock-banner{margin:0 15px 12px;padding:10px 14px;border-radius:10px;background:#f6a623;color:#fff;font-size:12px;font-weight:800;letter-spacing:.04em;text-align:center;box-sizing:border-box;}
