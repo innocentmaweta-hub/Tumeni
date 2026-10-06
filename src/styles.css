@@ -795,12 +795,12 @@ body{
 
 /* Floating product ratings/comments panel */
 .product-reviews{
-  position:fixed;
+  position:absolute;
   left:50%;
   bottom:76px;
   transform:translateX(-50%);
-  width:min(366px,calc(100vw - 20px));
-  max-height:min(72vh,620px);
+  width:min(366px,calc(100% - 20px));
+  max-height:calc(100% - 96px);
   overflow-y:auto;
   z-index:100;
   margin:0;
