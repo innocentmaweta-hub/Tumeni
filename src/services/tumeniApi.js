@@ -1713,7 +1713,7 @@ export async function updatePromotionalBanner({id,...payload}) {
   const imageUrls=Array.isArray(payload.imageUrls)?payload.imageUrls.filter(Boolean):[];
   const imageValue=imageUrls.length?JSON.stringify(imageUrls):String(payload.imageUrl||'').trim()||null;
   return supabase.from('promotional_banners').update({
-    title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null, eyebrow:String(payload.eyebrow||'LIMITED TIME').trim()||'LIMITED TIME', exclusive_label:String(payload.exclusiveLabel||'EXCLUSIVE OFFER').trim()||'EXCLUSIVE OFFER',
+    title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null, eyebrow:payload.isExclusiveOffer===true?(String(payload.eyebrow||'').trim()||null):(String(payload.eyebrow||'LIMITED TIME').trim()||'LIMITED TIME'), exclusive_label:String(payload.exclusiveLabel||'EXCLUSIVE OFFER').trim()||'EXCLUSIVE OFFER',
     image_url:imageValue, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
     product_id:payload.productId||null, shop_id:payload.shopId||null,
     active:payload.active!==false, sort_order:Number(payload.sortOrder||0), is_exclusive_offer:payload.isExclusiveOffer===true, show_on_homepage:payload.showOnHomepage===true
