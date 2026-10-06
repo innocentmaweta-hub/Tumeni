@@ -5841,3 +5841,7 @@ button.review-hide-btn,button.view-reviews-btn{
     max-height:calc(100vh - 100px)!important;
   }
 }
+
+/* Exclusive Offer hardening: transparent shell and explicit full-bleed image sizing. */
+.nw-reference-promo{background:transparent!important;}
+.nw-reference-promo .nw-promo-image-img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;}
