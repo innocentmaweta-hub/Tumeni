@@ -18,6 +18,21 @@ export async function getProducts() {
   const ids = (products || []).map(p => p.id).filter(Boolean);
   if (!ids.length) return { data: products || [], error: null };
 
+  const { data: reviewRows } = await supabase
+    .from('product_reviews')
+    .select('product_id,rating')
+    .in('product_id', ids);
+
+  const ratingTotals = new Map();
+  for (const review of reviewRows || []) {
+    const rating = Number(review.rating);
+    if (!Number.isFinite(rating)) continue;
+    const current = ratingTotals.get(review.product_id) || { sum: 0, count: 0 };
+    current.sum += rating;
+    current.count += 1;
+    ratingTotals.set(review.product_id, current);
+  }
+
   const { data: images, error: imagesError } = await supabase
     .from('product_images')
     .select('id,product_id,image_url,sort_order')
@@ -36,7 +51,15 @@ export async function getProducts() {
   }
 
   return {
-    data: (products || []).map(p => ({ ...p, product_images: byProduct.get(p.id) || [] })),
+    data: (products || []).map(p => {
+      const totals = ratingTotals.get(p.id);
+      return {
+        ...p,
+        rating: totals?.count ? totals.sum / totals.count : 0,
+        rating_count: totals?.count || 0,
+        product_images: byProduct.get(p.id) || []
+      };
+    }),
     error: null
   };
 }
