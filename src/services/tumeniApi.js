@@ -1730,13 +1730,43 @@ export async function getAdminPromotionalBanners() {
   if (!supabase) return { data: [], error: new Error('Supabase is not configured.') };
   return supabase.from('promotional_banners').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: false });
 }
+function normalizeBannerImageUrls(payload) {
+  const raw = Array.isArray(payload?.imageUrls) ? payload.imageUrls : [];
+  const urls = raw.map(value => String(value || '').trim()).filter(Boolean);
+  if (!urls.length && payload?.imageUrl) {
+    const single = String(payload.imageUrl).trim();
+    if (single) urls.push(single);
+  }
+  return [...new Set(urls)];
+}
+
+async function validateBannerTarget({ productId, shopId, isExclusiveOffer }) {
+  if (productId && shopId) return new Error('A banner can link to a product or a shop, not both.');
+  if (!isExclusiveOffer) return null;
+  if (!productId && !shopId) return new Error('An Exclusive Offer must be linked to a product or a shop.');
+  if (productId) {
+    const { data, error } = await supabase.from('products').select('id').eq('id', productId).maybeSingle();
+    if (error) return error;
+    if (!data) return new Error('The selected product no longer exists.');
+  }
+  if (shopId) {
+    const { data, error } = await supabase.from('shops').select('id').eq('id', shopId).maybeSingle();
+    if (error) return error;
+    if (!data) return new Error('The selected shop no longer exists.');
+  }
+  return null;
+}
+
 export async function createPromotionalBanner(payload) {
   if (!supabase) return { data: null, error: new Error('Supabase is not configured.') };
   const { data:{user} } = await supabase.auth.getUser();
   if (!user) return { data:null, error:new Error('Please sign in first.') };
   if (!String(payload.title||'').trim()) return { data:null, error:new Error('Banner title is required.') };
-  const imageUrls=Array.isArray(payload.imageUrls)?payload.imageUrls.filter(Boolean):[];
-  const imageValue=imageUrls.length?JSON.stringify(imageUrls):String(payload.imageUrl||'').trim()||null;
+  const imageUrls=normalizeBannerImageUrls(payload);
+  if (payload.isExclusiveOffer===true && !imageUrls.length) return { data:null, error:new Error('An Exclusive Offer must have at least one image.') };
+  const targetError=await validateBannerTarget({productId:payload.productId||'',shopId:payload.shopId||'',isExclusiveOffer:payload.isExclusiveOffer===true});
+  if(targetError) return {data:null,error:targetError};
+  const imageValue=imageUrls.length?JSON.stringify(imageUrls):null;
   return supabase.from('promotional_banners').insert({
     title:String(payload.title).trim(), subtitle:String(payload.subtitle||'').trim()||null, eyebrow:payload.isExclusiveOffer===true?(String(payload.eyebrow||'').trim()||null):(String(payload.eyebrow||'LIMITED TIME').trim()||'LIMITED TIME'), exclusive_label:String(payload.exclusiveLabel||'EXCLUSIVE OFFER').trim()||'EXCLUSIVE OFFER',
     image_url:imageValue, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
@@ -1745,8 +1775,13 @@ export async function createPromotionalBanner(payload) {
 }
 export async function updatePromotionalBanner({id,...payload}) {
   if (!supabase) return { data:null, error:new Error('Supabase is not configured.') };
-  const imageUrls=Array.isArray(payload.imageUrls)?payload.imageUrls.filter(Boolean):[];
-  const imageValue=imageUrls.length?JSON.stringify(imageUrls):String(payload.imageUrl||'').trim()||null;
+  if (!id) return { data:null, error:new Error('Banner ID is required.') };
+  if (!String(payload.title||'').trim()) return { data:null, error:new Error('Banner title is required.') };
+  const imageUrls=normalizeBannerImageUrls(payload);
+  if (payload.isExclusiveOffer===true && !imageUrls.length) return {data:null,error:new Error('An Exclusive Offer must have at least one image.')};
+  const targetError=await validateBannerTarget({productId:payload.productId||'',shopId:payload.shopId||'',isExclusiveOffer:payload.isExclusiveOffer===true});
+  if(targetError) return {data:null,error:targetError};
+  const imageValue=imageUrls.length?JSON.stringify(imageUrls):null;
   return supabase.from('promotional_banners').update({
     title:String(payload.title||'').trim(), subtitle:String(payload.subtitle||'').trim()||null, eyebrow:payload.isExclusiveOffer===true?(String(payload.eyebrow||'').trim()||null):(String(payload.eyebrow||'LIMITED TIME').trim()||'LIMITED TIME'), exclusive_label:String(payload.exclusiveLabel||'EXCLUSIVE OFFER').trim()||'EXCLUSIVE OFFER',
     image_url:imageValue, button_text:String(payload.buttonText||'Shop Now').trim()||'Shop Now',
