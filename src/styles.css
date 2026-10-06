@@ -5820,3 +5820,24 @@ button.review-hide-btn,button.view-reviews-btn{
   left:6px;
   top:6px;
 }
+
+/* Final product reviews fix — keep the opened Ratings & comments panel visible above the app navigation. */
+.product-reviews{
+  position:fixed!important;
+  left:50%!important;
+  bottom:76px!important;
+  transform:translateX(-50%)!important;
+  width:min(366px,calc(100vw - 20px))!important;
+  max-height:min(72vh,620px)!important;
+  overflow-y:auto!important;
+  z-index:1000!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+@media(max-width:430px){
+  .product-reviews{
+    bottom:76px!important;
+    width:calc(100vw - 20px)!important;
+    max-height:calc(100vh - 100px)!important;
+  }
+}
