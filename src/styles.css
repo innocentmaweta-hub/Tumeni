@@ -5914,3 +5914,18 @@ button.review-hide-btn,button.view-reviews-btn{
   box-shadow:0 1px 4px #0002;
 }
 .orders-page .order-product-preview:active{transform:scale(.96)}
+/* Checkout delivery address picker */
+.checkout-address-picker{margin-bottom:12px}
+.checkout-address-trigger{width:100%;box-sizing:border-box;cursor:pointer;text-align:left}
+.checkout-address-options{margin-top:-4px;padding:8px;border:1px solid #eee;border-top:0;border-radius:0 0 12px 12px;background:#fff;box-shadow:0 3px 10px #0000000b}
+.checkout-address-options>strong{display:block;padding:5px 5px 8px;font-size:12px}
+.checkout-saved-address,.checkout-map-choice{width:100%;display:flex;align-items:center;justify-content:space-between;gap:9px;border:1px solid #eee;border-radius:10px;background:#fff;padding:10px;margin-bottom:7px;text-align:left;color:#222;cursor:pointer}
+.checkout-saved-address>span,.checkout-map-choice>span{display:flex;align-items:center;gap:9px;min-width:0}
+.checkout-saved-address>span>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.checkout-saved-address small{display:block;color:#777;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.checkout-saved-address.selected{border-color:#ef322d;background:#fff8f7}
+.checkout-map-choice{justify-content:flex-start;color:#ef322d;font-weight:800;margin-bottom:0}
+.checkout-map-choice:disabled{opacity:.6;cursor:wait}
+.checkout-no-address{padding:8px 5px 10px;color:#777;font-size:10px}
+.checkout-address-options .map-picker{margin:9px 0 0}
+
