@@ -41,7 +41,19 @@ export async function getProducts() {
 
   // Product images are optional. If the image table/relationship is not
   // available, keep the product list usable and fall back to image_url.
-  if (imagesError) return { data: products || [], error: null };
+  if (imagesError) {
+    return {
+      data: (products || []).map(p => {
+        const totals = ratingTotals.get(p.id);
+        return {
+          ...p,
+          rating: totals?.count ? totals.sum / totals.count : 0,
+          rating_count: totals?.count || 0
+        };
+      }),
+      error: null
+    };
+  }
 
   const byProduct = new Map();
   for (const image of images || []) {
