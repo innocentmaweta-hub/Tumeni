@@ -5853,3 +5853,64 @@ button.review-hide-btn,button.view-reviews-btn{
 
 /* Exclusive offer: Explore bottom spacing match */
 .explore-results-section .nw-reference-promo{margin-bottom:3px!important;}
+
+
+/* My Orders — clickable product previews */
+.orders-page .order-products-preview{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:10px 15px;
+  border-bottom:1px solid #eeeeee;
+  background:#fff;
+  scrollbar-width:none;
+}
+.orders-page .order-products-preview::-webkit-scrollbar{display:none}
+.orders-page .order-product-preview{
+  flex:0 0 58px;
+  width:58px;
+  border:0;
+  background:none;
+  padding:0;
+  text-align:center;
+  color:#222;
+  position:relative;
+}
+.orders-page .order-product-preview-image{
+  width:58px;
+  height:58px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:1px solid #ededed;
+  border-radius:9px;
+  background:#f7f7f7;
+  color:#aaa;
+}
+.orders-page .order-product-preview-image img{width:100%;height:100%;object-fit:cover;display:block}
+.orders-page .order-product-preview-name{
+  display:block;
+  margin-top:4px;
+  font-size:7px;
+  line-height:1.2;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.orders-page .order-product-preview-qty{
+  position:absolute;
+  right:-2px;
+  top:-3px;
+  min-width:16px;
+  height:16px;
+  padding:0 3px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  background:#ef322d;
+  color:#fff;
+  font-size:7px;
+  font-weight:850;
+  box-shadow:0 1px 4px #0002;
+}
+.orders-page .order-product-preview:active{transform:scale(.96)}
