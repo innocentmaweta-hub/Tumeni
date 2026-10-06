@@ -5849,3 +5849,7 @@ button.review-hide-btn,button.view-reviews-btn{
 
 /* Exclusive Offer slideshow: each slide has an explicit fraction of the expanded track. */
 .nw-reference-promo .nw-promo-image-track{flex:none;}
+
+
+/* Exclusive offer: Explore bottom spacing match */
+.explore-results-section .nw-reference-promo{margin-bottom:3px!important;}
