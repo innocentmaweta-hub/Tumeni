@@ -2003,8 +2003,27 @@ export async function advancedSearchProducts({ query = '', limit = 40, offset = 
     p_offset: safeOffset
   });
   if (error) return { data: [], error };
+
+  const rows = data || [];
+  const ids = rows.map(p => p.id).filter(Boolean);
+  const ratingCounts = new Map();
+  if (ids.length) {
+    const { data: reviews } = await supabase
+      .from('product_reviews')
+      .select('product_id')
+      .in('product_id', ids);
+    for (const review of reviews || []) {
+      ratingCounts.set(review.product_id, (ratingCounts.get(review.product_id) || 0) + 1);
+    }
+  }
+
   return {
-    data: (data || []).map(p => ({ ...p, shop: p.shop || 'Admin Product', rating: Number(p.rating || 0) })),
+    data: rows.map(p => ({
+      ...p,
+      shop: p.shop || 'Admin Product',
+      rating: Number(p.rating || 0),
+      rating_count: ratingCounts.get(p.id) || 0
+    })),
     error: null
   };
 }
